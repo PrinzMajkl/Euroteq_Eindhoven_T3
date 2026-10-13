@@ -18,7 +18,10 @@ Central knowledge base for project scope, background research, technical specifi
 4. [**`water_quality_indicators.md`**](water_quality_indicators.md)
    - Breakdown of the 8 parameters monitored by SUN (City of Nuremberg), why they are measured, and their diagnostic value.
    - The fatal frequency bottleneck: Monthly manual grab sampling missing 2-hour transient storm CSOs.
-5. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
+5. [**`mobile_robot_vs_static_sensors.md`**](mobile_robot_vs_static_sensors.md)
+   - Strategic and engineering rationale contrasting autonomous mobile robotics with stationary sensor grids.
+   - Active gradient tracing, geo-referenced municipal intelligence, 3D corridor/bank erosion mapping, and biofouling economics.
+6. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
    - Strategic rationale for selecting the Pegnitz River (Nuremberg, Bavaria) over generic global waterways.
    - Bavarian LOD2 OpenData integration, realistic transient CSO dynamics, and regulatory compliance (EU WFD, German OGewV, $\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$ acute limit).
 4. [**`international_benchmarks.md`**](international_benchmarks.md)

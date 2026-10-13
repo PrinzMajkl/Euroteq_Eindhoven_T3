@@ -90,14 +90,24 @@ This document contains the slide-by-slide outline, talking points, and brainstor
 - **Tri-Fold State Synchronization & Ground-Truth Verification**:
   - `sync_monitor` continuously tracks pose divergence across physical odometry, AMCL pose, Gazebo `ghost_follower`, and overhead camera ground-truth.
 
-### Slide 7: Rationale for Digital Twin Approach & The Pegnitz Strategy
-- **Why a Digital Twin vs. Alternative Approaches?**:
-  - *Vs. Static Sensors*: Fixed probes cannot localize mobile plumes or unmapped outfalls.
-  - *Vs. Standalone Autonomous Robot*: Onboard compute cannot run spatial plume inversions or maintain historical LOD2 environmental context.
-  - *Vs. Offline Simulation*: A Digital Twin establishes a continuous, bidirectional closed loop—using real-world measurements to update model state, and model inferences to steer physical actions.
+### Slide 7: Rationale: Why Mobile Robotics & Digital Twinning?
+- **Why an Autonomous Mobile Robot Beats Static Sensor Networks**:
+  1. **Active Gradient Tracing vs. Point Dilution**:
+     - *Static Sensor*: Only says "Ammonia peaked at Point X." Cannot tell if the source is 50m upstream, 600m upstream, or on the opposite bank.
+     - *Mobile Robot*: Autonomously follows concentration gradients ($\nabla C$) upstream to pinpoint the exact leaking outfall pipe.
+  2. **Geo-Referenced Intelligence for Municipal Assets**:
+     - Transforms raw telemetry into **concrete, geo-referenced intelligence** for *Stadtentwässerung Nürnberg (SUN)* and *WWA*.
+     - Directly links in-river chemical violations to specific municipal asset IDs (pipe outfalls, overflow weirs), enabling data-driven capital investments (CAPEX) instead of guesswork.
+  3. **Beyond Water Chemistry: 3D Corridor & Bank Morphology Mapping**:
+     - Static probes measure only 1 water parameter at 1 point.
+     - Mobile robot's LiDAR & vision map the **physical 3D river corridor** in real time: detects **riverbank soil erosion, slumping embankments**, sediment siltation blocking culverts, and hazardous debris.
+     - Directly supports **EU WFD long-term river renaturation monitoring** (hydromorphology).
+  4. **Biofouling & Operational Economics**:
+     - Hundreds of submerged static probes foul with algae, biofilm, and silt within days, requiring prohibitive maintenance.
+     - A mobile robot uses **one high-precision sensor payload** that docks, self-cleans, and safely avoids flood/vandalism destruction.
 - **Why the Pegnitz River? (Grounding in Reality)**:
   - *Realistic OpenData*: Ingests Bavarian State LOD2 building models, accurate riverbank terrain, and bridge clearances via [3DCityDB](https://www.asg.ed.tum.de/gis/projekte/3dcitydb/) & [Cesium 3D Tiles](https://sandcastle.cesium.com/?id=3d-tiles-property-lod-river).
-  - *Believable European Scenario*: Solves time-sensitive transient CSO plumes rather than hypothetical continuous raw dumping (contrasting extreme cases like Yamuna River CPCB Class E).
+  - *Believable European Scenario*: Solves time-sensitive transient CSO plumes rather than hypothetical continuous raw dumping.
   - *Regulatory Rigor*: Aligns with actual WWA / LfU enforcement thresholds (EU WFD and German OGewV).
 
 ---
