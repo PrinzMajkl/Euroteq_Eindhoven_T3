@@ -34,35 +34,39 @@ This document contains the slide-by-slide outline, talking points, and brainstor
   - Sewer utilities only track internal pipe water levels—not in-river dispersion.
   - Public health departments face **24–48 hour laboratory incubation delays**, meaning warnings arrive long after bathers have already been exposed.
 
-### Slide 3: Stakeholders & Actionable Solutions (Authorities & Citizens)
-- **Primary Stakeholders: Local & Regional Authorities (Targeted Intelligence)**:
-  - **WWA Nürnberg (*Wasserwirtschaftsamt*) & LfU (*Landesamt für Umwelt*)**:
-    - *Current Data*: Monthly grab-sampling (*Schöpfproben*) missing transient storm events.
-    - *PlumeTrace Value*: Real-time mobile gradient tracking and automated statutory alerts in **$< 60\ \text{s}$** ($\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$ breach under German OGewV).
-  - **SUN (*Stadtentwässerung und Umweltanalytik Nürnberg*)**:
-    - *Current Data*: Internal sewer overflow weir counters; zero visibility into in-river plume dispersion.
-    - *PlumeTrace Value*: Quantitative **3D Pollution Heatmaps** pin-pointing chronic outfall bottlenecks, directing municipal capital expenditure (CAPEX) to the highest-impact locations.
-  - **Gesundheitsamt Nürnberg (*Public Health Department*)**:
-    - *Current Data*: 24–48 hour delayed microbiological petri-dish cultures.
-    - *PlumeTrace Value*: Real-time predictive early warning system forecasting water safety hours ahead of lab cultures.
-- **Secondary Stakeholders: Citizens & Recreators (Immediate Protection)**:
-  - **Fuchslochwelle River Surfers, Pegnitzauen Park Visitors, Dog Walkers**:
-    - *Actionable Tool*: Simple mobile **"Traffic Light" Web App**:
-      - 🟢 **Green (Safe)**: Meets recreational water criteria.
-      - 🟡 **Yellow (Caution)**: Marginal quality / elevated post-storm turbidity.
-      - 🔴 **Red (Hazard)**: Active sewage plume detected – **do not enter water today!**
-    - *Value Framing*: Translates complex chemical metrics into immediate, tangible public health protection.
+### Slide 3: Current Baseline: What Authorities Measure & The Fatal Flaw
+- **The 8 Standard Parameters Monitored by SUN (Stadtentwässerung Nürnberg)**:
+  - **Physico-Chemical Baseline**:
+    - *Water Temperature (°C)*: Dictates biological kinetics, oxygen solubility, and ammonia toxicity.
+    - *pH*: Detects industrial discharges; governs the ratio between ammonium ($\text{NH}_4^+$) and toxic ammonia ($\text{NH}_3$).
+    - *Electrical Conductivity (µS/cm)*: Traces dissolved ions from road salt, industrial effluents, and wastewater.
+    - *Turbidity (NTU)*: Optical indicator of suspended solids from storm runoff, erosion, and raw sewer overflows.
+  - **Ecological & Nutrient Fingerprints**:
+    - *Dissolved Oxygen (DO, mg/L)*: Vital sign of river respiration; plummets during organic sewage decomposition.
+    - *Ammonium ($\text{NH}_4^+$ / $\text{NH}_3\text{-N}$)*: **Primary sewage tracer** from urine/faeces; acute fish toxicant.
+    - *Nitrate ($\text{NO}_3^-$)*: Dissolved nitrogen from agricultural fertilizer leaching (Knoblauchsland).
+    - *Phosphate ($\text{PO}_4^{3-}$)*: Eutrophication nutrient triggering excessive algal blooms.
+- **The Fatal Flaw: The Temporal-Frequency Disconnect**:
+  - Authorities know *what* to measure, but current monitoring relies on **manual grab sampling (*Schöpfproben*) once a month (or bi-weekly)**.
+  - **The Reality**: Severe storm CSOs and runoff spikes are **transient events lasting only 2 to 4 hours**.
+  - **The Blind Spot**: Monthly sampling has a near-zero probability of catching peak toxicity before it dilutes and washes downstream!
 
-### Slide 4: Challenge Definition & The Closed-Loop Solution
+### Slide 4: Stakeholders, Challenge Definition & The Closed-Loop Solution
+- **Stakeholder Architecture (Closing the Monitoring Gap)**:
+  - **Primary: Local & Regional Authorities**:
+    - *WWA Nürnberg & LfU*: Move from monthly grab-sampling to real-time mobile gradient tracking and automated alerts in **$< 60\ \text{s}$** ($\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$).
+    - *SUN*: Move from internal overflow weir counters to quantitative **3D Pollution Heatmaps** in Cesium/LOD2 to direct multi-million € sewer retention CAPEX.
+    - *Gesundheitsamt*: Move from 24–48h delayed lab Petri-dish incubation to real-time predictive advisories.
+  - **Secondary: Citizens & Recreators (Fuchslochwelle Surfers, Pegnitzauen Park Visitors)**:
+    - Simple mobile **"Traffic Light" Web App** (🟢 Safe / 🟡 Caution / 🔴 Hazard: Active sewage spill – Do not enter).
 - **Formal Challenge Statement**:
   > *"How can digital twinning be applied to autonomous systems in order to address the challenge of detecting and localizing transient Combined Sewer Overflows (CSOs) for the Wasserwirtschaftsamt and regional environmental authorities?"*
-- **The Solution: Autonomous Closed-Loop Digital Twin**:
-  - A mobile autonomous platform navigates the river corridor, continuously streaming water quality ($\text{NH}_3\text{-N}$, $\text{DO}$) to the cloud Digital Twin.
-  - **4D Adaptive Re-Tasking**: Instead of rigid fixed routes, the Digital Twin dynamically computes where the robot must sample next based on:
-    1. **Data Age / Uncertainty ($\tau$)**: Refreshing stale observation zones.
-    2. **Chemical Gradients ($\nabla C$)**: Homing upstream toward acute spikes ($> 0.6\ \text{mg/L}$).
-    3. **Meteorological Forecasts ($W$)**: Re-allocating assets to reaches downstream of active rain radar cells.
-    4. **Historical Baselines ($H$)**: Isolating true anomalies from seasonal background trends.
+- **The Solution: 4D Adaptive Closed-Loop Retasking**:
+  - The autonomous platform streams real-time proxy data ($\text{NH}_3\text{-N}$, $\text{DO}$) every 30s. The Digital Twin calculates the next sampling target based on:
+    1. **Data Age ($\tau$)**: Exploring unvisited reaches.
+    2. **Chemical Gradients ($\nabla C$)**: Homing upstream to the active outfall pipe.
+    3. **Rain Radar ($W$)**: Re-positioning ahead of storm cell runoff.
+    4. **Historical Baselines ($H$)**: Filtering background fluctuations.
 
 ---
 

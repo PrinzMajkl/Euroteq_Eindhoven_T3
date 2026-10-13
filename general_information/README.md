@@ -15,7 +15,10 @@ Central knowledge base for project scope, background research, technical specifi
 3. [**`stakeholder_use_cases.md`**](stakeholder_use_cases.md)
    - Deep dive into the 4 core local pillars of the Pegnitz: Public Health & Fuchslochwelle surfers, Urban CSOs & municipal pipes, Knoblauchsland agriculture & groundwater, Drought & fish kill resilience.
    - Citizen "Traffic Light" app vs. Municipal diagnostic dashboard, and 4D adaptive retasking objective function.
-4. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
+4. [**`water_quality_indicators.md`**](water_quality_indicators.md)
+   - Breakdown of the 8 parameters monitored by SUN (City of Nuremberg), why they are measured, and their diagnostic value.
+   - The fatal frequency bottleneck: Monthly manual grab sampling missing 2-hour transient storm CSOs.
+5. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
    - Strategic rationale for selecting the Pegnitz River (Nuremberg, Bavaria) over generic global waterways.
    - Bavarian LOD2 OpenData integration, realistic transient CSO dynamics, and regulatory compliance (EU WFD, German OGewV, $\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$ acute limit).
 4. [**`international_benchmarks.md`**](international_benchmarks.md)
