@@ -23,3 +23,6 @@ Do not place arbitrary files in the repository root. The root should only contai
 - **Predictable File Naming**: Use snake_case or kebab-case for filenames, avoiding spaces and special characters (e.g., `slides_brainstorm.md`, `problem_statement.md`).
 - **Indices & Cross-Linking**: Every subdirectory must have a `README.md` acting as a navigation index linking to relevant documents in that folder.
 - **Scannable Formatting**: Use standard GitHub-flavored Markdown with clear headings (`#`, `##`, `###`), bullet points, and tables where applicable to ensure optimal token efficiency and semantic clarity for AI models.
+
+## 4. Automated Git Synchronization Rule
+- **Automatic Commits & Pushes**: Whenever changes, additions, or edits are made to files in the repository during any task, the agent must automatically stage, commit (with a concise, meaningful English commit message), and push all changes to the remote branch (`origin main`) without waiting for manual push reminders.
