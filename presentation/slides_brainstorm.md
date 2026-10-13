@@ -23,16 +23,19 @@ This document contains the slide-by-slide outline, talking points, and brainstor
 ## 2. Context and Challenge (Max 3 Slides)
 *Target Audience: Stakeholders*
 
-### Slide 2: Context & Problem: Pressures on the Pegnitz
-- **Four Interconnected Pressures Unified Under Municipal Oversight**:
-  1. **Urban Sewage Overflows**: Convective storm downpours overload Nuremberg's sewer network, triggering Combined Sewer Overflows (CSOs) that spill untreated wastewater directly into the Pegnitz.
-  2. **Agricultural Infiltration (Knoblauchsland)**: Intensive vegetable farming generates nitrate and pesticide runoff that infiltrates the river and alluvial drinking water aquifers via bank filtration (*Uferfiltrat*).
-  3. **Summer Drought & Hypoxia**: Low water levels concentrate pollutants, triggering acute oxygen depletion ($\text{DO} < 3\ \text{mg/L}$) and catastrophic fish kills.
-  4. **Direct Public Health Risk**: Contamination surges directly threaten urban surfers at the **Fuchslochwelle** wave, swimmers, and families in the **Pegnitzauen** park meadows.
+### Slide 2: Context & Problem: Pressures on the Pegnitz (Real Numbers & Media Evidence)
+- **What Happens When the Pegnitz Collapses? (Concrete Damage Metrics)**:
+  1. **Direct Public Health Threat ("Durchfall-Welle" in Local Media)**:
+     - The **Fuchslochwelle** river-surfing wave in western Nuremberg made German media headlines (*t-online*, *inFranken*) as the **"Durchfall-Welle" (Diarrhea Wave)**.
+     - While surfing is permitted, *swimming is strictly prohibited* due to severe bacterial contamination after rain. Surfers face acute viral, bacterial, and ear infections.
+  2. **Urban Sewer Bottlenecks & Infrastructure Stakes**:
+     - Modernizing a single storm overflow retention basin (*RÜB*) costs **€1.5M to €5.0M+** for just 1,000–3,000 $m^3$. With ~1,500 km of sewers, blind upgrades waste millions on the wrong outfalls.
+  3. **Ecological Hypoxia & Summer Die-Offs**:
+     - August heatwaves in Nuremberg's Wöhrder See / Pegnitz caused mass fish die-offs ($\text{DO} < 3.0\ \text{mg/L}$), forcing the *Fischereiverband Mittelfranken* to deploy boats to collect thousands of floating carcasses.
+  4. **Agricultural Infiltration & EU Fines**:
+     - Knoblauchsland nitrate runoff risks statutory "Red Zone" designation and EU Court fines reaching **up to €850,000 per day** for systemic directive violations.
 - **The Core Bottleneck**:
-  - Current state monitoring relies on **sparse static gauges** (GKD stations) or **infrequent manual grab-sampling** every few weeks.
-  - Sewer utilities only track internal pipe water levels—not in-river dispersion.
-  - Public health departments face **24–48 hour laboratory incubation delays**, meaning warnings arrive long after bathers have already been exposed.
+  - Current monitoring relies on **manual grab sampling once a month** or sparse static gauges. Sewer utilities only track internal pipe water levels—not in-river dispersion. Public health departments face **24–48 hour laboratory incubation delays**.
 
 ### Slide 3: Current Baseline: What Authorities Measure & The Fatal Flaw
 - **The 8 Standard Parameters Monitored by SUN (Stadtentwässerung Nürnberg)**:
@@ -52,13 +55,11 @@ This document contains the slide-by-slide outline, talking points, and brainstor
   - **The Blind Spot**: Monthly sampling has a near-zero probability of catching peak toxicity before it dilutes and washes downstream!
 
 ### Slide 4: Stakeholders, Challenge Definition & The Closed-Loop Solution
-- **Stakeholder Architecture (Closing the Monitoring Gap)**:
-  - **Primary: Local & Regional Authorities**:
-    - *WWA Nürnberg & LfU*: Move from monthly grab-sampling to real-time mobile gradient tracking and automated alerts in **$< 60\ \text{s}$** ($\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$).
-    - *SUN*: Move from internal overflow weir counters to quantitative **3D Pollution Heatmaps** in Cesium/LOD2 to direct multi-million € sewer retention CAPEX.
-    - *Gesundheitsamt*: Move from 24–48h delayed lab Petri-dish incubation to real-time predictive advisories.
-  - **Secondary: Citizens & Recreators (Fuchslochwelle Surfers, Pegnitzauen Park Visitors)**:
-    - Simple mobile **"Traffic Light" Web App** (🟢 Safe / 🟡 Caution / 🔴 Hazard: Active sewage spill – Do not enter).
+- **Multi-Tier Governance: Is it a City or a State Problem? (Both!)**:
+  - **City Perspective (*Stadt Nürnberg / SUN / Gesundheitsamt*)**: Focuses on ~1,500 km of local sewer pipes, specific outfall IDs, prioritizing retention CAPEX (€), and immediate citizen warnings for Fuchslochwelle surfers (Citizen "Traffic Light" app: 🟢/🟡/🔴).
+  - **State Perspective (*WWA Nürnberg / LfU Bayern*)**: Focuses on entire catchment compliance (EU WFD, German OGewV, SDG 6.3.2), agricultural drainage, and triggering emergency upstream reservoir releases (Rothsee transfer).
+- **The Robot as a "Continuous Spatial Profiler" (Acute Spills + Chronic Seepage)**:
+  - *Beyond Emergency Spills*: By patrolling the riverbank over time, the robot uncovers **chronic, low-level seepage** from cracked underground pipes and failing seals that static sensors miss, building a historical spatio-temporal map for city planners.
 - **Formal Challenge Statement**:
   > *"How can digital twinning be applied to autonomous systems in order to address the challenge of detecting and localizing transient Combined Sewer Overflows (CSOs) for the Wasserwirtschaftsamt and regional environmental authorities?"*
 - **The Solution: 4D Adaptive Closed-Loop Retasking**:
@@ -78,7 +79,9 @@ This document contains the slide-by-slide outline, talking points, and brainstor
   - **Physical Lab Arena**: TurtleBot3 Burger running **ROS 2 Jazzy** (`turtlebot3_bringup`), LiDAR LDS-02, and OpenCR base; overhead tracking camera.
   - **Lab Desktop Engine**: Navigation stack (AMCL, Nav2, keepout filter, collision monitor), robot-side logic (`emulated_sensor`, `edge_buffer`, `link_gate`), and Digital Twin (`twin_core`, `mission_controller`, `sync_monitor`, `obstacle_registry`, `virtual_obstacle_cloud`).
   - **Simulation Mirror**: **Gazebo Harmonic** (`gz sim`) with `ros_gz_bridge`, ghost robot follower, and dynamic obstacle spawner.
-  - **Gateway & Dashboard**: `gateway node` (JSON over WebSocket `:8765`, WGS84 coordinate mapping) serving **PlumeTrace City View** (CesiumJS 3D globe with Bavarian LOD2 OpenData).
+  - **Gateway & Dashboard (PlumeTrace City View)**: `gateway node` (JSON over WebSocket `:8765`, WGS84 mapping) serving **CesiumJS 3D Globe with Bavarian LOD2 OpenData**, featuring dual perspective modes:
+    - *City Asset View*: Outfall health scores, pipe IDs, retention CAPEX priority.
+    - *State Catchment View*: Reach-wide mass balance, EU WFD compliance, reservoir dispatch triggers.
 
 ### Slide 6: Key Design Decisions (DTAS Criteria)
 - **Bidirectional Communication & Link Fault Modeling**:

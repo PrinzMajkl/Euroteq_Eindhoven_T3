@@ -21,7 +21,12 @@ Central knowledge base for project scope, background research, technical specifi
 5. [**`mobile_robot_vs_static_sensors.md`**](mobile_robot_vs_static_sensors.md)
    - Strategic and engineering rationale contrasting autonomous mobile robotics with stationary sensor grids.
    - Active gradient tracing, geo-referenced municipal intelligence, 3D corridor/bank erosion mapping, and biofouling economics.
-6. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
+6. [**`quantitative_impacts_and_governance.md`**](quantitative_impacts_and_governance.md)
+   - Empirical damage metrics: €1.5M–€5M basin costs, €850k/day EU fines, Wöhrder See fish die-offs.
+   - Public health media evidence: The Fuchslochwelle "Durchfall-Welle" (Diarrhea Wave) case.
+   - Continuous Spatial Profiler concept (chronic pipe seepage vs emergency spills).
+   - Multi-tier governance: State (WWA/LfU) vs. City (Stadt Nürnberg/SUN) UI dashboard perspectives.
+7. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
    - Strategic rationale for selecting the Pegnitz River (Nuremberg, Bavaria) over generic global waterways.
    - Bavarian LOD2 OpenData integration, realistic transient CSO dynamics, and regulatory compliance (EU WFD, German OGewV, $\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$ acute limit).
 4. [**`international_benchmarks.md`**](international_benchmarks.md)
