@@ -1,125 +1,98 @@
-# Local Stakeholder Use Cases: The Pegnitz River Ecosystem
+# Local Stakeholder Framework: Authorities & Citizens in Nuremberg
 
-A deep-dive into the four distinct socio-ecological pillars that justify deploying the PlumeTrace Digital Twin on the Pegnitz River in Nuremberg, Bavaria.
+Strategic stakeholder architecture categorizing the PlumeTrace Digital Twin ecosystem into two primary groups: **Local Authorities** (Primary) and **Citizens & Recreators** (Secondary). All environmental pressures (urban CSOs, Knoblauchsland agriculture, drought/hypoxia) are channeled directly through municipal oversight.
 
 ---
 
-## 1. The Four Pillar Framework
+## 1. Stakeholder Hierarchy
 
 ```text
 +---------------------------------------------------------------------------------------------------+
-|                                 PEGNITZ RIVER USE-CASE PILLARS                                    |
-+----------------------------------+----------------------------------+-----------------------------+
-| 1. PUBLIC HEALTH & RECREATION    | 2. URBAN INFRASTRUCTURE (CSOs)   | 3. AGRICULTURE & DRINKING   |
-| - Fuchslochwelle river surfers   | - Stormwater sewer overflows     | - Knoblauchsland runoff     |
-| - Pegnitzauen parks & waders     | - Hidden/under-capacitated pipes | - Groundwater protection    |
-| - "Traffic Light" warning app    | - Municipal investment heatmaps  | - Fertilizer optimization   |
-+----------------------------------+----------------------------------+-----------------------------+
-|                                4. ECOLOGY & CLIMATE RESILIENCE                                    |
-| - Low summer water levels & concentrated toxic pollutants                                         |
-| - Acute hypoxia & fish kills                                                                      |
-| - Automated alerts triggering upstream reservoir water releases (e.g., Rothsee transfer)          |
+|                                 STAKEHOLDER ARCHITECTURE                                          |
++---------------------------------------------------------------------------------------------------+
+|                                PRIMARY STAKEHOLDERS: LOCAL AUTHORITIES                            |
+|  - WWA Nürnberg (Wasserwirtschaftsamt Nürnberg)           --> River reach monitoring & enforcement|
+|  - SUN (Stadtentwässerung und Umweltanalytik Nürnberg)     --> Municipal sewer network & CSOs      |
+|  - LfU (Bayerisches Landesamt für Umwelt)                 --> Bavarian statewide water regulation |
+|  - Gesundheitsamt Nürnberg (Public Health Department)     --> Recreational water safety advisories|
++---------------------------------------------------------------------------------------------------+
+|                           SECONDARY STAKEHOLDERS: CITIZENS & RECREATORS                           |
+|  - Fuchslochwelle river surfers                                                                   |
+|  - Pegnitzauen park visitors, swimmers, waders, dog owners                                        |
+|  - Recreational water sports clubs & anglers                                                      |
 +---------------------------------------------------------------------------------------------------+
 ```
 
 ---
 
-## 2. Detailed Pillar Profiles
+## 2. Primary Stakeholders: Local Authorities & Current vs. Improved Data
 
-### Pillar 1: Public Health and Urban Recreation
-- **The Local Reality**:
-  - The Pegnitz flows directly through urban Nuremberg and popular public green corridors (**Pegnitzauen**).
-  - High-impact recreational spot: The **Fuchslochwelle**, an artificial river-surfing wave attracting daily surfers, alongside kayakers, dog owners, and families wading along the riverbanks.
-- **The Acute Threat**:
-  - Unseen fecal and untreated wastewater contamination spikes enter the reach following localized rainfall events, exposing water-sports athletes and citizens to pathogenic risks and skin/gastrointestinal infections.
-- **Data Utilization & Digital Twin Role**:
-  - The Digital Twin powers a real-time **Dynamic Early Warning System**, predicting when and where water quality deteriorates hours before standard grab-tests could even be processed.
-- **Public Communication & Interface**:
-  - A citizen-facing mobile app interface based on a simple **"Traffic Light"** indicator:
-    - 🟢 **Green**: Safe for recreation.
-    - 🟡 **Yellow**: Caution – elevated turbidity / marginal readings.
-    - 🔴 **Red**: Danger – active contamination plume detected; do not enter the water.
-  - *Strategic Impact*: Shifts the narrative from abstract ecological metrics to **tangible, immediate human health protection**.
+### A. WWA Nürnberg (*Wasserwirtschaftsamt Nürnberg*)
+- **Official Role**: Regional State Water Management Office responsible for hydrological monitoring, river ecological status (EU WFD), flood protection, and emergency point-source pollution tracking along the Pegnitz.
+- **Current Baseline (What they measure now)**:
+  - **Static River Gauges (GKD Bayern)**: Single-point monitoring stations (e.g., Pegnitz-Doos, Nürnberg gauge) tracking water discharge ($m^3/s$), water temperature, and electrical conductivity.
+  - **Manual Grab Sampling (*Schöpfproben*)**: Physical collection of water samples taken by field technicians at fixed intervals (typically monthly or bi-weekly).
+- **The Bottleneck**:
+  - Point stations only detect what flows directly past their probe; they cannot pinpoint where upstream an unmapped discharge occurred.
+  - Manual grab sampling completely misses transient 2-to-4-hour Combined Sewer Overflows (CSOs) triggered by localized summer storm cells.
+- **How PlumeTrace Improves It**:
+  - Provides **mobile spatial gradient tracing** directly back to the active discharge source.
+  - Delivers automated, geolocated statutory alerts in **$< 60\ \text{seconds}$** upon threshold breach ($\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$ under German OGewV).
 
 ---
 
-### Pillar 2: Urban Infrastructure & Stormwater Sewer Systems
-- **The Local Reality**:
-  - Like many historic European cities, Nuremberg features combined sewer systems carrying both stormwater and domestic wastewater.
-- **The Acute Threat**:
-  - Sudden, heavy convective storm downpours overload treatment plant capacities, triggering Combined Sewer Overflows (CSOs) that discharge untreated sewage directly into the Pegnitz through relief outfalls.
-- **Data Utilization & Digital Twin Role**:
-  - The mobile robotic platform measures chemical plumes ($\text{NH}_3\text{-N}$, $\text{DO}$), while the Digital Twin reconstructs the spatial plume gradient back upstream, identifying *which specific outfall pipes* suffer from recurring hydraulic bottlenecks or chronic under-capacity.
-- **Authority Communication & Interface**:
-  - Deliver high-resolution **Pollution Heatmaps** to municipal utility authorities (*Stadtentwässerung und Umweltanalytik Nürnberg - SUN*) and the *Wasserwirtschaftsamt*.
-  - *Strategic Impact*: Replaces guesswork with empirical diagnostic data, enabling city planners to direct multimillion-euro municipal infrastructure modernization budgets to the exact outfalls causing the greatest environmental harm.
+### B. SUN (*Stadtentwässerung und Umweltanalytik Nürnberg*)
+- **Official Role**: Municipal drainage, sewer network, and environmental analytics utility of the City of Nuremberg. Manages ~1,500 km of public sewers, wastewater treatment plants (*Klärwerk 1 & 2*), stormwater retention basins (*Regenüberlaufbecken - RÜB*), and CSO relief structures (*Regenüberläufe - RÜ*).
+- **Current Baseline (What they measure now)**:
+  - **Internal Sewer SCADA Telemetry**: Level sensors and overflow weir trip-counters inside underground retention tanks.
+- **The Bottleneck**:
+  - They know *if* and *when* an overflow weir spilled, but have **zero visibility into how the pollution plume disperses in the river**, how acute the chemical concentration is, or how long the aquatic reach remains toxic.
+  - Capital investment decisions (which multi-million-euro retention basins need expansion) rely on theoretical hydraulic models rather than empirical in-river impact data.
+- **How PlumeTrace Improves It**:
+  - Generates quantitative **3D In-River Pollution Heatmaps** in Cesium/LOD2 mapping the exact dispersion plume of specific sewer outfalls.
+  - Pinpoints which specific outfalls cause the greatest in-stream ecological violations, providing concrete data justification for targeted municipal infrastructure investments.
 
 ---
 
-### Pillar 3: Agriculture & Groundwater Protection (Knoblauchsland)
-- **The Local Reality & Agronomic Context**:
-  - The Nuremberg-Fürth-Erlangen metropolitan basin borders the **Knoblauchsland**, one of Central Europe's largest contiguous intensive vegetable-farming areas (~4,000 hectares producing cabbages, lettuces, carrots, and greenhouse crops).
-  - The soils are predominantly sandy and alluvial, characterized by high water permeability and low nutrient retention capacity. Intensive irrigation coupled with synthetic/organic nitrogen application leads to rapid leaching.
-- **The Regulatory Conflict: The Threat of "Red Areas" (*Rote Gebiete*)**:
-  - Under the EU Nitrates Directive and the German **Düngeverordnung (Fertilizer Ordinance)**, regions with elevated nitrate in groundwater are designated as statutory **"Red Areas" (*Rote Gebiete*)**.
-  - *The Penalty*: Farmers in Red Areas face mandatory, indiscriminate blanket sanctions—such as a **mandatory 20% cut below crop nitrogen requirements**, extended moratorium periods (*Sperrfristen*) where no fertilizer may be applied, and burdensome bureaucracy.
-  - *The Farmers' Core Grievance*: Blanket bans penalize *all* farmers equally—including responsible growers practicing sustainable management—because current state monitoring relies on a sparse handful of isolated groundwater test wells (*Messstellen*), providing zero spatial granularity on who is actually leaking.
-- **How PlumeTrace Pinpoints Drainage & Empowers Precision Farming**:
-  1. **Mapping Tile Drains & Ditch Confluences (*Entwässerungsgräben*)**:
-     - Knoblauchsland is drained by an intricate network of agricultural ditches and underground tile pipes emptying directly into the Pegnitz.
-     - The autonomous robot traverses the riverbank and samples these specific drainage mouths, identifying *which specific drainage sector* is discharging elevated nitrogen/ammonium vs. which sectors maintain clean runoff.
-  2. **Correlating First-Flush Events with Weather Radar**:
-     - Fertilizer leaching does not occur uniformly; acute spikes happen during **"first-flush" rainfall events** following fertilizer application, or during excessive overhead irrigation.
-     - By cross-referencing real-time runoff spikes with high-resolution radar precipitation data, the Digital Twin distinguishes between soil-bound background leaching and preventable operational washouts (e.g., fertilizing immediately before convective downpours).
-  3. **From Punitive Blanket Bans to Actionable Nutrient Guidance**:
-     - Instead of indiscriminate 20% quota cuts, data is shared constructively with agricultural cooperatives (*Bayerischer Bauernverband*, *Maschinenringe*):
-       - **Application Timing**: Advises on optimal fertilization windows based on predicted runoff risk.
-       - **Split-Dosage & Inhibitors**: Recommends split nitrogen applications or nitrification inhibitors specifically on fields with proven high ditch runoff.
-       - **Targeted Riparian Buffers (*Gewässerrandstreifen*)**: Establishes vegetative buffer strips and bio-retention swales *only* at leaking drainage hotspots, preserving productive acreage elsewhere.
-  4. **Groundwater & Drinking Water Aquifer Protection**:
-     - The Pegnitz directly interacts with alluvial groundwater aquifers via **bank filtration (*Uferfiltrat*)**, a critical natural water purification mechanism supplying municipal drinking water wells.
-     - Preventing high nitrate and pesticide concentrations from entering riverbank drainage directly shields adjacent drinking water aquifers from irreversible contamination.
+### C. LfU (*Bayerisches Landesamt für Umwelt*)
+- **Official Role**: Bavarian State Office for the Environment. Sets statewide environmental thresholds, oversees compliance with the EU Water Framework Directive (WFD), and enforces the German *Oberflächengewässerverordnung* (OGewV).
+- **Current Baseline**: Aggregated macrozoobenthos biological surveys, long-term trend statistics, and chemical monitoring networks.
+- **How PlumeTrace Improves It**:
+  - Feeds high-resolution spatio-temporal data into regional hydrodynamic models, linking upstream agricultural drainage (Knoblauchsland) and urban CSOs with downstream water quality.
+  - Verifies compliance with EU ambient water quality indicator SDG 6.3.2.
 
 ---
 
-### Pillar 4: Climate Change Resilience, Drought & Ecosystem Collapse
-- **The Local Reality**:
-  - Prolonged summer droughts and climate extremes increasingly lead to critically low discharge levels in the Pegnitz, dramatically reducing the river’s natural dilution capacity.
-- **The Acute Threat**:
-  - Warmer water temperatures combined with reduced flow cause toxic pollutant concentration spikes and trigger rapid biological oxygen depletion ($\text{DO} < 3\ \text{mg/L}$), precipitating catastrophic mass fish kills.
-- **Data Utilization & Digital Twin Role**:
-  - Continuous monitoring identifies early hypoxic hotspots and critical biological degradation before massive die-offs occur.
-  - Integrates with regional water management telemetry to trigger active hydrological interventions (e.g., regulated flow augmentation from upstream reservoirs via the Bavarian Danube-Main transfer system).
-- **Stakeholder Engagement & Interface**:
-  - Automated early warning alerts dispatched to regional angling associations (*Fischereiverband*) and nature conservation agencies.
-  - *Strategic Impact*: Preserves aquatic biodiversity and generates powerful visual PR evidence demonstrating proactive municipal climate resilience.
+### D. Gesundheitsamt Nürnberg (*City Public Health Department*)
+- **Official Role**: Municipal department responsible for public health protection, infectious disease prevention, and recreational water advisories.
+- **Current Baseline (What they measure now)**:
+  - **Laboratory Petri-Dish Cultures**: Periodic testing for microbiological pathogens (*Escherichia coli*, *intestinal enterococci*).
+- **The Bottleneck**:
+  - Incubation tests require **24 to 48 hours** to produce results. By the time contamination is confirmed in the laboratory, the acute storm plume has already passed, and surfers or bathers have already been exposed to contaminated water.
+- **How PlumeTrace Improves It**:
+  - Connects real-time physical chemical sensing ($\text{NH}_3\text{-N}$, $\text{DO}$) to predictive dispersion models, forecasting water safety hours ahead of delayed laboratory cultures.
 
 ---
 
-## 3. The Dual-Dashboard Product Architecture
+## 3. Secondary Stakeholders: Citizens & Recreators
 
-```text
-+---------------------------------------------------------------------------------------------------+
-|                               PLUMETRACE USER INTERACTION MODEL                                   |
-+---------------------------------------------------+-----------------------------------------------+
-| CITIZEN DASHBOARD (Recreation & Public Health)     | REGULATORY / MUNICIPAL PORTAL (Authorities)   |
-+---------------------------------------------------+-----------------------------------------------+
-| - Target: Fuchslochwelle surfers, dog walkers     | - Target: Wasserwirtschaftsamt, City SUN      |
-| - Traffic Light Banner (Green / Yellow / Red)     | - Quantitative Cesium 3D LOD2 Spatial Viewer  |
-| - Live Advisory: "Unsafe for water contact today" | - Diagnostic Outfall Capacity Heatmaps        |
-| - Push notifications for active CSO plumes        | - Statistical Reports for Infrastructure CAPEX|
-+---------------------------------------------------+-----------------------------------------------+
-```
+### The Target Community:
+- Urban river surfers at the **Fuchslochwelle** wave in Nuremberg.
+- Recreational visitors in the **Pegnitzauen** park corridors.
+- Swimmers, children wading in shallow sections, and dog owners.
+
+### The Actionable Interface: Citizen "Traffic Light" App
+- Instead of overwhelming the public with chemical metrics ($\text{mg/L}\ \text{NH}_3\text{-N}$ or $\mu\text{S/cm}$), data is translated into an immediate, intuitive visual standard:
+  - 🟢 **Green (Safe)**: Water quality meets recreational safety standards.
+  - 🟡 **Yellow (Caution)**: Marginal conditions, elevated turbidity or post-storm flow.
+  - 🔴 **Red (Hazard - Do Not Enter)**: Active contamination plume detected; high risk of skin/gastrointestinal infection.
+- **Strategic Impact**: Establishes a direct public health value proposition that resonates strongly with everyday citizens, local media, and presentation juries.
 
 ---
 
-## 4. Autonomous Closed-Loop Re-Tasking Dynamics
+## 4. Unifying Agricultural, Ecological, and Urban Pressures under Municipal Oversight
 
-The robot does not follow a blind, static path. The Digital Twin actively commands where the robot must sample next based on an integrated 4-dimensional objective function:
-
-$$\text{Next Target} = f\Big(\text{Data Age } (\tau),\ \text{Concentration Gradient } (\nabla C),\ \text{Weather / Rain Forecast } (W),\ \text{Historical Baseline } (H)\Big)$$
-
-1. **Information Freshness (Data Age $\tau$)**: Drives exploratory waypoints to areas where measurements are stale or unverified.
-2. **Chemical Gradient ($\nabla C$)**: Vectors the robot upstream toward increasing $\text{NH}_3\text{-N}$ and decreasing $\text{DO}$ gradients when an acute spike is flagged.
-3. **Meteorological & Radar Feeds ($W$)**: Re-allocates patrol focus to specific outfall reaches downstream of intense localized convective storm cells.
-4. **Historical Baselines ($H$)**: Compares live readings against long-term seasonal baselines to isolate anomalous behavior from normal background variations.
+Rather than treating farmers or fisheries as separate independent clients, their concerns are channeled directly into municipal and authority mandates:
+1. **Urban Sewage Overflows**: Governed and remediated by **SUN** using PlumeTrace diagnostic heatmaps.
+2. **Agricultural Leaching (Knoblauchsland)**: Monitored and enforced by **WWA Nürnberg** through targeted drainage mouth sampling, replacing blunt blanket bans with empirical point-source evidence.
+3. **Drought, Hypoxia & Fish Kills**: Handled by **WWA Nürnberg** and state water managers via automated hypoxic alerts ($\text{DO} < 3\ \text{mg/L}$) that trigger emergency fresh-water discharge from upstream storage systems (Bavarian Danube-Main water transfer / Rothsee reservoir).

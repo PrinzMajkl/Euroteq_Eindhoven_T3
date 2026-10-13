@@ -23,31 +23,35 @@ This document contains the slide-by-slide outline, talking points, and brainstor
 ## 2. Context and Challenge (Max 3 Slides)
 *Target Audience: Stakeholders*
 
-### Slide 2: Context & Problem Hook: The Pegnitz River Paradox
-- **Why the Pegnitz? Four Interconnected Urgencies**:
-  1. **Public Health & Recreation (The Immediate Hook)**:
-     - Fecal contamination directly threatens urban surfers at Nuremberg's **Fuchslochwelle** wave, alongside swimmers, dog walkers, and families in the **Pegnitzauen** park meadows.
-  2. **Urban Infrastructure Bottlenecks**:
-     - Convective storm downpours overwhelm Nuremberg's sewer system, causing Combined Sewer Overflows (CSOs) that dump untreated wastewater into the river.
-  3. **Agriculture & Drinking Water Aquifers**:
-     - Intensive vegetable farming in the adjacent **Knoblauchsland** generates nitrate/pesticide runoff that infiltrates alluvial groundwater used for regional drinking water.
-  4. **Climate Extremes & Ecosystem Hypoxia**:
-     - Prolonged summer droughts lower river discharge, concentrating pollutants and triggering acute oxygen crashes ($\text{DO} < 3\ \text{mg/L}$) and devastating fish kills.
+### Slide 2: Context & Problem: Pressures on the Pegnitz
+- **Four Interconnected Pressures Unified Under Municipal Oversight**:
+  1. **Urban Sewage Overflows**: Convective storm downpours overload Nuremberg's sewer network, triggering Combined Sewer Overflows (CSOs) that spill untreated wastewater directly into the Pegnitz.
+  2. **Agricultural Infiltration (Knoblauchsland)**: Intensive vegetable farming generates nitrate and pesticide runoff that infiltrates the river and alluvial drinking water aquifers via bank filtration (*Uferfiltrat*).
+  3. **Summer Drought & Hypoxia**: Low water levels concentrate pollutants, triggering acute oxygen depletion ($\text{DO} < 3\ \text{mg/L}$) and catastrophic fish kills.
+  4. **Direct Public Health Risk**: Contamination surges directly threaten urban surfers at the **Fuchslochwelle** wave, swimmers, and families in the **Pegnitzauen** park meadows.
 - **The Core Bottleneck**:
-  - Traditional monitoring relies on manual "grab sampling" every few weeks. It completely misses acute, transient storm plumes and cannot trace them back to the leaking pipe before they dissipate.
+  - Current state monitoring relies on **sparse static gauges** (GKD stations) or **infrequent manual grab-sampling** every few weeks.
+  - Sewer utilities only track internal pipe water levels—not in-river dispersion.
+  - Public health departments face **24–48 hour laboratory incubation delays**, meaning warnings arrive long after bathers have already been exposed.
 
-### Slide 3: Stakeholders & Actionable Communication (Dual-Dashboard Model)
-- **Translating Data into Direct Human & Institutional Action**:
-  - **Citizens & River Athletes (Fuchslochwelle Surfers, Recreators, Dog Walkers)**:
-    - *Communication*: Simple mobile **"Traffic Light" System** (🟢 Safe / 🟡 Caution / 🔴 Danger: Active Contamination - Do not enter water today).
-    - *Framing*: Protects human health directly rather than presenting abstract ecological indices.
-  - **Municipal Utilities (*Stadtentwässerung Nürnberg*) & Water Authorities (*WWA*)**:
-    - *Communication*: Quantitative **3D Pollution Heatmaps** pin-pointing chronic outfall bottlenecks.
-    - *Value*: Provides empirical evidence for targeted municipal capital investment instead of guesswork.
-  - **Farmers (*Bayerischer Bauernverband*)**:
-    - *Communication*: Pinpoints exact field drainage ingress points, enabling precision nutrient management and protecting groundwater while preventing blanket regulatory bans.
-  - **Fisheries (*Fischereiverband*) & Environmental Agencies**:
-    - *Communication*: Real-time hypoxia alerts enabling proactive mitigation (e.g., releasing emergency fresh water from upstream reservoirs like the Rothsee transfer system).
+### Slide 3: Stakeholders & Actionable Solutions (Authorities & Citizens)
+- **Primary Stakeholders: Local & Regional Authorities (Targeted Intelligence)**:
+  - **WWA Nürnberg (*Wasserwirtschaftsamt*) & LfU (*Landesamt für Umwelt*)**:
+    - *Current Data*: Monthly grab-sampling (*Schöpfproben*) missing transient storm events.
+    - *PlumeTrace Value*: Real-time mobile gradient tracking and automated statutory alerts in **$< 60\ \text{s}$** ($\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$ breach under German OGewV).
+  - **SUN (*Stadtentwässerung und Umweltanalytik Nürnberg*)**:
+    - *Current Data*: Internal sewer overflow weir counters; zero visibility into in-river plume dispersion.
+    - *PlumeTrace Value*: Quantitative **3D Pollution Heatmaps** pin-pointing chronic outfall bottlenecks, directing municipal capital expenditure (CAPEX) to the highest-impact locations.
+  - **Gesundheitsamt Nürnberg (*Public Health Department*)**:
+    - *Current Data*: 24–48 hour delayed microbiological petri-dish cultures.
+    - *PlumeTrace Value*: Real-time predictive early warning system forecasting water safety hours ahead of lab cultures.
+- **Secondary Stakeholders: Citizens & Recreators (Immediate Protection)**:
+  - **Fuchslochwelle River Surfers, Pegnitzauen Park Visitors, Dog Walkers**:
+    - *Actionable Tool*: Simple mobile **"Traffic Light" Web App**:
+      - 🟢 **Green (Safe)**: Meets recreational water criteria.
+      - 🟡 **Yellow (Caution)**: Marginal quality / elevated post-storm turbidity.
+      - 🔴 **Red (Hazard)**: Active sewage plume detected – **do not enter water today!**
+    - *Value Framing*: Translates complex chemical metrics into immediate, tangible public health protection.
 
 ### Slide 4: Challenge Definition & The Closed-Loop Solution
 - **Formal Challenge Statement**:
