@@ -34,10 +34,10 @@ Alignment between conceptual project architecture, EuroTeQ course milestones (Ga
 ```
 
 ### Gate 1: Virtual Lab / Simulation (100% Feasible Outside Lab)
-- **Simulation Environment**: Spin up TurtleBot3 Burger inside Gazebo. Build a 2D obstacle corridor using `slam_toolbox`.
-- **Entity 1 (Simulation Asset)**: Gazebo/RViz robot publishing `/odom`, `/scan`, and synthetic `/water_quality/ammonia` (1 Hz).
-- **Entity 2 (Plume Engine)**: Python backend running the 2D NumPy advection-diffusion model.
-- **DT Mediator Node**: ROS 2 bridging node synchronizing robot state with the dispersion grid and returning re-tasked Nav2 goals upon threshold exceedance.
+- **Simulation Environment**: Spin up TurtleBot3 Burger inside **Gazebo Harmonic** (`gz sim`). Build a 2D obstacle corridor using `slam_toolbox`.
+- **Entity 1 (Simulation Asset)**: Gazebo Harmonic / RViz robot connected via `ros_gz_bridge` and `ghost_follower`, publishing `/odom`, `/scan`, and synthetic `/water_quality/ammonia` (1 Hz).
+- **Entity 2 (Plume Engine)**: Python backend running `twin_core` (2D NumPy advection-diffusion model).
+- **DT Gateway & Mediator Layer**: `gateway node` synchronizing states over WebSocket (`:8765`) to PlumeTrace City View (CesiumJS) and returning re-tasked Nav2 goals upon threshold exceedance.
 - **Verification Metrics**: Quantify Round-Trip Time (RTT) between synthetic telemetry generation and plume recalculation.
 
 ### Gate 2: Physical Lab Validation (High Feasibility in Lab Arena)

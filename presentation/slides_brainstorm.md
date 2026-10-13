@@ -57,22 +57,22 @@ This document contains the slide-by-slide outline, talking points, and brainstor
 ## 3. Technical Solution (Max 3 Slides)
 *Target Audience: Stakeholders & General Technical Audience*
 
-### Slide 5: High-Level System Architecture & Context
-- **System Overview**: End-to-end closed-loop loop connecting a mobile field robot to an intelligent Digital Twin.
-- **System Context Diagram**:
-  - **Physical Layer**: Mobile agent (TurtleBot3), navigation stack (Nav2), and chemical sensing.
-  - **Mediator Layer**: Python-based telemetry ingest, timestamp alignment, and state synchronization.
-  - **Intelligence Layer**: 2D Advection-Diffusion Plume Dispersion Solver.
-  - **GIS / UI Layer**: CesiumJS + 3DCityDB with Bavarian LOD2 3D riverbank building & terrain data.
+### Slide 5: High-Level System Architecture & Context (PlumeTrace Blueprint)
+- **End-to-End System Overview**:
+  - **Physical Lab Arena**: TurtleBot3 Burger running **ROS 2 Jazzy** (`turtlebot3_bringup`), LiDAR LDS-02, and OpenCR base; overhead tracking camera.
+  - **Lab Desktop Engine**: Navigation stack (AMCL, Nav2, keepout filter, collision monitor), robot-side logic (`emulated_sensor`, `edge_buffer`, `link_gate`), and Digital Twin (`twin_core`, `mission_controller`, `sync_monitor`, `obstacle_registry`, `virtual_obstacle_cloud`).
+  - **Simulation Mirror**: **Gazebo Harmonic** (`gz sim`) with `ros_gz_bridge`, ghost robot follower, and dynamic obstacle spawner.
+  - **Gateway & Dashboard**: `gateway node` (JSON over WebSocket `:8765`, WGS84 coordinate mapping) serving **PlumeTrace City View** (CesiumJS 3D globe with Bavarian LOD2 OpenData).
 
 ### Slide 6: Key Design Decisions (DTAS Criteria)
-- **Bidirectional Communication**:
-  - Robot $\to$ Twin: 30-second telemetry batches (spatial pose, $\text{NH}_3\text{-N}$, $\text{DO}$).
-  - Twin $\to$ Robot: Adaptive Nav2 waypoints pushed in $< 120\ \text{s}$.
-- **Computational Efficiency over Pure CFD**:
-  - Strict decision to implement a lightweight 2D NumPy analytical dispersion solver instead of heavy Navier-Stokes CFD to guarantee $< 2\ \text{min}$ closed-loop retasking budget.
-- **Robust Field Middleware**:
-  - Eclipse CycloneDDS with dedicated `ROS_DOMAIN_ID` configuration to eliminate Wi-Fi packet drops and discovery delays in shared network environments.
+- **Bidirectional Communication & Link Fault Modeling**:
+  - `edge_buffer` + `link_gate` simulates link latency and loss; acknowledged telemetry sent to `sample_ingest`.
+  - Dynamic Nav2 goals pushed downstream from `mission_controller` in $< 35\ \text{s}$.
+- **Dual Obstacle Cloud Pipeline (Safety & Autonomy)**:
+  - Real LiDAR clusters tracked by `obstacle_detector` and registered in `obstacle_registry`.
+  - `virtual_obstacle_cloud` separates safety actions: generates `REROUTE cloud` for Nav2 costmaps and `STOP cloud` directly into the `Collision monitor`.
+- **Tri-Fold State Synchronization & Ground-Truth Verification**:
+  - `sync_monitor` continuously tracks pose divergence across physical odometry, AMCL pose, Gazebo `ghost_follower`, and overhead camera ground-truth.
 
 ### Slide 7: Rationale for Digital Twin Approach & The Pegnitz Strategy
 - **Why a Digital Twin vs. Alternative Approaches?**:
@@ -107,15 +107,20 @@ This document contains the slide-by-slide outline, talking points, and brainstor
   - Regulatory Alert Latency: $< 60\ \text{seconds}$ upon threshold breach.
   - Positional Drift Delta: Measured continuously between physical dead-reckoning and Digital Twin coordinates.
 
-### Slide 10: PoC Architecture & Component Pipeline
-- **ROS 2 Humble Stack**:
-  - Hardware: TurtleBot3 Burger (Raspberry Pi + OpenCR + 360° LiDAR LDS-02).
-  - Navigation: Nav2 (`controller_server`, `planner_server`, `bt_navigator`).
-  - SLAM & Mapping: `slam_toolbox` for 2D corridor occupancy grid.
-- **Digital Twin Stack**:
-  - Python Mediator Node (rclpy) managing bidirectional state synchronisation.
-  - 2D NumPy Advection-Diffusion Solver with river current vector $\mathbf{u}_{\text{river}}$.
-  - 3DCityDB + Cesium Web Client with Bavarian OpenData (LOD2 buildings & terrain).
+### Slide 10: PoC Architecture & Component Pipeline (ROS 2 Jazzy & Gazebo Harmonic)
+- **Hardware & Robot Edge Stack**:
+  - TurtleBot3 Burger (Raspberry Pi SBC + OpenCR + 360° LiDAR LDS-02) running ROS 2 Jazzy via SSH.
+  - `emulated_sensor`: Spatial $\text{NH}_3\text{-N}$ and $\text{DO}$ generation via `reach_frame.yaml`.
+  - `edge_buffer` & `link_gate`: Robust store-and-resend queue modeling link loss.
+- **Navigation & Safety Stack**:
+  - AMCL localization on 2D arena map with Keepout River Filter.
+  - Nav2 planner, controller, and behavior trees.
+  - `Collision monitor` with real-time `STOP cloud` interception.
+- **Digital Twin & Mirror Stack**:
+  - `twin_core`: 2D NumPy advection-diffusion solver computing posterior probabilities for Outfalls A, B, and C.
+  - `mission_controller`: State machine orchestrating sampling pauses and `NavigateToPose` commands.
+  - `sync_monitor`: Cross-referencing AMCL, Gazebo `ghost_follower`, and overhead camera ground-truth.
+  - `gateway node` (port `:8765`) streaming to **PlumeTrace City View** (CesiumJS WebGL on port `:8080`).
 
 ### Slide 11: Experimental Setup & Comparative Baseline
 - **The Comparative Baseline (Control)**:

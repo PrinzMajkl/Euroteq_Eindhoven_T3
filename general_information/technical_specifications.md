@@ -28,23 +28,24 @@ The Proof of Concept implements a validated **Hybrid Environmental Interaction**
 1. **Physical Environmental Interaction**: Real 360° LiDAR (`/scan`) continuously senses physical arena boundaries, cardboard outfall markers, and obstacles for real-time costmap updates and collision avoidance in Nav2.
 2. **Cyber-Physical Spatial Coupling**: The chemical sensor readings are tightly coupled to the robot's real-world physical position $(x, y)$, ensuring that real wheel slip, motor jitter, and odometry drift directly influence the sampled pollution profile.
 
-### Digital Twin Mediator Node
-- **Telemetry Batch Frequency**: 30-second synchronization intervals.
-- **Payload**: Timestamp, physical pose $(x, y, \theta)$, covariance, and instantaneous sensor readings ($\text{NH}_3\text{-N}$, $\text{DO}$).
-- **State Synchronization Protocol**: Validates spatial drift between physical odometry and digital model; issues dynamic Nav2 waypoints.
+### Operating System & Distribution Standards
+- **ROS 2 Distribution**: **ROS 2 Jazzy Jalisco**.
+- **Robot Platform**: TurtleBot3 Burger running `turtlebot3_bringup/robot.launch.py` via SSH.
+- **Simulation Mirror**: **Gazebo Harmonic** (`gz sim`) coupled via `ros_gz_bridge` and `ghost_follower`.
+- **DDS Middleware**: Eclipse CycloneDDS configured with standardized `ROS_DOMAIN_ID`.
 
-### Plume Dispersion Engine
-- **Engine Type**: Lightweight 2D NumPy advection-diffusion solver.
-- **Design Rationale**: Full Computational Fluid Dynamics (CFD) is computationally prohibitive for real-time edge/cloud operation (< 2 min SLA). A simplified 2D forward-inverse model estimates upstream probability across candidates (A, B, C) in seconds.
-- **Adaptive Routing Response Time**: 
-  - Real-world River SLA Target: $< 120\ \text{seconds}$.
-  - Laboratory PoC Measured Turnaround: $\approx 33\text{--}35\ \text{seconds}$ (30s batch interval + $< 3\text{s}$ solver).
-- **Authority Alert Generation**: Dispatched to simulated regulatory dashboard in $< 60\ \text{seconds}$.
-
-### GIS & Visualization Stack
-- **3D City Platform**: 3DCityDB.
-- **Visualization Client**: CesiumJS WebGL.
-- **Geodata Source**: Bavarian LOD2 OpenData (3D riverbank, terrain, and building geometry for Nuremberg/Pegnitz river).
+### Core Node Ecosystem & Responsibilities
+- **`emulated_sensor`**: Computes instantaneous $\text{NH}_3\text{-N}$ and $\text{DO}$ concentrations at the probe using AMCL pose, scenario definitions (Scenarios A, B, C), and coordinate transformations from `reach_frame.yaml`.
+- **`edge_buffer` & `link_gate`**: Simulates edge-to-cloud link latency and loss; provides local message buffering and acknowledgement handling.
+- **`sample_ingest`**: Ingestion buffer verifying and standardizing time-series water observations for twin processing.
+- **`twin_core`**: 2D NumPy advection-diffusion dispersion solver; evaluates upstream candidate probabilities (A, B, C) and generates optimal next sampling coordinates.
+- **`mission_controller`**: High-level state machine commanding Nav2 (`NavigateToPose`), sensor triggers, and mission abort/failsafe logic.
+- **`sync_monitor`**: Cross-verifies physical odometry, AMCL pose, Gazebo ghost follower pose, and overhead camera ground-truth.
+- **`obstacle_detector` & `virtual_obstacle_cloud`**: Segments real LiDAR obstacle clusters, registers them in `obstacle_registry`, and publishes:
+  - `REROUTE cloud` to Nav2 costmaps.
+  - `STOP cloud` directly to the `Collision monitor`.
+- **`gateway node`**: Converts ROS 2 messages to JSON, maps arena coordinates to WGS84, and serves WebSocket stream on port `:8765`.
+- **Static Web Server**: Delivers the PlumeTrace City View dashboard on port `:8080`.
 
 ---
 
