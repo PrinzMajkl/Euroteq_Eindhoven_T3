@@ -23,34 +23,42 @@ This document contains the slide-by-slide outline, talking points, and brainstor
 ## 2. Context and Challenge (Max 3 Slides)
 *Target Audience: Stakeholders*
 
-### Slide 2: SDG Context & The Hidden CSO Problem (The "Pegnitz Strategy")
-- **Relevant SDG & Regulatory Frameworks**: 
-  - **UN SDG 6.3 & Indicator 6.3.2**: Ambient surface water quality protection.
-  - **EU Water Framework Directive (WFD / 2000/60/EC)**: Mandate for good ecological status.
-  - **German Oberflächengewässerverordnung (OGewV)**: Strict statutory thresholds for toxic pollutants.
-- **The Core Problem: Transient Combined Sewer Overflows (CSOs)**: 
-  - Unlike unmanaged global rivers with continuous raw dumping, European rivers suffer primarily from acute, storm-driven CSOs.
-  - Traditional monitoring relies on manual "grab sampling" (weekly/monthly), which almost completely misses short-lived, transient discharge events before they dissipate.
-- **Ecological Urgency**: 
-  - Acute Ammonia ($\text{NH}_3\text{-N}$) spike ($> 0.6\ \text{mg/L}$) triggers statutory violation; toxic to fish species and causes rapid Dissolved Oxygen ($\text{DO}$) depletion.
+### Slide 2: Context & Problem Hook: The Pegnitz River Paradox
+- **Why the Pegnitz? Four Interconnected Urgencies**:
+  1. **Public Health & Recreation (The Immediate Hook)**:
+     - Fecal contamination directly threatens urban surfers at Nuremberg's **Fuchslochwelle** wave, alongside swimmers, dog walkers, and families in the **Pegnitzauen** park meadows.
+  2. **Urban Infrastructure Bottlenecks**:
+     - Convective storm downpours overwhelm Nuremberg's sewer system, causing Combined Sewer Overflows (CSOs) that dump untreated wastewater into the river.
+  3. **Agriculture & Drinking Water Aquifers**:
+     - Intensive vegetable farming in the adjacent **Knoblauchsland** generates nitrate/pesticide runoff that infiltrates alluvial groundwater used for regional drinking water.
+  4. **Climate Extremes & Ecosystem Hypoxia**:
+     - Prolonged summer droughts lower river discharge, concentrating pollutants and triggering acute oxygen crashes ($\text{DO} < 3\ \text{mg/L}$) and devastating fish kills.
+- **The Core Bottleneck**:
+  - Traditional monitoring relies on manual "grab sampling" every few weeks. It completely misses acute, transient storm plumes and cannot trace them back to the leaking pipe before they dissipate.
 
-### Slide 3: Stakeholders & Needs
-- **Primary Stakeholders**:
-  - **Wasserwirtschaftsamt (WWA) Nuremberg**: Needs immediate incident alerts and automated localization of unmapped or illegal CSO outfalls.
-  - **Bayerisches Landesamt für Umwelt (LfU)**: Needs continuous, spatio-temporal water data during storm events to update risk maps and enforce OGewV regulations.
-  - **Local Municipal Utilities**: Require actionable incident intelligence to prioritize sewer maintenance and stormwater retention.
-- **Stakeholder Pain Points**:
-  - Static sensor stations cannot localize unmapped outfalls.
-  - Manual sampling is slow, reactive, and geographically sparse.
-  - Lack of real-time, closed-loop telemetry between field assets and environmental models.
+### Slide 3: Stakeholders & Actionable Communication (Dual-Dashboard Model)
+- **Translating Data into Direct Human & Institutional Action**:
+  - **Citizens & River Athletes (Fuchslochwelle Surfers, Recreators, Dog Walkers)**:
+    - *Communication*: Simple mobile **"Traffic Light" System** (🟢 Safe / 🟡 Caution / 🔴 Danger: Active Contamination - Do not enter water today).
+    - *Framing*: Protects human health directly rather than presenting abstract ecological indices.
+  - **Municipal Utilities (*Stadtentwässerung Nürnberg*) & Water Authorities (*WWA*)**:
+    - *Communication*: Quantitative **3D Pollution Heatmaps** pin-pointing chronic outfall bottlenecks.
+    - *Value*: Provides empirical evidence for targeted municipal capital investment instead of guesswork.
+  - **Farmers (*Bayerischer Bauernverband*)**:
+    - *Communication*: Pinpoints exact field drainage ingress points, enabling precision nutrient management and protecting groundwater while preventing blanket regulatory bans.
+  - **Fisheries (*Fischereiverband*) & Environmental Agencies**:
+    - *Communication*: Real-time hypoxia alerts enabling proactive mitigation (e.g., releasing emergency fresh water from upstream reservoirs like the Rothsee transfer system).
 
-### Slide 4: Challenge Definition
+### Slide 4: Challenge Definition & The Closed-Loop Solution
 - **Formal Challenge Statement**:
   > *"How can digital twinning be applied to autonomous systems in order to address the challenge of detecting and localizing transient Combined Sewer Overflows (CSOs) for the Wasserwirtschaftsamt and regional environmental authorities?"*
-- **Success Criteria**:
-  - Detect chemical spikes ($\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$) in real time.
-  - Predict upstream source coordinates in under 2 minutes.
-  - Dynamically retask the autonomous vehicle to home in on the physical outfall faster and with fewer samples than fixed-route sampling.
+- **The Solution: Autonomous Closed-Loop Digital Twin**:
+  - A mobile autonomous platform navigates the river corridor, continuously streaming water quality ($\text{NH}_3\text{-N}$, $\text{DO}$) to the cloud Digital Twin.
+  - **4D Adaptive Re-Tasking**: Instead of rigid fixed routes, the Digital Twin dynamically computes where the robot must sample next based on:
+    1. **Data Age / Uncertainty ($\tau$)**: Refreshing stale observation zones.
+    2. **Chemical Gradients ($\nabla C$)**: Homing upstream toward acute spikes ($> 0.6\ \text{mg/L}$).
+    3. **Meteorological Forecasts ($W$)**: Re-allocating assets to reaches downstream of active rain radar cells.
+    4. **Historical Baselines ($H$)**: Isolating true anomalies from seasonal background trends.
 
 ---
 

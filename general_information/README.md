@@ -12,7 +12,10 @@ Central knowledge base for project scope, background research, technical specifi
 2. [**`project_overview.md`**](project_overview.md)
    - Comprehensive overview of the Pegnitz River CSO monitoring project.
    - UN SDG 6.3 alignment, course hardware proxy context (TurtleBot3 as ASV proxy), stakeholder analysis (*Wasserwirtschaftsamt*, *LfU*), and architecture.
-3. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
+3. [**`stakeholder_use_cases.md`**](stakeholder_use_cases.md)
+   - Deep dive into the 4 core local pillars of the Pegnitz: Public Health & Fuchslochwelle surfers, Urban CSOs & municipal pipes, Knoblauchsland agriculture & groundwater, Drought & fish kill resilience.
+   - Citizen "Traffic Light" app vs. Municipal diagnostic dashboard, and 4D adaptive retasking objective function.
+4. [**`pegnitz_strategy.md`**](pegnitz_strategy.md)
    - Strategic rationale for selecting the Pegnitz River (Nuremberg, Bavaria) over generic global waterways.
    - Bavarian LOD2 OpenData integration, realistic transient CSO dynamics, and regulatory compliance (EU WFD, German OGewV, $\text{NH}_3\text{-N} > 0.6\ \text{mg/L}$ acute limit).
 4. [**`international_benchmarks.md`**](international_benchmarks.md)
