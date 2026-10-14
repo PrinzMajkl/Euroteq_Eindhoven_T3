@@ -3,25 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PlumeTrace - Defence Presentation Preview (Section 1 & 2)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <title>PlumeTrace - Presentation Preview</title>
   <style>
     :root {
       --color-primary: #023047;
       --color-brand: #219ebc;
       --color-tint: #8ecae6;
-      --color-tint-soft: #f0f7fb;
+      --color-tint-soft: #f4f9fc;
       --color-warning: #ffb703;
       --color-accent: #fb8500;
       --color-bg: #ffffff;
-      --color-surface: #ffffff;
-      --color-border: #e2eaf0;
+      --color-card-bg: #ffffff;
+      --color-border: #e2e8f0;
       --color-text-main: #023047;
       --color-text-muted: #526777;
-      --font-heading: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-family: Calibri, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
     * {
@@ -31,46 +27,45 @@
     }
 
     body {
-      background-color: #0b1a24;
+      background-color: #0f172a;
       color: var(--color-text-main);
-      font-family: var(--font-body);
+      font-family: var(--font-family);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       min-height: 100vh;
       overflow: hidden;
-      padding: 16px;
+      padding: 20px;
     }
 
-    /* Deck Container (16:9 Aspect Ratio) */
+    /* 16:9 Slide Canvas */
     .deck-viewport {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1160px;
       aspect-ratio: 16 / 9;
       position: relative;
-      background: var(--color-bg);
+      background: #ffffff;
       border-radius: 12px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
       overflow: hidden;
       display: flex;
       flex-direction: column;
     }
 
-    /* Individual Slide */
+    /* Slide Base */
     .slide {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      padding: 40px 52px;
+      padding: 56px 64px 44px 64px;
       display: none;
       flex-direction: column;
-      justify-content: space-between;
       background: #ffffff;
       opacity: 0;
-      transition: opacity 0.3s ease-in-out;
+      transition: opacity 0.25s ease-in-out;
     }
 
     .slide.active {
@@ -79,551 +74,204 @@
       z-index: 2;
     }
 
-    /* Slide Header */
-    .slide-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .slide-kicker {
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--color-brand);
-      background: var(--color-tint-soft);
-      padding: 4px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--color-tint);
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .slide-header-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--color-text-muted);
-    }
-
-    .slide-header-brand img {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
+    /* Titles */
     .slide-title {
-      font-family: var(--font-heading);
-      font-size: 1.85rem;
-      font-weight: 800;
+      font-size: 2.1rem;
+      font-weight: 700;
       color: var(--color-primary);
       line-height: 1.2;
-      margin-bottom: 12px;
+      margin-bottom: 24px;
+      letter-spacing: -0.01em;
     }
 
-    .slide-subtitle {
-      font-size: 1.05rem;
-      color: var(--color-text-muted);
-      font-weight: 400;
-      line-height: 1.4;
-      margin-bottom: 20px;
-    }
-
-    /* Slide Content Canvas */
     .slide-body {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 16px;
+      gap: 20px;
     }
 
-    /* Slide Footer */
-    .slide-footer {
+    /* Slide 1 - Title */
+    .slide-1-layout {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      padding-top: 14px;
-      border-top: 1px solid var(--color-border);
-      font-size: 0.78rem;
-      color: var(--color-text-muted);
+      gap: 50px;
+      height: 100%;
     }
 
-    .slide-footer-tags {
-      display: flex;
-      gap: 8px;
-    }
-
-    .badge {
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-
-    .badge-primary { background: rgba(33, 158, 188, 0.12); color: var(--color-brand); }
-    .badge-navy { background: rgba(2, 48, 71, 0.1); color: var(--color-primary); }
-    .badge-warning { background: rgba(255, 183, 3, 0.2); color: #9c6c00; }
-    .badge-danger { background: rgba(251, 133, 0, 0.15); color: #d05300; }
-    .badge-success { background: rgba(40, 167, 69, 0.15); color: #1e7e34; }
-
-    /* ---------------- SLIDE 1 STYLES ---------------- */
-    .slide-1-content {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 44px;
-      align-items: center;
-      padding: 20px 0;
-    }
-
-    .slide-1-logo-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(145deg, #ffffff, var(--color-tint-soft));
-      border: 2px solid var(--color-tint);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 12px 30px rgba(33, 158, 188, 0.15);
-      text-align: center;
-    }
-
-    .slide-1-logo-box img {
-      width: 190px;
-      height: 190px;
+    .slide-1-logo {
+      width: 180px;
+      height: 180px;
       border-radius: 50%;
       object-fit: cover;
-      box-shadow: 0 8px 24px rgba(2, 48, 71, 0.15);
-      border: 4px solid #ffffff;
-      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(2, 48, 71, 0.12);
+      border: 3px solid var(--color-tint);
+      flex-shrink: 0;
     }
 
-    .slide-1-title-main {
-      font-family: var(--font-heading);
-      font-size: 2.7rem;
-      font-weight: 800;
+    .slide-1-text {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .slide-1-title {
+      font-size: 3.2rem;
+      font-weight: 700;
       color: var(--color-primary);
-      letter-spacing: -0.02em;
       line-height: 1.1;
-      margin-bottom: 12px;
+      letter-spacing: -0.02em;
     }
 
-    .slide-1-title-main span {
+    .slide-1-title span {
       color: var(--color-brand);
     }
 
-    .slide-1-tagline {
-      font-size: 1.25rem;
+    .slide-1-subtitle {
+      font-size: 1.35rem;
       color: var(--color-text-muted);
-      line-height: 1.45;
-      margin-bottom: 24px;
-      font-weight: 500;
+      font-weight: 400;
+      margin-bottom: 8px;
     }
 
-    .slide-1-meta-grid {
-      display: grid;
-      grid-template-columns: auto auto;
-      gap: 16px 32px;
-      border-top: 1px solid var(--color-border);
-      padding-top: 18px;
-    }
-
-    .meta-item-label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--color-brand);
-    }
-
-    .meta-item-value {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--color-primary);
-    }
-
-    /* ---------------- SLIDE 2 STYLES (4 PILLARS) ---------------- */
-    .pillar-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-    }
-
-    .pillar-card {
-      background: #ffffff;
-      border: 1px solid var(--color-border);
-      border-left: 5px solid var(--color-brand);
-      border-radius: 12px;
-      padding: 16px 20px;
-      box-shadow: 0 4px 12px rgba(2, 48, 71, 0.04);
+    .clean-list {
+      list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .pillar-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(33, 158, 188, 0.12);
-    }
-
-    .pillar-card.alert {
-      border-left-color: var(--color-accent);
-      background: linear-gradient(to right, rgba(251, 133, 0, 0.02), #ffffff);
-    }
-
-    .pillar-card.warning {
-      border-left-color: var(--color-warning);
-    }
-
-    .pillar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .pillar-title {
-      font-family: var(--font-heading);
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--color-primary);
-      display: flex;
-      align-items: center;
       gap: 8px;
-    }
-
-    .pillar-text {
-      font-size: 0.86rem;
-      color: var(--color-text-muted);
-      line-height: 1.45;
-    }
-
-    .pillar-metric {
-      font-size: 0.8rem;
-      font-weight: 600;
+      font-size: 1.05rem;
       color: var(--color-primary);
-      background: var(--color-tint-soft);
-      padding: 4px 10px;
-      border-radius: 6px;
-      margin-top: 4px;
-      display: inline-block;
-      align-self: flex-start;
-      border: 1px solid rgba(33, 158, 188, 0.2);
     }
 
-    .callout-strip {
-      background: linear-gradient(90deg, #fff3e6, #fffaf4);
-      border: 1px solid #ffd8a8;
-      border-left: 6px solid var(--color-accent);
-      border-radius: 10px;
-      padding: 12px 18px;
+    .clean-list li {
       display: flex;
       align-items: center;
-      gap: 14px;
-    }
-
-    .callout-strip-icon {
-      font-size: 1.5rem;
-      color: var(--color-accent);
-    }
-
-    .callout-strip-text {
-      font-size: 0.88rem;
-      color: #7c2d12;
-      line-height: 1.4;
-    }
-
-    /* ---------------- SLIDE 3 STYLES (MEASUREMENTS & BOTTLENECK) ---------------- */
-    .compare-grid {
-      display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 22px;
-      align-items: stretch;
-    }
-
-    .params-container {
-      background: #ffffff;
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
       gap: 10px;
     }
 
-    .params-header-row {
-      font-size: 0.82rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--color-primary);
-      border-bottom: 2px solid var(--color-tint);
-      padding-bottom: 6px;
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .param-list {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-    }
-
-    .param-chip {
-      background: var(--color-tint-soft);
-      border: 1px solid rgba(33, 158, 188, 0.2);
-      border-radius: 8px;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .param-name {
-      font-size: 0.84rem;
-      font-weight: 700;
-      color: var(--color-primary);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .param-desc {
-      font-size: 0.72rem;
-      color: var(--color-text-muted);
-      line-height: 1.25;
-    }
-
-    .timeline-container {
-      background: #ffffff;
-      border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 12px;
-    }
-
-    .timeline-title {
-      font-family: var(--font-heading);
-      font-size: 0.95rem;
-      font-weight: 700;
-      color: var(--color-primary);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .timeline-visual {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      position: relative;
-      margin: 10px 0;
-    }
-
-    .timeline-node {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .node-dot {
-      width: 14px;
-      height: 14px;
+    .bullet-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--color-brand);
       flex-shrink: 0;
-      border: 3px solid #ffffff;
-      box-shadow: 0 0 0 2px var(--color-brand);
     }
 
-    .node-dot.danger {
-      background: var(--color-accent);
-      box-shadow: 0 0 0 2px var(--color-accent);
-      animation: pulse 1.8s infinite;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 2px rgba(251, 133, 0, 0.8); }
-      70% { box-shadow: 0 0 0 8px rgba(251, 133, 0, 0); }
-      100% { box-shadow: 0 0 0 2px rgba(251, 133, 0, 0); }
-    }
-
-    .node-text {
-      font-size: 0.8rem;
-      color: var(--color-text-main);
-      font-weight: 600;
-    }
-
-    .timeline-blind-gap {
-      margin-left: 6px;
-      border-left: 2px dashed #cbd5e1;
-      padding-left: 20px;
-      padding-top: 10px;
-      padding-bottom: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .blind-badge {
-      font-size: 0.74rem;
-      font-weight: 700;
-      background: #fee2e2;
-      color: #991b1b;
-      padding: 3px 8px;
-      border-radius: 4px;
-      align-self: flex-start;
-    }
-
-    .blind-detail {
-      font-size: 0.76rem;
-      color: var(--color-text-muted);
-    }
-
-    /* ---------------- SLIDE 4 STYLES (STAKEHOLDERS & CLOSED LOOP) ---------------- */
-    .challenge-banner {
-      background: linear-gradient(135deg, var(--color-primary), #0a496b);
-      color: #ffffff;
-      padding: 14px 20px;
-      border-radius: 10px;
-      box-shadow: 0 6px 18px rgba(2, 48, 71, 0.2);
-    }
-
-    .challenge-label {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--color-tint);
-      margin-bottom: 4px;
-    }
-
-    .challenge-text {
-      font-size: 0.96rem;
-      font-weight: 600;
-      line-height: 1.4;
-      font-style: italic;
-    }
-
-    .stakeholder-split {
+    /* 4-Card Clean Layout (Slide 2) */
+    .grid-4 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      gap: 20px;
     }
 
-    .stakeholder-card {
+    .clean-card {
+      background: var(--color-tint-soft);
       border: 1px solid var(--color-border);
-      border-radius: 12px;
-      padding: 14px 18px;
-      background: #ffffff;
+      border-radius: 10px;
+      padding: 18px 22px;
       display: flex;
       flex-direction: column;
       gap: 10px;
     }
 
-    .stakeholder-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid var(--color-border);
-      padding-bottom: 8px;
-    }
-
-    .stakeholder-title {
-      font-family: var(--font-heading);
-      font-size: 1rem;
+    .clean-card-title {
+      font-size: 1.15rem;
       font-weight: 700;
       color: var(--color-primary);
     }
 
-    .feature-list {
+    .bullet-points {
       list-style: none;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      font-size: 0.82rem;
-      color: var(--color-text-muted);
+      font-size: 0.96rem;
+      color: var(--color-text-main);
     }
 
-    .feature-list li {
+    .bullet-points li {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
+      gap: 9px;
+      line-height: 1.35;
     }
 
-    .traffic-light-preview {
+    .bullet-points li::before {
+      content: "•";
+      color: var(--color-brand);
+      font-weight: bold;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .bottom-highlight {
+      background: #ffffff;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-size: 0.98rem;
+      color: var(--color-primary);
+      font-weight: 600;
       display: flex;
-      gap: 8px;
-      margin-top: 6px;
+      align-items: center;
+      gap: 10px;
     }
 
-    .tl-pill {
-      flex: 1;
-      padding: 6px 8px;
-      border-radius: 6px;
-      font-size: 0.72rem;
+    .bottom-highlight span {
+      color: var(--color-accent);
       font-weight: 700;
-      text-align: center;
+    }
+
+    /* 2-Column Clean Layout (Slide 3 & 4) */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 26px;
+    }
+
+    .box-container {
+      background: var(--color-tint-soft);
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      padding: 22px 24px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .tl-green { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-    .tl-yellow { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; }
-    .tl-red { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
-
-    .closed-loop-bar {
-      background: var(--color-tint-soft);
-      border: 1px solid var(--color-tint);
-      border-radius: 10px;
-      padding: 10px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
       gap: 12px;
     }
 
-    .loop-title {
-      font-size: 0.82rem;
-      font-weight: 800;
+    .box-header {
+      font-size: 1.15rem;
+      font-weight: 700;
       color: var(--color-primary);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      flex-shrink: 0;
+      border-bottom: 1px solid var(--color-border);
+      padding-bottom: 8px;
     }
 
-    .loop-tags {
+    /* Traffic Light Mini Badges (Slide 4) */
+    .status-row {
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 6px;
     }
 
-    .loop-tag {
-      font-size: 0.75rem;
-      font-weight: 600;
-      background: #ffffff;
-      border: 1px solid var(--color-border);
-      padding: 4px 10px;
+    .status-pill {
+      flex: 1;
+      padding: 7px 10px;
       border-radius: 6px;
-      color: var(--color-primary);
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-align: center;
     }
 
-    /* ---------------- CONTROLS & SPEAKER NOTES ---------------- */
+    .status-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .status-yellow { background: #fef9c3; color: #a16207; border: 1px solid #fef08a; }
+    .status-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+    /* Controls Bar Below Deck */
     .controls-bar {
       width: 100%;
-      max-width: 1200px;
+      max-width: 1160px;
       margin-top: 14px;
       display: flex;
       justify-content: space-between;
@@ -644,8 +292,9 @@
       padding: 8px 18px;
       border-radius: 8px;
       cursor: pointer;
+      font-family: var(--font-family);
       font-weight: 600;
-      font-size: 0.86rem;
+      font-size: 0.88rem;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -665,12 +314,12 @@
     /* Speaker Notes Drawer */
     .speaker-drawer {
       width: 100%;
-      max-width: 1200px;
-      margin-top: 14px;
+      max-width: 1160px;
+      margin-top: 12px;
       background: #1e293b;
       border: 1px solid #334155;
       border-radius: 10px;
-      padding: 16px 20px;
+      padding: 16px 22px;
       color: #f1f5f9;
       display: none;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
@@ -690,25 +339,20 @@
     }
 
     .speaker-title {
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       font-weight: 700;
       color: var(--color-tint);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      display: flex;
-      align-items: center;
-      gap: 8px;
     }
 
     .speaker-time {
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       color: var(--color-warning);
       font-weight: 600;
     }
 
     .speaker-content {
       font-size: 0.92rem;
-      line-height: 1.6;
+      line-height: 1.55;
       color: #cbd5e1;
     }
 
@@ -719,374 +363,159 @@
 </head>
 <body>
 
-  <!-- 16:9 Slide Viewport -->
+  <!-- 16:9 Canvas -->
   <div class="deck-viewport" id="viewport">
 
-    <!-- SLIDE 1: Title Slide (Section 1) -->
+    <!-- SLIDE 1 -->
     <section class="slide active" id="slide-1">
-      <div class="slide-header">
-        <div class="slide-kicker">
-          <span>🇪🇺</span> EuroTeQ Engineering University | Track 3 Defence
-        </div>
-        <div class="slide-header-brand">
-          <span>Autonomous Water Robotics</span>
-        </div>
-      </div>
-
       <div class="slide-body">
-        <div class="slide-1-content">
-          <div class="slide-1-logo-box">
-            <img src="assets/logo.jpeg" alt="PlumeTrace Official Emblem">
-            <div style="font-weight: 800; font-size: 1.15rem; color: var(--color-primary); letter-spacing: -0.01em;">PLUMETRACE</div>
-            <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-top: 4px;">Robotic Digital Twin</div>
-          </div>
-
-          <div>
-            <div class="slide-1-title-main">
-              <span>PlumeTrace</span>: Autonomous Digital Twin for River Water Protection
-            </div>
-            <div class="slide-1-tagline">
-              Detecting, Tracking, and Localizing Transient Combined Sewer Overflows (CSOs) in the Pegnitz River
-            </div>
-
-            <div class="slide-1-meta-grid">
-              <div>
-                <div class="meta-item-label">Team & Track</div>
-                <div class="meta-item-value">EuroTeQ Track 3 (Eindhoven / Nuremberg)</div>
-              </div>
-              <div>
-                <div class="meta-item-label">Institutional Partners</div>
-                <div class="meta-item-value">TU/e, TUM, CTU, DTU, TalTech, l'X</div>
-              </div>
-              <div>
-                <div class="meta-item-label">Testbed Location</div>
-                <div class="meta-item-value">Pegnitz River (Nuremberg, Bavaria)</div>
-              </div>
-              <div>
-                <div class="meta-item-label">Core Paradigm</div>
-                <div class="meta-item-value">Closed-Loop Adaptive Robotic Profiling</div>
-              </div>
-            </div>
+        <div class="slide-1-layout">
+          <img src="assets/logo.jpeg" alt="PlumeTrace Logo" class="slide-1-logo">
+          <div class="slide-1-text">
+            <h1 class="slide-1-title"><span>PlumeTrace</span></h1>
+            <div class="slide-1-subtitle">Autonomous Water Protection for the Pegnitz River</div>
+            <ul class="clean-list">
+              <li><span class="bullet-dot"></span> EuroTeQ Track 3 (Eindhoven / Nuremberg)</li>
+              <li><span class="bullet-dot"></span> Robotic surface profiling & real-time digital twin</li>
+              <li><span class="bullet-dot"></span> Detecting transient sewer overflows (CSOs)</li>
+            </ul>
           </div>
         </div>
-      </div>
-
-      <div class="slide-footer">
-        <div class="slide-footer-tags">
-          <span class="badge badge-primary">#SDG6 CleanWater</span>
-          <span class="badge badge-navy">#DigitalTwin</span>
-          <span class="badge badge-navy">#AutonomousRobotics</span>
-          <span class="badge badge-navy">#PegnitzRiver</span>
-        </div>
-        <div>Slide 1 of 4 (Section 1)</div>
       </div>
     </section>
 
-    <!-- SLIDE 2: The Pegnitz Paradox (Section 2 - Slide 1 of 3) -->
+    <!-- SLIDE 2 -->
     <section class="slide" id="slide-2">
-      <div class="slide-header">
-        <div class="slide-kicker">
-          Context & Challenge [1/3]
-        </div>
-        <div class="slide-header-brand">
-          <img src="assets/logo.jpeg" alt="Logo">
-          <span>PlumeTrace</span>
-        </div>
-      </div>
-
-      <div class="slide-title">The Pegnitz Paradox: Four Urgent Pressures on an Urban River</div>
-      <div class="slide-subtitle">A central European case study where public health, heavy infrastructure, agriculture, and climate shocks collide.</div>
-
+      <h2 class="slide-title">The Pegnitz: Four Critical Pressures</h2>
       <div class="slide-body">
-        <div class="pillar-grid">
-          <!-- Pillar 1 -->
-          <div class="pillar-card alert">
-            <div class="pillar-header">
-              <div class="pillar-title">🏄 Public Health & Urban Recreation</div>
-              <span class="badge badge-danger">Critical Risk</span>
-            </div>
-            <div class="pillar-text">
-              Surfers at Nuremberg's <strong>Fuchslochwelle</strong> and waders in the <em>Pegnitzauen</em> face raw fecal contamination after rains. Labeled the <strong>"Durchfall-Welle"</strong> in media; standard lab cultures take 24–48h.
-            </div>
-            <div class="pillar-metric">⚡ 24–48h testing lag vs immediate human infection risk</div>
+        <div class="grid-4">
+          <div class="clean-card">
+            <div class="clean-card-title">Fuchslochwelle Surfers</div>
+            <ul class="bullet-points">
+              <li>Raw sewage spikes after rainfall</li>
+              <li>24–48h lab delay vs instant health risk</li>
+            </ul>
           </div>
 
-          <!-- Pillar 2 -->
-          <div class="pillar-card alert">
-            <div class="pillar-header">
-              <div class="pillar-title">🏗️ Urban Sewer Overflows (CSOs)</div>
-              <span class="badge badge-danger">High CAPEX</span>
-            </div>
-            <div class="pillar-text">
-              Heavy rain overwhelms Nuremberg's 1,500 km municipal sewer network, releasing untreated stormwater & wastewater through relief outfalls.
-            </div>
-            <div class="pillar-metric">💰 €1.5M – €5.0M+ per stormwater retention basin (RÜB)</div>
+          <div class="clean-card">
+            <div class="clean-card-title">Sewer Overflows (CSOs)</div>
+            <ul class="bullet-points">
+              <li>1,500 km municipal network overloaded by storms</li>
+              <li>€1.5M–€5M+ cost per retention basin</li>
+            </ul>
           </div>
 
-          <!-- Pillar 3 -->
-          <div class="pillar-card warning">
-            <div class="pillar-header">
-              <div class="pillar-title">🌾 Agriculture & Drinking Water</div>
-              <span class="badge badge-warning">Regulatory</span>
-            </div>
-            <div class="pillar-text">
-              Intensive vegetable farming in <em>Knoblauchsland</em> leaches nitrates into alluvial aquifers (<em>Uferfiltrat</em>) supplying drinking water.
-            </div>
-            <div class="pillar-metric">⚖️ Up to €850,000 / day EU Nitrates Directive fine threats</div>
+          <div class="clean-card">
+            <div class="clean-card-title">Knoblauchsland Agriculture</div>
+            <ul class="bullet-points">
+              <li>Nitrate leaching into drinking water aquifers</li>
+              <li>Strict EU limits & compliance pressure</li>
+            </ul>
           </div>
 
-          <!-- Pillar 4 -->
-          <div class="pillar-card warning">
-            <div class="pillar-header">
-              <div class="pillar-title">🐟 Climate Drought & Ecological Hypoxia</div>
-              <span class="badge badge-warning">Ecological Collapse</span>
-            </div>
-            <div class="pillar-text">
-              Summer low-flow discharge concentrates pollutants. Biochemical oxygen demand drops DO below 3.0 mg/L, causing mass fish kills (e.g., Wöhrder See).
-            </div>
-            <div class="pillar-metric">📉 DO &lt; 3.0 mg/L threshold triggers immediate die-offs</div>
+          <div class="clean-card">
+            <div class="clean-card-title">Summer Heat & Drought</div>
+            <ul class="bullet-points">
+              <li>Low flow concentrates pollutants</li>
+              <li>Dissolved oxygen drops &lt; 3 mg/L (fish kills)</li>
+            </ul>
           </div>
         </div>
 
-        <div class="callout-strip">
-          <div class="callout-strip-icon">⚠️</div>
-          <div class="callout-strip-text">
-            <strong>The Structural Monitoring Failure:</strong> Manual grab sampling occurs once a month. Acute convective storm CSOs last only <strong>2 to 4 hours</strong>. By the time municipal technicians take water samples, the toxic plume is already gone.
-          </div>
+        <div class="bottom-highlight">
+          <span>Core Bottleneck:</span> Monthly grab sampling misses short 2–4 hour overflow events.
         </div>
-      </div>
-
-      <div class="slide-footer">
-        <div class="slide-footer-tags">
-          <span class="badge badge-primary">Four Pressures</span>
-          <span class="badge badge-navy">Fuchslochwelle</span>
-          <span class="badge badge-navy">Sewer Overflows</span>
-        </div>
-        <div>Slide 2 of 4 (Section 2 - 1/3)</div>
       </div>
     </section>
 
-    <!-- SLIDE 3: What Authorities Measure Today (Section 2 - Slide 2 of 3) -->
+    <!-- SLIDE 3 -->
     <section class="slide" id="slide-3">
-      <div class="slide-header">
-        <div class="slide-kicker">
-          Context & Challenge [2/3]
-        </div>
-        <div class="slide-header-brand">
-          <img src="assets/logo.jpeg" alt="Logo">
-          <span>PlumeTrace</span>
-        </div>
-      </div>
-
-      <div class="slide-title">Current Baseline: What Authorities Measure & The Temporal Flaw</div>
-      <div class="slide-subtitle">The failure of modern river management is not chemical ignorance—it is spatial rigidity and temporal blindness.</div>
-
+      <h2 class="slide-title">Current Monitoring: The Temporal Blind Spot</h2>
       <div class="slide-body">
-        <div class="compare-grid">
-          <!-- Column 1: 8 SUN Parameters -->
-          <div class="params-container">
-            <div class="params-header-row">
-              <span>8 Municipal Parameters (SUN Nürnberg)</span>
-              <span class="badge badge-primary">Industry Standard</span>
-            </div>
-            <div class="param-list">
-              <div class="param-chip">
-                <div class="param-name">🌡️ Temperature</div>
-                <div class="param-desc">Affects O2 solubility & reaction speed</div>
-              </div>
-              <div class="param-chip">
-                <div class="param-name">🧪 pH Value</div>
-                <div class="param-desc">Controls lethal NH3 vs NH4+ ratio</div>
-              </div>
-              <div class="param-chip">
-                <div class="param-name">⚡ Conductivity</div>
-                <div class="param-desc">Road salts, ionic & industrial discharge</div>
-              </div>
-              <div class="param-chip">
-                <div class="param-name">🌫️ Turbidity</div>
-                <div class="param-desc">Suspended storm sewer sediments</div>
-              </div>
-              <div class="param-chip">
-                <div class="param-name">🫁 Dissolved O2</div>
-                <div class="param-desc">Ecosystem respiration & organic decay</div>
-              </div>
-              <div class="param-chip" style="border: 1px solid var(--color-accent); background: #fff5eb;">
-                <div class="param-name" style="color: #c2410c;">☣️ Ammonium (NH4+)</div>
-                <div class="param-desc"><strong>Primary raw sewage tracer</strong></div>
-              </div>
-              <div class="param-chip">
-                <div class="param-name">🌿 Nitrate (NO3-)</div>
-                <div class="param-desc">Fertilizer leaching & groundwater risk</div>
-              </div>
-              <div class="param-chip">
-                <div class="param-name">🧬 Phosphate</div>
-                <div class="param-desc">Eutrophication & toxic algae growth</div>
-              </div>
-            </div>
-            <div style="font-size: 0.78rem; color: var(--color-primary); font-weight: 600; background: var(--color-tint-soft); padding: 8px 12px; border-radius: 6px;">
-              💡 Authorities know <em>what</em> to measure. But manual grab samples take days to process in laboratories.
-            </div>
+        <div class="grid-2">
+          <div class="box-container">
+            <div class="box-header">What Municipalities Measure (SUN)</div>
+            <ul class="bullet-points">
+              <li>Temperature, pH, conductivity, turbidity</li>
+              <li>Dissolved oxygen & nutrients (Nitrate, Phosphate)</li>
+              <li><strong>Ammonium (NH₄⁺):</strong> primary raw sewage tracer</li>
+              <li>Laboratory processing requires 24–48 hours</li>
+            </ul>
           </div>
 
-          <!-- Column 2: Timeline Disconnect -->
-          <div class="timeline-container">
-            <div class="timeline-title">
-              <span>⏱️ The 28-Day Blind Spot</span>
-              <span class="badge badge-danger">Temporal Mismatch</span>
-            </div>
-
-            <div class="timeline-visual">
-              <div class="timeline-node">
-                <div class="node-dot"></div>
-                <div class="node-text">Day 1: Scheduled Manual Grab Sample <span style="color:#16a34a;">(Safe Baseline)</span></div>
-              </div>
-
-              <div class="timeline-blind-gap">
-                <span class="blind-badge">28 DAYS OF COMPLETE SENSOR BLINDNESS</span>
-                <span class="blind-detail">No mobile data collected. Fixed weir sensors only count inside pipes, not river dispersion.</span>
-
-                <div style="margin: 8px 0; padding: 10px; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 6px; display: flex; align-items: center; gap: 10px;">
-                  <div class="node-dot danger"></div>
-                  <div>
-                    <div style="font-size: 0.8rem; font-weight: 700; color: #9f1239;">Day 14 (15:00 - 18:00): Acute Storm CSO Spill</div>
-                    <div style="font-size: 0.72rem; color: #be123c;">Untreated sewage discharges into Pegnitz. Surfers infected. COMPLETELY MISSED!</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="timeline-node">
-                <div class="node-dot"></div>
-                <div class="node-text">Day 29: Next Manual Grab Sample <span style="color:#16a34a;">(Water appears "Normal")</span></div>
-              </div>
-            </div>
-
-            <div style="font-size: 0.8rem; color: #7c2d12; background: #fff7ed; padding: 10px 12px; border-radius: 8px; border-left: 4px solid var(--color-accent); line-height: 1.35;">
-              <strong>The Reality:</strong> A 3-hour toxic event has a near-zero statistical probability of being captured by monthly testing, yet inflicts 100% of the ecological and health damage.
-            </div>
+          <div class="box-container">
+            <div class="box-header">The Sampling Gap</div>
+            <ul class="bullet-points">
+              <li>Manual grab sampling: 1× per month</li>
+              <li>Convective storm overflow: 2 to 4 hours</li>
+              <li>Plume arrives, causes harm, and washes away undetected</li>
+              <li>Chemistry is understood — timing and mobility are missing</li>
+            </ul>
           </div>
         </div>
-      </div>
 
-      <div class="slide-footer">
-        <div class="slide-footer-tags">
-          <span class="badge badge-primary">SUN Parameters</span>
-          <span class="badge badge-danger">Sampling Frequency</span>
-          <span class="badge badge-navy">Spatial Blindness</span>
+        <div class="bottom-highlight">
+          <span>The Result:</span> Statutory violations and toxic spills pass completely unrecorded.
         </div>
-        <div>Slide 3 of 4 (Section 2 - 2/3)</div>
       </div>
     </section>
 
-    <!-- SLIDE 4: Stakeholders & Closed-Loop Vision (Section 2 - Slide 3 of 3) -->
+    <!-- SLIDE 4 -->
     <section class="slide" id="slide-4">
-      <div class="slide-header">
-        <div class="slide-kicker">
-          Context & Challenge [3/3]
-        </div>
-        <div class="slide-header-brand">
-          <img src="assets/logo.jpeg" alt="Logo">
-          <span>PlumeTrace</span>
-        </div>
-      </div>
-
+      <h2 class="slide-title">Stakeholders & Autonomous Closed Loop</h2>
       <div class="slide-body">
-        <!-- Challenge Definition -->
-        <div class="challenge-banner">
-          <div class="challenge-label">Formal Challenge Definition</div>
-          <div class="challenge-text">
-            "How can digital twinning be applied to autonomous systems in order to address the challenge of detecting and localizing transient Combined Sewer Overflows (CSOs) for the Wasserwirtschaftsamt and regional environmental authorities?"
-          </div>
-        </div>
-
-        <!-- Stakeholder Split -->
-        <div class="stakeholder-split">
-          <!-- Primary: Local Authorities -->
-          <div class="stakeholder-card" style="border-top: 4px solid var(--color-primary);">
-            <div class="stakeholder-header">
-              <span style="font-size: 1.3rem;">🏛️</span>
-              <div>
-                <div class="stakeholder-title">Primary: Local & Water Authorities</div>
-                <div style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">WWA NÜRNBERG • SUN • GESUNDHEITSAMT</div>
-              </div>
-            </div>
-            <ul class="feature-list">
-              <li><strong>Continuous Spatial Profiler:</strong> Patrols riverbanks over time to uncover chronic low-level pipe seepage before catastrophic failure.</li>
-              <li><strong>3D Pollution Heatmaps:</strong> Delivers geo-referenced in-river plume data (Cesium / LOD2) to justify multi-million € basin CAPEX.</li>
-              <li><strong>Statutory Alerts &lt; 60s:</strong> Instant threshold notifications (NH3-N &gt; 0.6 mg/L) replacing 48h laboratory waiting times.</li>
+        <div class="grid-2">
+          <div class="box-container">
+            <div class="box-header">Water Authorities (WWA, SUN)</div>
+            <ul class="bullet-points">
+              <li>Continuous spatial profiling along riverbanks</li>
+              <li>Uncover chronic seepage from aging pipes</li>
+              <li>Geo-referenced heatmaps to prioritize basin investments</li>
+              <li>Automated threshold alerts in under 60 seconds</li>
             </ul>
           </div>
 
-          <!-- Secondary: Citizens & Recreators -->
-          <div class="stakeholder-card" style="border-top: 4px solid var(--color-brand);">
-            <div class="stakeholder-header">
-              <span style="font-size: 1.3rem;">🏄</span>
-              <div>
-                <div class="stakeholder-title">Secondary: Citizens & Recreators</div>
-                <div style="font-size: 0.72rem; color: var(--color-brand); font-weight: 700;">FUCHSLOCHWELLE SURFERS • PEGNITZAUEN PARKS</div>
-              </div>
-            </div>
-            <ul class="feature-list">
-              <li><strong>Actionable Intelligence:</strong> Converts complex chemistry into an intuitive public warning app.</li>
-              <li><strong>Predictive Real-Time Guidance:</strong> Tells water sports enthusiasts whether it is safe to enter the water right now.</li>
+          <div class="box-container">
+            <div class="box-header">Citizens & Surfers</div>
+            <ul class="bullet-points">
+              <li>Eliminate complex chemical graphs</li>
+              <li>Real-time traffic light mobile app</li>
+              <li>Immediate guidance on water contact safety</li>
             </ul>
-            <div class="traffic-light-preview">
-              <div class="tl-pill tl-green">🟢 Safe<span>Water clear</span></div>
-              <div class="tl-pill tl-yellow">🟡 Caution<span>Runoff elevated</span></div>
-              <div class="tl-pill tl-red">🔴 Alert<span>DO NOT ENTER</span></div>
+            <div class="status-row">
+              <div class="status-pill status-green">🟢 Safe</div>
+              <div class="status-pill status-yellow">🟡 Caution</div>
+              <div class="status-pill status-red">🔴 Alert</div>
             </div>
           </div>
         </div>
 
-        <!-- Closed Loop Solution Teaser -->
-        <div class="closed-loop-bar">
-          <div class="loop-title">The Solution Vision: 4D Adaptive Closed Loop</div>
-          <div class="loop-tags">
-            <span class="loop-tag">🕒 Data Freshness (τ)</span>
-            <span class="loop-tag">📈 Chemical Gradient (∇C)</span>
-            <span class="loop-tag">🌧️ Rain Radar (W)</span>
-            <span class="loop-tag">📜 Historical Baselines (H)</span>
-          </div>
+        <div class="bottom-highlight">
+          <span>Closed-Loop Vision:</span> Robot waypoints adapt dynamically to live sensors, rain radar, and data age.
         </div>
-      </div>
-
-      <div class="slide-footer">
-        <div class="slide-footer-tags">
-          <span class="badge badge-primary">Stakeholder Alignment</span>
-          <span class="badge badge-navy">Traffic Light App</span>
-          <span class="badge badge-navy">Spatial Profiler</span>
-        </div>
-        <div>Slide 4 of 4 (Section 2 - 3/3)</div>
       </div>
     </section>
 
   </div>
 
-  <!-- Deck Control Bar -->
+  <!-- Controls Bar -->
   <div class="controls-bar">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <span id="counter" style="font-weight: 700; color: #ffffff;">Slide 1 of 4</span>
-      <span style="font-size: 0.75rem; color: #64748b;">(Use Left / Right Arrows or buttons)</span>
-    </div>
+    <div>Use Arrow Keys (← / →)</div>
     <div class="nav-buttons">
       <button class="btn" id="prevBtn" onclick="changeSlide(-1)">◀ Previous</button>
       <button class="btn" id="nextBtn" onclick="changeSlide(1)">Next ▶</button>
-      <button class="btn" id="notesBtn" onclick="toggleNotes()">📝 Speaker Notes (N)</button>
-      <button class="btn" id="fsBtn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      <button class="btn" id="notesBtn" onclick="toggleNotes()">Speaker Script (N)</button>
+      <button class="btn" id="fsBtn" onclick="toggleFullscreen()">Fullscreen (F)</button>
     </div>
   </div>
 
-  <!-- Interactive Speaker Notes Drawer -->
+  <!-- Speaker Notes -->
   <div class="speaker-drawer" id="speakerNotes">
     <div class="speaker-header">
-      <div class="speaker-title">
-        <span>🎙️ Presenter Script & Rehearsal Guidance</span>
-        <span id="scriptSlideLabel" style="color: #ffffff; font-weight: 600;">Slide 1</span>
-      </div>
-      <div class="speaker-time" id="scriptTime">Estimated Time: 45 sec</div>
+      <div class="speaker-title" id="scriptSlideLabel">Slide 1</div>
+      <div class="speaker-time" id="scriptTime">~45 seconds</div>
     </div>
-    <div class="speaker-content" id="scriptBody">
-      <!-- Injected dynamically -->
-    </div>
+    <div class="speaker-content" id="scriptBody"></div>
   </div>
 
   <script>
@@ -1096,47 +525,41 @@
 
     const scripts = {
       1: {
-        label: "Slide 1: Title Slide (Section 1)",
-        time: "Estimated Time: ~45 seconds",
+        label: "Slide 1: Title & Overview",
+        time: "~45 seconds",
         html: `<strong>Spoken Script:</strong><br>
         "Good morning members of the jury and mentors. Today, we present <strong>PlumeTrace</strong>—an autonomous, closed-loop Digital Twin system designed to protect urban rivers.<br><br>
-        Across Europe, rivers flowing through our cities are vital for recreation, drinking water, and ecology. Yet beneath the surface, they face severe, unmonitored pollution events that traditional testing completely misses.<br><br>
-        Using the Pegnitz River in Nuremberg, Bavaria as our testbed, we demonstrate how coupling an autonomous robotic agent with a real-time predictive Digital Twin transforms water quality monitoring from blind, infrequent sampling into actionable, real-time protection."`
+        Across Europe, urban rivers are essential for recreation, drinking water, and ecology. Yet beneath the surface, they face sudden, unmonitored pollution events that traditional testing completely misses.<br><br>
+        Using the Pegnitz River in Nuremberg as our testbed, we demonstrate how coupling an autonomous robotic agent with a real-time predictive Digital Twin transforms water quality monitoring from blind, infrequent sampling into actionable protection."`
       },
       2: {
-        label: "Slide 2: The Pegnitz Paradox (Section 2 - Slide 1 of 3)",
-        time: "Estimated Time: ~75 seconds",
+        label: "Slide 2: Four Critical Pressures",
+        time: "~60 seconds",
         html: `<strong>Spoken Script:</strong><br>
-        "Why the Pegnitz River in Nuremberg? Because it represents a micro-cosmos of every major water challenge facing European cities today.<br><br>
-        First, <strong>Public Health</strong>: The river hosts the Fuchslochwelle, a famous artificial river wave. Following rainstorms, sewage overflows turn this into what local German media literally dubbed the 'Durchfall-Welle' or Diarrhea Wave. Surfers face severe gastrointestinal infections because municipal bacteria cultures take 24 to 48 hours to process.<br><br>
-        Second, <strong>Urban Infrastructure</strong>: Nuremberg operates 1,500 kilometers of sewers. Building a single stormwater retention basin costs between 1.5 and 5 million euros. The city cannot afford to guess which outfalls need expansion.<br><br>
-        Third, <strong>Agriculture</strong>: The adjacent Knoblauchsland region intensively farms vegetables on sandy soils. Nitrogen runoff leaches into alluvial aquifers supplying municipal drinking water.<br><br>
-        And fourth, <strong>Climate Drought</strong>: Low summer water levels concentrate toxins, dropping oxygen below 3 milligrams per liter and causing severe fish kills.<br><br>
-        The core bottleneck? Current authorities rely on manual grab samples collected once a month. If a toxic sewer overflow lasts only 3 hours, a monthly sample has a near-zero statistical probability of catching it."`
+        "Why the Pegnitz River? Because it represents four urgent pressures colliding in one urban corridor:<br><br>
+        First, <strong>Public Health</strong>: Surfers at the Fuchslochwelle wave face raw sewage contamination after storms—dubbed the 'Durchfall-Welle' in local media—while lab tests take up to 48 hours.<br>
+        Second, <strong>Urban Infrastructure</strong>: Nuremberg's 1,500 km sewer network overspills during heavy rains. Modernizing a single retention basin costs between 1.5 and 5 million euros—cities cannot afford to invest blindly.<br>
+        Third, <strong>Agriculture</strong>: Intensive vegetable farming in Knoblauchsland leaches nitrates into alluvial drinking water aquifers under strict EU penalties.<br>
+        And fourth, <strong>Climate Drought</strong>: Summer heat reduces river discharge, collapsing oxygen levels below 3 mg/L and killing fish.<br><br>
+        The core failure? Authorities take grab samples once a month. A storm overflow lasts only 2 to 4 hours. By the time technicians sample, the plume is gone."`
       },
       3: {
-        label: "Slide 3: What Authorities Measure Today (Section 2 - Slide 2 of 3)",
-        time: "Estimated Time: ~70 seconds",
+        label: "Slide 3: Current Monitoring & The Sampling Gap",
+        time: "~50 seconds",
         html: `<strong>Spoken Script:</strong><br>
-        "To solve this problem, we first examined what local authorities already do.<br><br>
-        In Nuremberg, the municipal service SUN monitors eight standard parameters. They track temperature, pH, conductivity, and turbidity. And they analyze nutrients: Dissolved Oxygen, Ammonium, Nitrate, and Phosphate.<br><br>
-        These indicators are scientifically sound. Ammonium is the definitive chemical fingerprint of raw sewage. Dissolved Oxygen reveals if the river is suffocating.<br><br>
-        So why do water crises keep happening?<br><br>
-        The fatal flaw is <strong>sampling frequency and spatial rigidity</strong>.<br><br>
-        In Nuremberg, grab samples are taken by hand once every few weeks. Look at the timeline on the right: a convective storm hits on Day 14. For three hours, millions of liters of untreated effluent flood the Pegnitz. By Day 29, when the technician dips a sample bottle, the water is clear again. The statutory violation occurred, the surfers were infected, the fish died, but on paper, the water looked fine.<br><br>
-        Our challenge is not inventing new chemistry—it is providing the missing spatial and temporal intelligence."`
+        "To address this, we looked at what municipal authorities currently measure.<br><br>
+        In Nuremberg, the drainage service SUN tracks eight standard parameters: temperature, pH, conductivity, turbidity, dissolved oxygen, and nutrients like ammonium, nitrate, and phosphate. Ammonium is the critical chemical fingerprint of raw sewage.<br><br>
+        The problem is not chemical ignorance—it is <strong>temporal and spatial rigidity</strong>.<br><br>
+        Manual grab sampling happens once a month. A storm spill lasts just 3 hours. That means between scheduled samples, there are weeks of complete blindness. Millions of liters of wastewater can pass through, infect recreators, and clear away before the next bottle is dipped."`
       },
       4: {
-        label: "Slide 4: Stakeholders & Closed-Loop Vision (Section 2 - Slide 3 of 3)",
-        time: "Estimated Time: ~75 seconds",
+        label: "Slide 4: Stakeholders & Closed-Loop Vision",
+        time: "~60 seconds",
         html: `<strong>Spoken Script:</strong><br>
-        "This leads directly to our formal challenge definition:<br>
-        <em>'How can digital twinning be applied to autonomous systems in order to address the challenge of detecting and localizing transient Combined Sewer Overflows for regional water authorities?'</em><br><br>
-        We serve two distinct stakeholder tiers:<br><br>
-        For <strong>Local Authorities</strong>—the Wasserwirtschaftsamt, city sewer utility SUN, and public health departments—we provide deep infrastructure intelligence. Instead of counting weir overflows inside pipes, our robot acts as a <strong>continuous spatial profiler</strong>. It cruises the river over time, uncovering chronic, low-level seepage from cracked pipes before catastrophic failure occurs, and delivers 3D pollution heatmaps to guide multi-million euro infrastructure investments.<br><br>
-        For <strong>Citizens and Surfers</strong>, we eliminate confusing chemical graphs. We translate real-time data into a simple <strong>Traffic Light mobile app</strong>: Green means enjoy the wave, Red means an active sewer plume was detected upstream, stay out of the water today.<br><br>
-        And how does the system operate?<br>
-        Through an <strong>autonomous closed loop</strong>. Rather than driving a rigid, pre-planned path, our Digital Twin ingests telemetry every 30 seconds and computes an optimal 4D objective function—balancing data freshness, chemical gradients, weather radar, and historical baselines to vector the robot exactly where it is needed most."`
+        "PlumeTrace serves two main stakeholder groups with tailored intelligence:<br><br>
+        For <strong>Water and City Authorities</strong>, our robot acts as a <strong>continuous spatial profiler</strong>. By cruising riverbanks over time, it catches chronic pipe leaks before failure and provides 3D pollution maps to guide multi-million euro infrastructure investments.<br><br>
+        For <strong>Citizens and Surfers</strong>, we replace complex chemistry with a simple <strong>Traffic Light app</strong>: Green means safe, Red means stay out of the water today.<br><br>
+        And how does it operate? Through an <strong>autonomous closed loop</strong>. The robot's path is not pre-scripted—our Digital Twin computes optimal waypoints in real-time based on live chemical gradients, weather radar, and data age."`
       }
     };
 
@@ -1149,11 +572,9 @@
           slide.classList.remove('active');
         }
       }
-      document.getElementById('counter').innerText = `Slide ${currentSlide} of ${totalSlides}`;
       document.getElementById('prevBtn').disabled = (currentSlide === 1);
       document.getElementById('nextBtn').disabled = (currentSlide === totalSlides);
 
-      // Update speaker notes
       const data = scripts[currentSlide];
       document.getElementById('scriptSlideLabel').innerText = data.label;
       document.getElementById('scriptTime').innerText = data.time;
@@ -1185,14 +606,13 @@
       const elem = document.getElementById('viewport');
       if (!document.fullscreenElement) {
         elem.requestFullscreen().catch(err => {
-          alert(`Error attempting to enable fullscreen: ${err.message}`);
+          alert(`Error: ${err.message}`);
         });
       } else {
         document.exitFullscreen();
       }
     }
 
-    // Keyboard navigation
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
         changeSlide(1);
@@ -1205,7 +625,6 @@
       }
     });
 
-    // Initialize
     updateSlide();
   </script>
 </body>
