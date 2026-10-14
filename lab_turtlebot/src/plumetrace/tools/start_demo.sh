@@ -44,7 +44,8 @@ fi
 fail=0
 [ -f "$REPO/config/env.sh" ] || { echo "missing $REPO/config/env.sh"; fail=1; }
 ( source "$REPO/config/env.sh" >/dev/null 2>&1; ros2 pkg prefix plumetrace_sim >/dev/null 2>&1 ) \
-  || { echo "plumetrace_sim is not built: run tools/lab_setup.sh first"; fail=1; }
+  || { echo "plumetrace_sim is not built (workspace $(dirname "$(dirname "$REPO")")):"
+       echo "  cd $REPO && tools/lab_setup.sh"; fail=1; }
 python3 -c 'import websockets, sys; sys.exit(int(websockets.__version__.split(".")[0]) < 13)' 2>/dev/null \
   || { echo "relay needs websockets >= 13: tools/lab_setup.sh --pip"; fail=1; }
 CLOUDFLARED="$(command -v cloudflared || ls "$HOME/.local/bin/cloudflared" 2>/dev/null || true)"
@@ -100,10 +101,16 @@ EOF
 
 { prelude robot
   cat <<EOF
+if timeout 8 ros2 topic list 2>/dev/null | grep -qx /odom; then
+  echo "The robot bringup is already running (/odom is visible on domain $DOMAIN): not starting a second one."
+  echo "If it was started somewhere else than the start mark, stop it there, put the robot on the mark, and run:"
+  echo "  ssh -t $ROBOT \"bash -ic 'export ROS_DOMAIN_ID=$DOMAIN TURTLEBOT3_MODEL=burger LDS_MODEL=LDS-02; ros2 launch turtlebot3_bringup robot.launch.py'\""
+else
 echo "Robot on the START MARK before the bringup starts (its odometry starts at zero here)."
 echo "ssh $ROBOT  (enter the robot password if asked)"
 ssh -t -o ServerAliveInterval=5 "$ROBOT" \\
   "bash -ic 'export ROS_DOMAIN_ID=$DOMAIN TURTLEBOT3_MODEL=burger LDS_MODEL=LDS-02; ros2 launch turtlebot3_bringup robot.launch.py'"
+fi
 EOF
   tail_keep; } > "$STATE/3_robot.sh"
 

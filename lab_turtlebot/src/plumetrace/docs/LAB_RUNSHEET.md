@@ -9,14 +9,14 @@ Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot st
 Every terminal on the lablaptop, after step 0:
 
 ```bash
-cd ~/euroteq/lab_turtlebot/src/plumetrace && source config/env.sh
+cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace && source config/env.sh
 ```
 
 ## Quick reference
 
 | Task | Command (lablaptop, in the folder above, unless noted) |
 | --- | --- |
-| Update code | `cd ~/euroteq && git pull && cd lab_turtlebot/src/plumetrace && tools/lab_setup.sh` |
+| Update code | `cd ~/Euroteq_Eindhoven_T3 && git pull && cd lab_turtlebot/src/plumetrace && tools/lab_setup.sh` |
 | Robot bringup (robot) | `ssh turtlebot@192.168.8.32`, then `export ROS_DOMAIN_ID=32 TURTLEBOT3_MODEL=burger LDS_MODEL=LDS-02 && ros2 launch turtlebot3_bringup robot.launch.py` |
 | Check link and clocks | `tools/lab_check.sh` |
 | Tape guide | `python3 tools/lab_tape_guide.py 0.25` |
@@ -36,15 +36,15 @@ cd ~/euroteq/lab_turtlebot/src/plumetrace && source config/env.sh
 ## 0. Once per lablaptop (5 min)
 
 ```bash
-cd ~ && git clone https://github.com/PrinzMajkl/Euroteq_Eindhoven_T3.git euroteq
-cd ~/euroteq/lab_turtlebot/src/plumetrace
+cd ~ && git clone https://github.com/PrinzMajkl/Euroteq_Eindhoven_T3.git
+cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace
 tools/lab_setup.sh --pip
 source config/env.sh
 echo $ROS_DOMAIN_ID
 ```
 
 The code is on `main` (there is no `lab-turtlebot` branch on GitHub). `lab_setup.sh --pip` installs shapely,
-pymap3d, websockets and jsonschema for this user (no sudo) and builds the workspace in `~/euroteq/lab_turtlebot`
+pymap3d, websockets and jsonschema for this user (no sudo) and builds the workspace in `~/Euroteq_Eindhoven_T3/lab_turtlebot`
 on top of `~/turtlebot3_ws` (the repo root is not the workspace: `lab_turtlebot/` is a folder inside it).
 `ROS_DOMAIN_ID` must print 32 (from `~/.bashrc`). Check the tests: `python3 -m pytest -q tests` (34 pass).
 
@@ -57,7 +57,7 @@ mkdir -p ~/.local/bin && curl -L -o ~/.local/bin/cloudflared https://github.com/
 City view with terrain and buildings: create `web/config.local.js` by hand with
 `window.PLUMETRACE_CONFIG_LOCAL = { ionToken: '<your token>' };` (git-ignored, never commit it).
 
-Later sessions: `git pull` in `~/euroteq`, then `tools/lab_setup.sh` again (rebuilds the gateway and twin).
+Later sessions: `git pull` in `~/Euroteq_Eindhoven_T3`, then `tools/lab_setup.sh` again (rebuilds the gateway and twin).
 
 ## 1. Robot up, check the link (5 min)
 
@@ -185,11 +185,11 @@ the link sees the page and the Cesium ion token in it, so use a restricted token
 
 ## 5b. Full demo in one command: missions A, B, C with the live dashboard
 
-Robot on the start mark, map done (step 3), river taped (step 2). Do not start the bringup by hand: terminal 3
-does it. On the lablaptop:
+Robot on the start mark, map done (step 3), river taped (step 2). Terminal 3 starts the bringup over ssh, or
+leaves it alone when `/odom` is already visible (bringup started by hand). On the lablaptop:
 
 ```bash
-cd ~/euroteq/lab_turtlebot/src/plumetrace
+cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace
 tools/start_demo.sh
 ```
 
@@ -281,7 +281,7 @@ or slides on the turns.
 ```bash
 tools/start_demo.sh stop
 ls ~/plumetrace_runs/
-mkdir -p ~/euroteq/lab_turtlebot/lab/runs && cp -r ~/plumetrace_runs/<time>* ~/euroteq/lab_turtlebot/lab/runs/
+mkdir -p ~/Euroteq_Eindhoven_T3/lab_turtlebot/lab/runs && cp -r ~/plumetrace_runs/<time>* ~/Euroteq_Eindhoven_T3/lab_turtlebot/lab/runs/
 ```
 
 Export the dashboard runs ("Export all runs (JSON)") if you want the incident records. Commit reports, maps and
