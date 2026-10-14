@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": ["Bash", "Read", "Edit", "Write", "WebFetch", "WebSearch"],
+    "deny": [
+      "Bash(sudo *)",
+      "Bash(apt *)",
+      "Bash(apt-get *)",
+      "Bash(dpkg *)",
+      "Bash(pip uninstall *)",
+      "Bash(git push *)",
+      "Bash(git remote add *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Read(src/plumetrace/web/config.local.js)",
+      "Edit(src/plumetrace/web/config.local.js)"
+    ]
+  }
+}

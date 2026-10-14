@@ -1,0 +1,18 @@
+# PlumeTrace scenario: active outfall A (operator's secret dice roll; here fixed per file).
+# Flow and background are real values, written by tools/update_scenarios.py; the outfall and its strength are synthetic.
+scenario: A
+reach_id: PEGNITZ-LEDERERSTEG
+flow:
+  source: gkd            # kelheim/nuernberg-lederersteg-24225000, 15-min discharge, www.gkd.bayern.de (CC BY 4.0)
+  window: 2026-10-03T01:00:00+01:00 / 2026-10-11T00:00:00+01:00
+  q_m3s: 4.48            # median of 765 values (min 3.29, max 6.37)
+background:
+  source: gkd            # regnitz/nuernberg-lederersteg-17651, grab samples 2023-10-18 to 2024-12-04
+  nh3_n_mg_l: 0.04       # median NH4-N of 15 samples (90th percentile 0.072)
+  do_mg_l: 11.3          # median dissolved oxygen of 15 samples
+edm_event_id: SYNTHETIC-EVENT   # no open overflow feed in Bavaria
+active_outfall: A
+strength_factor: 1.0     # x the calibrated default (3.0 mg/L on the bank 20 m downstream)
+source_on_s: -1200.0     # river seconds relative to mission start
+noise_seed: 1            # overridden by the seed launch argument (seeds 1-5)
+time_factor: 10.0        # plume clock = 10 x simulation time

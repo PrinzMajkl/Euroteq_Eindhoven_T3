@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlumeTrace City View</title>
+<!-- CesiumJS pinned to 1.146 (latest 1.x at build time, see README.md) from the official CDN -->
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<script src="config.js"></script>
+<!-- optional, git-ignored: personal secrets such as the Cesium ion token (404 when absent is fine) -->
+<script src="config.local.js" onerror="void 0"></script>
+<style>
+  :root {
+    --bg: #f4f6f8; --panel: #ffffff; --ink: #1d2733; --muted: #5f6b78; --line: #d9dee4;
+    --accent: #1f6feb; --ok: #1a7f37; --warn: #b76e00; --bad: #c62828; --alert: #b71c1c;
+    --bar-a: #1f6feb; --bar-b: #8250df; --bar-c: #d97706;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0f141a; --panel: #18202a; --ink: #e6edf3; --muted: #9aa7b4; --line: #2b3643;
+            --accent: #58a6ff; --ok: #3fb950; --warn: #d29922; --bad: #f85149; --alert: #da3633; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
+               font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #app { display: grid; height: 100%;
+         grid-template-rows: auto auto 1fr auto; grid-template-columns: 260px 1fr 280px;
+         grid-template-areas: "top top top" "alert alert alert" "left map right" "time time time"; }
+  header { grid-area: top; display: flex; gap: 16px; align-items: center; padding: 8px 14px;
+           background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  header h1 { font-size: 16px; margin: 0; }
+  .pill { padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+  .pill b { color: var(--ink); }
+  .SYNCED { color: var(--ok) !important; } .STALE { color: var(--warn) !important; } .LOST { color: var(--bad) !important; }
+  #alert { grid-area: alert; display: none; background: var(--alert); color: #fff; padding: 8px 14px; font-weight: 600; }
+  aside { background: var(--panel); padding: 12px; overflow: auto; border-right: 1px solid var(--line); }
+  #right { grid-area: right; border-right: 0; border-left: 1px solid var(--line); }
+  #left { grid-area: left; }
+  aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 6px; }
+  aside h2:first-child { margin-top: 0; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+  dt { color: var(--muted); } dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  button { width: 100%; margin: 3px 0; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--line);
+           background: var(--bg); color: var(--ink); cursor: pointer; font: inherit; text-align: left; }
+  button:hover { border-color: var(--accent); }
+  button.danger { color: var(--bad); }
+  button.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  #hint { color: var(--muted); font-size: 12px; min-height: 1.4em; }
+  #map { grid-area: map; position: relative; min-height: 300px; }
+  #cesium { position: absolute; inset: 0; }
+  .bars .row { display: grid; grid-template-columns: 22px 1fr 52px; align-items: center; gap: 6px; margin: 6px 0; }
+  .bars .track { height: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+  .bars .fill { height: 100%; width: 33%; transition: width .3s; }
+  #alerts { list-style: none; padding: 0; margin: 0; max-height: 220px; overflow: auto; font-size: 12px; }
+  #alerts li { border-left: 3px solid var(--alert); padding: 3px 6px; margin: 4px 0; background: var(--bg); }
+  footer { grid-area: time; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 14px; }
+  #tl { position: relative; height: 34px; }
+  #tl input { width: 100%; margin: 0; }
+  #tlmarks { position: absolute; left: 0; right: 0; top: 22px; height: 10px; }
+  .mk { position: absolute; width: 2px; height: 10px; }
+  .mk.s { background: var(--accent); } .mk.e { background: var(--bad); width: 4px; }
+  #legend { position: absolute; left: 10px; bottom: 30px; background: var(--panel); border: 1px solid var(--line);
+            border-radius: 6px; padding: 6px 9px; font-size: 12px; opacity: .93; }
+  #legend div { display: flex; align-items: center; gap: 6px; }
+  .sw { width: 18px; height: 10px; display: inline-block; }
+  #placeholder { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #ffd54f; color: #222;
+                 padding: 3px 10px; font-weight: 700; border-radius: 4px; font-size: 12px; letter-spacing: .05em; }
+  @media (max-width: 900px) {
+    #app { grid-template-columns: 1fr; grid-template-rows: auto auto 55vh auto auto auto;
+           grid-template-areas: "top" "alert" "map" "left" "right" "time"; }
+    aside { border: 0; border-top: 1px solid var(--line); }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1 id="reach">PLACEHOLDER REACH</h1>
+    <span class="pill">mode <b id="mode">—</b></span>
+    <span class="pill">state <b id="state">—</b></span>
+    <span class="pill">sync <b id="syncall">—</b></span>
+    <span class="pill">time factor <b id="tf">—</b>×</span>
+    <span class="pill">link <b id="ws">connecting</b></span>
+  </header>
+  <div id="alert"></div>
+  <aside id="left">
+    <h2>Mission</h2>
+    <dl>
+      <dt>Mode</dt><dd id="m-mode">—</dd>
+      <dt>State</dt><dd id="m-state">—</dd>
+      <dt>Samples</dt><dd id="m-samples">0</dd>
+      <dt>Scenario</dt><dd id="m-scn">—</dd>
+      <dt>Battery</dt><dd id="m-batt">n/a (SIM)</dd>
+    </dl>
+    <h2>Sync per stream</h2>
+    <dl id="streams"></dl>
+    <h2>Commands</h2>
+    <button class="danger" data-cmd="abort">Abort mission</button>
+    <button data-cmd="return_home">Return home</button>
+    <button id="b-nogo">Draw no-go zone</button>
+    <button id="b-rr">Place obstacle · REROUTE</button>
+    <button id="b-stop">Place obstacle · STOP</button>
+    <button id="b-del">Remove selected zone/obstacle</button>
+    <div id="hint"></div>
+  </aside>
+  <div id="map">
+    <div id="cesium"></div>
+    <div id="placeholder">PLACEHOLDER REACH · synthetic data</div>
+    <div id="legend">
+      <div><span class="sw" style="background:linear-gradient(90deg,#2c7bb6,#ffffbf,#d7191c)"></span>plume NH₃-N</div>
+      <div><span class="sw" style="background:#555"></span>real obstacle</div>
+      <div><span class="sw" style="border:2px dashed #ff9800"></span>virtual obstacle</div>
+      <div><span class="sw" style="border:2px dotted #e53935"></span>no-go zone</div>
+    </div>
+  </div>
+  <aside id="right">
+    <h2>Which outfall?</h2>
+    <div class="bars" id="bars"></div>
+    <dl><dt>Strength</dt><dd id="q">—</dd></dl>
+    <h2>Alerts</h2>
+    <ul id="alerts"></ul>
+    <h2>Samples</h2>
+    <dl><dt>Received</dt><dd id="n-samples">0</dd><dt>Last NH₃-N</dt><dd id="last">—</dd></dl>
+    <button id="b-export">Export samples (CSV)</button>
+    <h2>Replay</h2>
+    <input type="file" id="czml" accept=".czml,.json">
+  </aside>
+  <footer>
+    <div id="tl"><input type="range" id="scrub" min="0" max="0" value="0"><div id="tlmarks"></div></div>
+    <div id="tlinfo" style="font-size:12px;color:var(--muted)">timeline: live</div>
+  </footer>
+</div>
+<script>
+'use strict';
+const CFG = Object.assign({}, window.PLUMETRACE_CONFIG || {}, window.PLUMETRACE_CONFIG_LOCAL || {});
+const $ = (id) => document.getElementById(id);
+const COLORS = { A: getComputedStyle(document.documentElement).getPropertyValue('--bar-a'),
+                 B: getComputedStyle(document.documentElement).getPropertyValue('--bar-b'),
+                 C: getComputedStyle(document.documentElement).getPropertyValue('--bar-c') };
+
+Cesium.Ion.defaultAccessToken = CFG.ionToken || '';
+const viewer = new Cesium.Viewer('cesium', {
+  baseLayer: new Cesium.ImageryLayer(new Cesium.OpenStreetMapImageryProvider({ url: 'https://tile.openstreetmap.org/' })),
+  // with an ion token: Cesium World Terrain; without: ellipsoid (no ion requests at all)
+  ...(CFG.ionToken ? { terrain: Cesium.Terrain.fromWorldTerrain() } : { terrainProvider: new Cesium.EllipsoidTerrainProvider() }),
+  baseLayerPicker: false, geocoder: false, timeline: false, animation: false, homeButton: true,
+  sceneModePicker: true, navigationHelpButton: false, fullscreenButton: false, infoBox: true,
+  selectionIndicator: true,
+});
+viewer.scene.globe.depthTestAgainstTerrain = false;
+// Ground height (m above the ellipsoid) at the reach. Every layer is drawn at H0 + a small offset, so the
+// view is right on the ellipsoid (H0 = 0) and on Cesium World Terrain (H0 sampled once in loadReach).
+let H0 = 0;
+const at = (lon, lat, dh) => Cesium.Cartesian3.fromDegrees(lon, lat, H0 + dh);
+const ring3 = (latlon, dh) => Cesium.Cartesian3.fromDegreesArrayHeights(latlon.flatMap(([lat, lon]) => [lon, lat, H0 + dh]));
+if (CFG.ionToken) {  // OSM Buildings for 3D context when an ion token is configured
+  Cesium.createOsmBuildingsAsync().then((b) => viewer.scene.primitives.add(b))
+    .catch((e) => console.warn('OSM Buildings failed (check the ion token)', e));
+}
+if (CFG.tileset_url) {
+  Cesium.Cesium3DTileset.fromUrl(CFG.tileset_url).then((ts) => viewer.scene.primitives.add(ts))
+    .catch((e) => console.warn('tileset failed', e));
+}
+const ents = viewer.entities;
+
+// ---------- static reach layers ----------
+async function loadReach() {
+  const wj = await (await fetch('data/water_area.geojson')).json();
+  const wp = wj.features[0].properties, ring = wj.features[0].geometry.coordinates[0];
+  const mid = ring.reduce((a, p) => [a[0] + p[0] / ring.length, a[1] + p[1] / ring.length], [0, 0]);
+  const synthetic = /PLACEHOLDER/.test(wp.reach_id);
+  if (CFG.ionToken) {
+    try {
+      const tp = await Cesium.createWorldTerrainAsync();
+      const [g] = await Cesium.sampleTerrainMostDetailed(tp, [Cesium.Cartographic.fromDegrees(mid[0], mid[1])]);
+      if (Number.isFinite(g.height)) H0 = g.height;
+    } catch (e) { console.warn('terrain height not available, drawing at the ellipsoid', e); }
+  }
+  const water = await Cesium.GeoJsonDataSource.load('data/water_area.geojson',
+    { fill: Cesium.Color.fromCssColorString('#3a7bd5').withAlpha(0.35), stroke: Cesium.Color.fromCssColorString('#1d4f91'), strokeWidth: 2, clampToGround: false });
+  for (const e of water.entities.values) if (e.polygon) e.polygon.height = H0 + 0.2;
+  viewer.dataSources.add(water);
+  const outf = await (await fetch('data/outfalls.geojson')).json();
+  for (const f of outf.features) {
+    const [lon, lat] = f.geometry.coordinates;
+    ents.add({ id: 'outfall-' + f.properties.id, name: 'Outfall ' + f.properties.id,
+      position: at(lon, lat, 1),
+      point: { pixelSize: 11, color: Cesium.Color.fromCssColorString(COLORS[f.properties.id] || '#888'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
+      label: { text: f.properties.id, font: '600 14px sans-serif', pixelOffset: new Cesium.Cartesian2(0, -18), fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE },
+      description: `EDM site ${f.properties.edm_site_id}, bank ${f.properties.bank}` });
+  }
+  const st = await (await fetch('data/stations.geojson')).json();
+  for (const f of st.features) {
+    const [lon, lat] = f.geometry.coordinates;
+    ents.add({ name: f.properties.id, position: at(lon, lat, 1),
+      point: { pixelSize: 8, color: Cesium.Color.DARKSLATEGRAY, outlineColor: Cesium.Color.WHITE, outlineWidth: 1 },
+      label: { text: f.properties.kind === 'wq' ? 'WQ' : 'Gauge', font: '12px sans-serif', pixelOffset: new Cesium.Cartesian2(0, 14), fillColor: Cesium.Color.BLACK, showBackground: true, backgroundColor: Cesium.Color.WHITE.withAlpha(0.7) } });
+  }
+  const c = water.entities.values[0];
+  document.getElementById('reach').textContent = wp.name || wp.reach_id;
+  document.getElementById('placeholder').textContent = synthetic ? 'PLACEHOLDER REACH · synthetic data' : (wp.name || wp.reach_id) + ' · synthetic plume and outfalls';
+  ents.add({ position: at(mid[0], mid[1], 5), label: { text: wp.name || wp.reach_id, font: '700 15px sans-serif', fillColor: Cesium.Color.YELLOW, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE } });
+  viewer.flyTo(water, { duration: 0 });
+}
+loadReach().catch((e) => console.error(e));
+
+// ---------- live layers ----------
+const plume = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
+const robot = ents.add({ id: 'robot', name: 'TurtleBot3 (×100 symbol)', position: Cesium.Cartesian3.fromDegrees(0, 0, 2),
+  billboard: { image: robotIcon(), width: 30, height: 30, rotation: 0, alignedAxis: Cesium.Cartesian3.ZERO },
+  label: { text: 'robot', font: '12px sans-serif', pixelOffset: new Cesium.Cartesian2(0, 22), fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE } });
+const track = [];
+ents.add({ polyline: { positions: new Cesium.CallbackProperty(() => track, false), width: 2, material: Cesium.Color.WHITE.withAlpha(0.7) } });
+const samples = [];
+const obsEnts = new Map();
+let posterior = null;
+
+function robotIcon() {
+  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
+  g.fillStyle = '#111'; g.strokeStyle = '#fff'; g.lineWidth = 5;
+  g.beginPath(); g.arc(32, 32, 22, 0, 2 * Math.PI); g.fill(); g.stroke();
+  g.fillStyle = '#4caf50'; g.beginPath(); g.moveTo(32, 8); g.lineTo(44, 30); g.lineTo(20, 30); g.closePath(); g.fill();
+  return c.toDataURL();
+}
+function plumeColor(c) {
+  const t = Math.max(0, Math.min(1, Math.log10(Math.max(c, 0.05) / 0.05) / Math.log10(60)));
+  const stops = [[44, 123, 182], [171, 217, 233], [255, 255, 191], [253, 174, 97], [215, 25, 28]];
+  const x = t * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
+  const m = stops[i].map((v, k) => v + (stops[i + 1][k] - v) * f);
+  return new Cesium.Color(m[0] / 255, m[1] / 255, m[2] / 255, 0.25 + 0.65 * t);
+}
+
+const handlers = {
+  hello(m) { $('reach').textContent = m.reach; $('tf').textContent = m.time_factor; },
+  pose(m) {
+    const p = at(m.lon, m.lat, 2);
+    robot.position = p;
+    robot.billboard.rotation = -Cesium.Math.toRadians(m.heading_deg);
+    if (!track.length || Cesium.Cartesian3.distance(track[track.length - 1], p) > 0.5) { track.push(p); if (track.length > 3000) track.shift(); }
+  },
+  plume_points(m) {
+    plume.removeAll();
+    for (const [lat, lon, c] of m.points) {
+      if (c < 0.06) continue;
+      plume.add({ position: at(lon, lat, 0.5), pixelSize: 7, color: plumeColor(c) });
+    }
+  },
+  sample(m) {
+    if (samples.some((s) => s.seq === m.seq)) return;
+    samples.push(m);
+    ents.add({ id: 'sample-' + m.seq, name: `Sample ${m.seq}`, position: at(m.lon, m.lat, 1),
+      point: { pixelSize: 9, color: plumeColor(m.nh3_n_mg_l).withAlpha(1), outlineColor: Cesium.Color.BLACK, outlineWidth: 1 },
+      description: `NH₃-N ${m.nh3_n_mg_l.toFixed(3)} mg/L<br>DO ${m.do_mg_l.toFixed(2)} mg/L<br>qc ${m.qc_flags}${m.is_replay ? ' (replayed)' : ''}` });
+    $('n-samples').textContent = samples.length;
+    $('last').textContent = m.nh3_n_mg_l.toFixed(3) + ' mg/L';
+    drawTimeline();
+  },
+  posterior(m) {
+    posterior = m;
+    const bars = $('bars'); bars.innerHTML = '';
+    m.labels.forEach((l, i) => {
+      const p = m.probabilities[i];
+      bars.insertAdjacentHTML('beforeend', `<div class="row"><b>${l}</b><div class="track"><div class="fill" style="width:${(p * 100).toFixed(1)}%;background:${COLORS[l]}"></div></div><span>${(p * 100).toFixed(1)} %</span></div>`);
+    });
+    $('q').textContent = m.map_strength.toFixed(2) + '× default';
+  },
+  alert(m) {
+    const a = $('alert'); a.style.display = 'block'; a.textContent = m.message;
+    $('alerts').insertAdjacentHTML('afterbegin', `<li>#${m.seq} · ${m.nh3_n_mg_l.toFixed(2)} mg/L${m.likely_outfall ? ' · ' + m.likely_outfall + ' ' + (m.probability * 100).toFixed(0) + ' %' : ''}</li>`);
+  },
+  obstacles(m) {
+    const seen = new Set();
+    for (const o of m.obstacles) {
+      seen.add(o.id);
+      const pos = ring3(o.footprint, 0.3);
+      const key = o.id + o.origin + o.mode + JSON.stringify(o.footprint);
+      const old = obsEnts.get(o.id);
+      if (old && old.key === key) continue;
+      if (old) ents.remove(old.e);
+      let e;
+      if (o.origin === 'REAL') {
+        e = ents.add({ id: 'obs-' + o.id, name: `Real obstacle ${o.id}`, polygon: { hierarchy: pos, perPositionHeight: false, height: H0, extrudedHeight: H0 + o.height_m, material: Cesium.Color.fromCssColorString('#555').withAlpha(0.85), outline: true, outlineColor: Cesium.Color.BLACK } });
+      } else if (o.id.startsWith('nogo')) {
+        e = ents.add({ id: 'obs-' + o.id, name: `No-go zone ${o.id}`, polygon: { hierarchy: pos, height: H0 + 0.3, material: Cesium.Color.RED.withAlpha(0.12) },
+          polyline: { positions: pos.concat([pos[0]]), width: 3, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.RED, dashLength: 6 }) } });
+      } else {
+        e = ents.add({ id: 'obs-' + o.id, name: `Virtual ${o.mode} ${o.id}`, polygon: { hierarchy: pos, height: H0, extrudedHeight: H0 + o.height_m, material: Cesium.Color.ORANGE.withAlpha(0.2) },
+          polyline: { positions: pos.concat([pos[0]]), width: 3, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.ORANGE, dashLength: 16 }) } });
+      }
+      obsEnts.set(o.id, { e, key });
+    }
+    for (const [id, v] of obsEnts) if (!seen.has(id)) { ents.remove(v.e); obsEnts.delete(id); }
+  },
+  sync(m) {
+    const dl = $('streams'); dl.innerHTML = '';
+    let worst = 'SYNCED';
+    for (const s of m.streams) {
+      dl.insertAdjacentHTML('beforeend', `<dt>${s.name}</dt><dd class="${s.state}">${s.state}${s.staleness_s != null ? ' · ' + s.staleness_s.toFixed(1) + ' s' : ''}</dd>`);
+      if (s.state === 'LOST' || (s.state === 'STALE' && worst === 'SYNCED')) worst = s.state;
+    }
+    const el = $('syncall'); el.textContent = worst; el.className = worst;
+  },
+  mission(m) {
+    $('mode').textContent = $('m-mode').textContent = m.mode;
+    $('state').textContent = $('m-state').textContent = m.state;
+    $('m-samples').textContent = m.samples_taken; $('m-scn').textContent = m.scenario || '—';
+    $('tf').textContent = m.time_factor; $('reach').textContent = m.reach;
+  },
+  ack(m) { $('hint').textContent = m.ok ? `✓ ${m.command} ${m.detail || ''}` : `✗ rejected: ${m.detail}`; },
+};
+
+// ---------- WebSocket ----------
+let ws;
+function connect() {
+  // 'auto' (set by tools/relay.py): live data from the page's own origin, so one tunnel carries both
+  const url = CFG.wsUrl === 'auto'
+    ? (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws' + location.search
+    : (CFG.wsUrl || 'ws://localhost:8765');
+  ws = new WebSocket(url);
+  ws.onopen = () => { $('ws').textContent = 'connected'; $('ws').className = 'SYNCED'; };
+  ws.onclose = () => { $('ws').textContent = 'reconnecting'; $('ws').className = 'LOST'; setTimeout(connect, 1500); };
+  ws.onmessage = (ev) => { const m = JSON.parse(ev.data); (handlers[m.type] || (() => {}))(m); };
+}
+connect();
+function send(cmd) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type: 'command' }, cmd))); }
+
+// ---------- commands ----------
+document.querySelectorAll('button[data-cmd]').forEach((b) => b.onclick = () => {
+  if (b.dataset.cmd === 'abort' && !confirm('Abort the mission?')) return;
+  send({ command: b.dataset.cmd });
+});
+let tool = null, draft = [], draftEnt = null;
+function setTool(t, btn) {
+  tool = t; draft = []; if (draftEnt) { ents.remove(draftEnt); draftEnt = null; }
+  document.querySelectorAll('aside button').forEach((x) => x.classList.remove('active'));
+  if (btn && t) btn.classList.add('active');
+  $('hint').textContent = t === 'nogo' ? 'Click points on the map; double-click to finish.' : t ? 'Click the map to place a 25 m obstacle.' : '';
+}
+$('b-nogo').onclick = (e) => setTool(tool === 'nogo' ? null : 'nogo', e.target);
+$('b-rr').onclick = (e) => setTool(tool === 'REROUTE' ? null : 'REROUTE', e.target);
+$('b-stop').onclick = (e) => setTool(tool === 'STOP' ? null : 'STOP', e.target);
+$('b-del').onclick = () => {
+  const sel = viewer.selectedEntity;
+  if (!sel || !sel.id || !String(sel.id).startsWith('obs-')) { $('hint').textContent = 'Select a no-go zone or virtual obstacle first.'; return; }
+  const id = String(sel.id).slice(4);
+  send({ command: id.startsWith('nogo') ? 'remove_nogo' : 'remove_obstacle', id });
+};
+function pick(pos) {
+  // on terrain the ellipsoid hit is displaced; take the globe surface under the cursor
+  const c = viewer.scene.globe.pick(viewer.camera.getPickRay(pos), viewer.scene) || viewer.camera.pickEllipsoid(pos, viewer.scene.globe.ellipsoid);
+  if (!c) return null;
+  const g = Cesium.Cartographic.fromCartesian(c);
+  return [Cesium.Math.toDegrees(g.latitude), Cesium.Math.toDegrees(g.longitude)];
+}
+const h = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+h.setInputAction((e) => {
+  if (!tool) return;
+  const ll = pick(e.position); if (!ll) return;
+  if (tool === 'nogo') {
+    draft.push(ll);
+    if (!draftEnt) draftEnt = ents.add({ polyline: { positions: new Cesium.CallbackProperty(() => ring3(draft, 0.5), false), width: 2, material: Cesium.Color.RED } });
+  } else {
+    send({ command: 'add_obstacle', center: ll, size_m: 25, mode: tool, height_m: 30 }); setTool(null);
+  }
+}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+h.setInputAction(() => {
+  if (tool !== 'nogo') return;
+  if (draft.length >= 3) send({ command: 'add_nogo', polygon: draft.slice() });
+  setTool(null);
+}, Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK);
+
+// ---------- export, timeline, replay ----------
+$('b-export').onclick = () => {
+  const rows = ['seq,t,lat,lon,nh3_n_mg_l,do_mg_l,qc_flags,is_replay'].concat(samples.map((s) => [s.seq, s.t, s.lat, s.lon, s.nh3_n_mg_l, s.do_mg_l, s.qc_flags, s.is_replay].join(',')));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
+  a.download = 'plumetrace_samples.csv'; a.click();
+};
+function drawTimeline() {
+  const mk = $('tlmarks'); mk.innerHTML = '';
+  if (!samples.length) return;
+  const t0 = samples[0].t, t1 = Math.max(samples[samples.length - 1].t, t0 + 1);
+  const sc = $('scrub'); sc.min = 0; sc.max = samples.length; if (live) sc.value = samples.length;
+  for (const s of samples) mk.insertAdjacentHTML('beforeend', `<span class="mk s" style="left:${((s.t - t0) / (t1 - t0) * 100).toFixed(2)}%" title="#${s.seq}"></span>`);
+  for (const e of CFG.overflowEvents || []) if (e.start_s <= 0) mk.insertAdjacentHTML('beforeend', `<span class="mk e" style="left:0" title="overflow ${e.id} (on before start)"></span>`);
+}
+let live = true;
+$('scrub').oninput = (e) => {
+  const k = +e.target.value; live = k >= samples.length;
+  samples.forEach((s, i) => { const en = ents.getById('sample-' + s.seq); if (en) en.show = i < k || live; });
+  $('tlinfo').textContent = live ? 'timeline: live' : `timeline: up to sample ${k} of ${samples.length}`;
+};
+$('czml').onchange = async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const ds = await Cesium.CzmlDataSource.load(JSON.parse(await f.text()));
+  viewer.dataSources.add(ds);
+  viewer.clock.shouldAnimate = true;
+  $('tlinfo').textContent = 'replay: ' + f.name;
+};
+</script>
+</body>
+</html>

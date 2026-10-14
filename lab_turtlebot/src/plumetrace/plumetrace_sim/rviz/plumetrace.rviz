@@ -1,0 +1,118 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+  - Class: nav2_rviz_plugins/Navigation 2
+    Name: Navigation 2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Cell Size: 0.5
+      Plane Cell Count: 10
+      Offset: {X: 0.8, Y: -1.4, Z: 0}
+      Color: 160; 160; 164
+      Alpha: 0.3
+    - Class: rviz_default_plugins/Map
+      Name: Arena map
+      Enabled: true
+      Topic: {Value: /map, Durability Policy: Transient Local, Reliability Policy: Reliable, Depth: 1}
+      Color Scheme: map
+      Alpha: 0.6
+    - Class: rviz_default_plugins/Map
+      Name: Keepout mask (river)
+      Enabled: true
+      Topic: {Value: /keepout_filter_mask, Durability Policy: Transient Local, Reliability Policy: Reliable, Depth: 1}
+      Color Scheme: costmap
+      Alpha: 0.35
+    - Class: rviz_default_plugins/Map
+      Name: Global costmap
+      Enabled: true
+      Topic: {Value: /global_costmap/costmap, Durability Policy: Transient Local, Reliability Policy: Reliable, Depth: 1}
+      Color Scheme: costmap
+      Alpha: 0.3
+    - Class: rviz_default_plugins/Map
+      Name: Local costmap
+      Enabled: false
+      Topic: {Value: /local_costmap/costmap, Durability Policy: Volatile, Reliability Policy: Reliable, Depth: 1}
+      Color Scheme: costmap
+      Alpha: 0.4
+    - Class: rviz_default_plugins/RobotModel
+      Name: TurtleBot3 Burger
+      Enabled: true
+      Description Source: Topic
+      Description Topic: {Value: /robot_description, Durability Policy: Transient Local}
+    - Class: rviz_default_plugins/TF
+      Name: TF
+      Enabled: false
+    - Class: rviz_default_plugins/LaserScan
+      Name: LiDAR /scan
+      Enabled: true
+      Topic: {Value: /scan, Reliability Policy: Best Effort, Depth: 5}
+      Size (m): 0.02
+      Color Transformer: FlatColor
+      Color: 239; 41; 41
+    - Class: nav2_rviz_plugins/ParticleCloud
+      Name: AMCL particles
+      Enabled: true
+      Topic: {Value: /particle_cloud, Reliability Policy: Best Effort, Depth: 5}
+      Color: 0; 180; 0
+      Arrow Length: 0.03
+    - Class: rviz_default_plugins/Path
+      Name: Global plan
+      Enabled: true
+      Topic: {Value: /plan, Reliability Policy: Reliable, Depth: 5}
+      Color: 25; 90; 220
+      Line Width: 0.01
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Virtual REROUTE cloud
+      Enabled: true
+      Topic: {Value: /virtual_obstacles/cloud, Reliability Policy: Reliable, Depth: 5}
+      Style: Points
+      Size (Pixels): 4
+      Color Transformer: FlatColor
+      Color: 255; 153; 0
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Virtual STOP cloud
+      Enabled: true
+      Topic: {Value: /virtual_obstacles/stop_cloud, Reliability Policy: Reliable, Depth: 5}
+      Style: Points
+      Size (Pixels): 4
+      Color Transformer: FlatColor
+      Color: 230; 25; 25
+    - Class: rviz_default_plugins/Polygon
+      Name: Collision monitor stop zone
+      Enabled: true
+      Topic: {Value: /collision_monitor/stop_zone, Reliability Policy: Reliable, Depth: 5}
+      Color: 230; 25; 25
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Twin obstacles
+      Enabled: true
+      Topic: {Value: /twin/obstacle_markers, Reliability Policy: Reliable, Depth: 5}
+  Global Options:
+    Fixed Frame: map
+    Background Color: 40; 44; 52
+    Frame Rate: 30
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/Measure
+    - Class: rviz_default_plugins/SetInitialPose
+      Topic: {Value: /initialpose}
+    - Class: rviz_default_plugins/SetGoal
+      Topic: {Value: /goal_pose}
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Arena top-down
+      X: 0.8
+      Y: -1.4
+      Scale: 150
+      Angle: 0
+Window Geometry:
+  Width: 1400
+  Height: 900

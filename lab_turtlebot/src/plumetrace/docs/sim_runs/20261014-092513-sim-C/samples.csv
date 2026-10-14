@@ -1,0 +1,2 @@
+seq,t,arena_x,arena_y,arena_theta,river_x,river_y,lat,lon,nh3_n_mg_l,do_mg_l,qc_flags,is_replay
+1,41.502,1.5633,-1.5106,-0.2121,-185.086,25.918,49.45576366,11.05275838,0.0413,11.2994,1,0
