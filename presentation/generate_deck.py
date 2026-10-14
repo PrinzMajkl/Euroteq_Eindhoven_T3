@@ -388,11 +388,6 @@ add_notes(s7,
     "And fourth, Economics: Instead of maintaining hundreds of submerged probes prone to biofouling and flood destruction, one mobile platform delivers continuous, protected spatial coverage."
 )
 
-# Save with fallback if locked by PowerPoint
-try:
-    prs.save(OUTPUT_PATH)
-    print(f"Successfully generated PowerPoint presentation at: {OUTPUT_PATH}")
-except PermissionError:
-    fallback_path = os.path.join(os.path.dirname(__file__), "plumetrace_deck.pptx")
-    prs.save(fallback_path)
-    print(f"Original file was locked in PowerPoint. Saved updated presentation to: {fallback_path}")
+# Save
+prs.save(OUTPUT_PATH)
+print(f"Successfully generated PowerPoint presentation at: {OUTPUT_PATH}")
