@@ -18,7 +18,7 @@ class SafeNavigation(Node):
         # Conservative settings for initial Gazebo testing
         self.safe_distance = 0.60
         self.stop_distance = 0.45
-        self.forward_speed = 0.10
+        self.forward_speed = 0.50
         self.turn_speed = 0.25
 
         self.scan = None
