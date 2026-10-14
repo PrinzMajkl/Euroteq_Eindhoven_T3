@@ -13,7 +13,6 @@
       --orange: #fb8500;
       --white: #ffffff;
       --card-bg: #f4f9fc;
-      --chip-bg: #eaf4f8;
       --border-clr: #b4daee;
       --font-family: Calibri, 'Segoe UI', -apple-system, sans-serif;
     }
@@ -58,7 +57,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      padding: 38px 52px;
+      padding: 45px 65px;
       display: none;
       flex-direction: column;
       background: var(--white);
@@ -72,23 +71,13 @@
       z-index: 2;
     }
 
-    /* Category Pill */
-    .category-pill {
-      font-size: 0.82rem;
-      font-weight: 700;
-      color: var(--cyan);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-    }
-
     /* Slide Title */
     .slide-title {
-      font-size: 2.25rem;
+      font-size: 2.5rem;
       font-weight: 700;
       color: var(--navy);
       line-height: 1.15;
-      margin-bottom: 16px;
+      margin-bottom: 24px;
       letter-spacing: -0.01em;
     }
 
@@ -96,22 +85,21 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      gap: 14px;
+      justify-content: center;
+      gap: 20px;
     }
 
     /* Slide 1 - Title */
     .slide-1-layout {
       display: flex;
       align-items: center;
-      gap: 50px;
+      gap: 55px;
       height: 100%;
-      padding-top: 20px;
     }
 
     .slide-1-logo {
-      width: 210px;
-      height: 210px;
+      width: 230px;
+      height: 230px;
       border-radius: 50%;
       object-fit: cover;
       box-shadow: 0 8px 24px rgba(2, 48, 71, 0.16);
@@ -122,18 +110,11 @@
     .slide-1-text {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-
-    .slide-1-pill {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--cyan);
-      letter-spacing: 0.08em;
+      gap: 14px;
     }
 
     .slide-1-title {
-      font-size: 4.2rem;
+      font-size: 4.6rem;
       font-weight: 700;
       color: var(--cyan);
       line-height: 1.05;
@@ -141,27 +122,10 @@
     }
 
     .slide-1-subtitle {
-      font-size: 1.65rem;
+      font-size: 1.85rem;
       color: var(--navy);
       font-weight: 700;
       line-height: 1.25;
-      margin-bottom: 6px;
-    }
-
-    .slide-1-badges {
-      display: flex;
-      gap: 12px;
-      margin-top: 8px;
-    }
-
-    .badge-pill {
-      background: var(--card-bg);
-      border: 1px solid var(--sky);
-      border-radius: 20px;
-      padding: 6px 16px;
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--navy);
     }
 
     /* Progressive Reveal Animation */
@@ -182,20 +146,21 @@
     .grid-4 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
+      gap: 20px;
     }
 
     .grid-3 {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-      align-items: stretch;
+      gap: 22px;
+      height: 100%;
     }
 
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 18px;
+      gap: 28px;
+      height: 100%;
     }
 
     /* Clean Card & Box Containers */
@@ -203,49 +168,34 @@
       background: var(--card-bg);
       border: 1.5px solid var(--border-clr);
       border-radius: 10px;
-      padding: 14px 18px;
+      padding: 22px 26px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      position: relative;
+      gap: 14px;
     }
 
     .card-top-row {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
 
     .card-icon {
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
       flex-shrink: 0;
       border-radius: 50%;
     }
 
-    .card-heading-group {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .card-tag {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--cyan);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      line-height: 1.1;
-    }
-
     .clean-card-title {
-      font-size: 1.25rem;
+      font-size: 1.35rem;
       font-weight: 700;
       color: var(--navy);
       line-height: 1.2;
     }
 
     .clean-card-sub {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       font-weight: 700;
       color: var(--cyan);
       margin-top: 2px;
@@ -256,24 +206,23 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-size: 0.98rem;
+      gap: 10px;
+      font-size: 1.12rem;
       color: var(--navy);
-      flex: 1;
     }
 
     .bullet-points li {
       display: flex;
       align-items: flex-start;
-      gap: 8px;
-      line-height: 1.35;
+      gap: 10px;
+      line-height: 1.4;
     }
 
     .bullet-points li::before {
       content: "-";
       color: var(--cyan);
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: 1.3rem;
       line-height: 1;
     }
 
@@ -281,211 +230,43 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 5px;
-      font-size: 0.92rem;
+      gap: 8px;
+      font-size: 1.05rem;
       color: var(--navy);
-      flex: 1;
     }
 
     .bullet-points-compact li {
       display: flex;
       align-items: flex-start;
-      gap: 7px;
-      line-height: 1.3;
+      gap: 8px;
+      line-height: 1.35;
     }
 
     .bullet-points-compact li::before {
       content: "-";
       color: var(--cyan);
       font-weight: bold;
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       line-height: 1;
     }
 
-    /* Bottom Chip inside Card */
-    .card-chip {
-      background: var(--chip-bg);
-      border: 1px solid var(--sky);
-      border-radius: 6px;
-      padding: 5px 10px;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--cyan);
-      line-height: 1.2;
-      margin-top: auto;
-    }
-
-    /* Bottom Highlight Banner */
+    /* Bottom Highlight Banner (ONLY for Slide 3) */
     .bottom-highlight {
       background: var(--card-bg);
       border: 1.5px solid var(--cyan);
       border-radius: 8px;
-      padding: 10px 18px;
-      font-size: 1.08rem;
+      padding: 12px 22px;
+      font-size: 1.2rem;
       color: var(--navy);
       font-weight: 700;
       display: flex;
       align-items: center;
       gap: 10px;
+      margin-top: 10px;
     }
 
     .bottom-highlight span {
       color: var(--orange);
-    }
-
-    /* Infographic Panels */
-    .infographic-banner {
-      background: var(--card-bg);
-      border: 1.5px solid var(--border-clr);
-      border-radius: 10px;
-      padding: 12px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .infographic-header {
-      font-size: 0.76rem;
-      font-weight: 700;
-      color: var(--cyan);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    /* Slide 3 Temporal Mismatch */
-    .mismatch-bars {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 4px 0;
-    }
-
-    .bar-storm {
-      background: var(--orange);
-      color: var(--white);
-      font-size: 0.78rem;
-      font-weight: 700;
-      padding: 6px 14px;
-      border-radius: 12px;
-      white-space: nowrap;
-    }
-
-    .bar-lab {
-      background: var(--navy);
-      color: var(--white);
-      font-size: 0.78rem;
-      font-weight: 700;
-      padding: 6px 18px;
-      border-radius: 12px;
-      flex: 1;
-      white-space: nowrap;
-    }
-
-    .mismatch-sub {
-      font-size: 0.85rem;
-      color: var(--navy);
-    }
-
-    /* Slide 4 Formal Challenge */
-    .challenge-banner {
-      background: var(--card-bg);
-      border: 1.5px solid var(--cyan);
-      border-radius: 10px;
-      padding: 14px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .challenge-stmt {
-      font-size: 1.08rem;
-      font-weight: 700;
-      color: var(--navy);
-      line-height: 1.35;
-    }
-
-    .challenge-goal {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--cyan);
-    }
-
-    /* Slide 5 Pipeline */
-    .pipeline-row {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr auto 1fr;
-      gap: 10px;
-      align-items: center;
-    }
-
-    .pipe-step {
-      background: var(--white);
-      border: 1px solid var(--sky);
-      border-radius: 8px;
-      padding: 8px 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .pipe-step-num {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--cyan);
-    }
-
-    .pipe-step-title {
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: var(--navy);
-    }
-
-    .pipe-step-desc {
-      font-size: 0.78rem;
-      color: var(--navy);
-      line-height: 1.25;
-    }
-
-    .pipe-arrow {
-      color: var(--cyan);
-      font-size: 1.3rem;
-      font-weight: bold;
-    }
-
-    /* Slide 6 Closed Loop */
-    .loop-row {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .loop-step {
-      background: var(--white);
-      border: 1px solid var(--sky);
-      border-radius: 8px;
-      padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .loop-step-num {
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: var(--cyan);
-    }
-
-    .loop-step-title {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: var(--navy);
-    }
-
-    .loop-step-desc {
-      font-size: 0.75rem;
-      color: var(--navy);
-      line-height: 1.2;
     }
 
     /* Controls Bar */
@@ -575,56 +356,6 @@
       line-height: 1.55;
       color: #e2e8f0;
     }
-
-    /* ==========================================================
-       PRINT STYLESHEET (FOR VECTOR 16:9 PDF EXPORT)
-       ========================================================== */
-    @media print {
-      @page {
-        size: 16in 9in;
-        margin: 0;
-      }
-
-      body {
-        background: #ffffff !important;
-        padding: 0 !important;
-        margin: 0 !important;
-        overflow: visible !important;
-      }
-
-      .controls-bar,
-      .speaker-drawer {
-        display: none !important;
-      }
-
-      .deck-viewport {
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        max-width: none !important;
-        width: 100% !important;
-        height: auto !important;
-        aspect-ratio: auto !important;
-        overflow: visible !important;
-        position: static !important;
-      }
-
-      .slide {
-        position: relative !important;
-        display: flex !important;
-        opacity: 1 !important;
-        width: 16in !important;
-        height: 9in !important;
-        page-break-after: always !important;
-        page-break-inside: avoid !important;
-        box-sizing: border-box !important;
-        padding: 50px 70px !important;
-      }
-
-      .reveal-item {
-        opacity: 1 !important;
-        transform: none !important;
-      }
-    }
   </style>
 </head>
 <body>
@@ -632,20 +363,14 @@
   <!-- 16:9 Canvas Viewport -->
   <div class="deck-viewport" id="viewport">
 
-    <!-- SLIDE 1: Title Slide (Section 1 - 1/1) -->
+    <!-- SLIDE 1: Title Slide (Section 1) -->
     <section class="slide active" id="slide-1">
       <div class="slide-body">
         <div class="slide-1-layout">
           <img src="assets/logo.jpeg" alt="PlumeTrace Logo" class="slide-1-logo">
           <div class="slide-1-text">
-            <div class="slide-1-pill">EUROTEQ ENGINEERING UNIVERSITY | TRACK 3</div>
             <h1 class="slide-1-title">PlumeTrace</h1>
             <div class="slide-1-subtitle">Autonomous Water Protection for the Pegnitz River</div>
-            <div class="slide-1-badges">
-              <div class="badge-pill">Autonomous River Robotics</div>
-              <div class="badge-pill">Predictive Digital Twin</div>
-              <div class="badge-pill">AI & Open Data Interface</div>
-            </div>
           </div>
         </div>
       </div>
@@ -653,64 +378,51 @@
 
     <!-- SLIDE 2: Why Pegnitz (Section 2 - 1/3) -->
     <section class="slide" id="slide-2">
-      <div class="category-pill">Context & Problem Statement</div>
       <h2 class="slide-title">Why Pegnitz</h2>
       <div class="slide-body">
         <div class="grid-4">
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/health.png" class="card-icon" alt="Health">
-              <div class="card-heading-group">
-                <div class="clean-card-title">Public Health</div>
-              </div>
+              <div class="clean-card-title">Public Health</div>
             </div>
             <ul class="bullet-points">
               <li>Raw sewage spikes after convective rainfall</li>
               <li>Instant health risk for surfers, waders, and park visitors</li>
             </ul>
-            <div class="card-chip">Fuchslochwelle Surf Wave  |  Acute Bacterial Risk</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/storm_pipe.png" class="card-icon" alt="CSO">
-              <div class="card-heading-group">
-                <div class="clean-card-title">Sewer Overflows (CSOs)</div>
-              </div>
+              <div class="clean-card-title">Sewer Overflows (CSOs)</div>
             </div>
             <ul class="bullet-points">
               <li>1,500 km municipal network overloaded by storms</li>
               <li>1.5M - 5M+ EUR cost per retention basin</li>
             </ul>
-            <div class="card-chip">1,500 km Sewer Grid  |  €1.5M - €5M+ CapEx per Basin</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/agriculture.png" class="card-icon" alt="Agri">
-              <div class="card-heading-group">
-                <div class="clean-card-title">Knoblauchsland Agriculture</div>
-              </div>
+              <div class="clean-card-title">Knoblauchsland Agriculture</div>
             </div>
             <ul class="bullet-points">
               <li>Nitrate leaching into drinking water aquifers</li>
               <li>Strict EU limits and compliance penalties</li>
             </ul>
-            <div class="card-chip">Alluvial Drinking Aquifers  |  EU Compliance Risk</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/drought.png" class="card-icon" alt="Drought">
-              <div class="card-heading-group">
-                <div class="clean-card-title">Summer Heat and Drought</div>
-              </div>
+              <div class="clean-card-title">Summer Heat and Drought</div>
             </div>
             <ul class="bullet-points">
               <li>Low flow concentrates urban pollutants</li>
-              <li>Dissolved oxygen drops &lt; 3 mg/L causing fish mortality</li>
+              <li>Dissolved oxygen drops &lt; 3 mg/L (fish kills)</li>
             </ul>
-            <div class="card-chip">Oxygen Collapses &lt; 3 mg/L  |  Summer Ecosystem Crisis</div>
           </div>
         </div>
       </div>
@@ -718,14 +430,13 @@
 
     <!-- SLIDE 3: Current Monitoring (Section 2 - 2/3) -->
     <section class="slide" id="slide-3">
-      <div class="category-pill">The Monitoring Bottleneck</div>
       <h2 class="slide-title">Current Monitoring</h2>
       <div class="slide-body">
         <div class="grid-2">
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/municipal_sensor.png" class="card-icon" alt="Sensor">
-              <div class="card-heading-group">
+              <div>
                 <div class="clean-card-title">Municipal Authorities</div>
                 <div class="clean-card-sub">Stadtentwässerung Nürnberg (SUN) & WWA</div>
               </div>
@@ -735,33 +446,19 @@
               <li>Dissolved oxygen and nutrients (Nitrate, Phosphate)</li>
               <li><strong>Ammonium (NH4+):</strong> primary raw sewage tracer</li>
             </ul>
-            <div class="card-chip">Tracked Parameters: pH, Temp, DO, Turbidity, NH4+, NO3-</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/sampling_gap.png" class="card-icon" alt="Gap">
-              <div class="card-heading-group">
-                <div class="clean-card-title">The Sampling Gap</div>
-              </div>
+              <div class="clean-card-title">The Sampling Gap</div>
             </div>
             <ul class="bullet-points">
               <li>Automatic sensors: continuous, but confined to few fixed locations</li>
               <li>Manual grab sampling: often only 1x per month (24-48h lab delay)</li>
               <li>Convective storm overflows: last only 2 to 4 hours</li>
             </ul>
-            <div class="card-chip">Critical Bottleneck: 1x/Month Sampling  |  24-48h Lab Delay</div>
           </div>
-        </div>
-
-        <!-- Infographic: Temporal Mismatch -->
-        <div class="infographic-banner reveal-item">
-          <div class="infographic-header">The Temporal Mismatch Infographic</div>
-          <div class="mismatch-bars">
-            <div class="bar-storm">Storm Overflow: 2-4 Hours</div>
-            <div class="bar-lab">Laboratory Grab Sample Verification Delay: 24 to 48 Hours (Plume Long Cleared)</div>
-          </div>
-          <div class="mismatch-sub">Static sensors only show that something passed. Laboratory delays mean warnings arrive days after the pollution event has ended.</div>
         </div>
 
         <div class="bottom-highlight reveal-item">
@@ -770,19 +467,15 @@
       </div>
     </section>
 
-    <!-- SLIDE 4: Key Stakeholders & Challenge (Section 2 - 3/3) -->
+    <!-- SLIDE 4: Key Stakeholders (Section 2 - 3/3) -->
     <section class="slide" id="slide-4">
-      <div class="category-pill">Stakeholder Needs & Challenge Framing</div>
-      <h2 class="slide-title">Key Stakeholders & Challenge</h2>
+      <h2 class="slide-title">Key Stakeholders</h2>
       <div class="slide-body">
         <div class="grid-2">
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/authority.png" class="card-icon" alt="Authority">
-              <div class="card-heading-group">
-                <div class="card-tag">Regulatory & Infrastructure</div>
-                <div class="clean-card-title">Water Authorities (WWA, SUN)</div>
-              </div>
+              <div class="clean-card-title">Water Authorities (WWA, SUN)</div>
             </div>
             <ul class="bullet-points">
               <li>Cannot locate pollution origin (fixed stations lack spatial tracking)</li>
@@ -790,16 +483,12 @@
               <li>Chronic pipe seepage undetected until structural failure</li>
               <li>Lab results arrive 24-48 hours too late for emergency action</li>
             </ul>
-            <div class="card-chip">High Financial Risk: €1.5M - €5M+ CapEx per Basin  |  Delayed Lab Data</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/citizens_surfer.png" class="card-icon" alt="Citizens">
-              <div class="card-heading-group">
-                <div class="card-tag">Public Health & Recreation</div>
-                <div class="clean-card-title">Citizens and Surfers</div>
-              </div>
+              <div class="clean-card-title">Citizens and Surfers</div>
             </div>
             <ul class="bullet-points">
               <li>Zero real-time visibility into water safety</li>
@@ -807,18 +496,6 @@
               <li>High risk of gastrointestinal and skin infections</li>
               <li>Delayed municipal reports provide no immediate guidance</li>
             </ul>
-            <div class="card-chip">Acute Health Risk: Unwarned Bacterial Exposure  |  No Live Warnings</div>
-          </div>
-        </div>
-
-        <!-- Formal Challenge Definition Box -->
-        <div class="challenge-banner reveal-item">
-          <div class="infographic-header">Formal DTAS Challenge Definition</div>
-          <div class="challenge-stmt">
-            "How can digital twinning be applied to autonomous systems in order to address the challenge of detecting and localizing transient Combined Sewer Overflows (CSOs) for the Wasserwirtschaftsamt and regional environmental authorities?"
-          </div>
-          <div class="challenge-goal">
-            Goal: Replace delayed monthly grab testing with an autonomous closed-loop system connecting physical sensing to predictive action.
           </div>
         </div>
       </div>
@@ -826,51 +503,39 @@
 
     <!-- SLIDE 5: The PlumeTrace Architecture (Section 3 - 1/3) -->
     <section class="slide" id="slide-5">
-      <div class="category-pill">Technical Solution 1/3</div>
       <h2 class="slide-title">The PlumeTrace Architecture</h2>
       <div class="slide-body">
         <div class="grid-3">
           <div class="clean-card reveal-item">
             <div class="card-top-row">
-              <img src="assets/icons/river_asv.png" class="card-icon" alt="Robot">
-              <div class="card-heading-group">
-                <div class="card-tag">Aquatic Physical Layer</div>
-                <div class="clean-card-title">Autonomous River Robot</div>
-              </div>
+              <img src="assets/icons/river_asv.png" class="card-icon" alt="ASV">
+              <div class="clean-card-title">Autonomous River Robot</div>
             </div>
             <ul class="bullet-points-compact">
               <li>Autonomous Surface Vessel (ASV) on Pegnitz</li>
               <li>Continuous chemical payload (Ammonium, DO, pH)</li>
-              <li>360° LiDAR maps riverbank morphology & culverts</li>
+              <li>360° LiDAR scans riverbank morphology & culverts</li>
               <li>Edge autonomy with fail-safe return-to-dock</li>
             </ul>
-            <div class="card-chip">Active In-River Sensing  |  3D LiDAR  |  Auto-Dock</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/cloud_twin.png" class="card-icon" alt="Twin">
-              <div class="card-heading-group">
-                <div class="card-tag">Cloud Simulation & AI Core</div>
-                <div class="clean-card-title">Predictive Digital Twin</div>
-              </div>
+              <div class="clean-card-title">Predictive Digital Twin</div>
             </div>
             <ul class="bullet-points-compact">
-              <li>Hydrodynamic river advection-dispersion engine</li>
+              <li>Hydrodynamic river advection-dispersion model</li>
               <li>Ingests live DWD storm radar & river discharge</li>
               <li>Multi-objective solver computes optimal sampling</li>
               <li>Continuously directs robot where to navigate next</li>
             </ul>
-            <div class="card-chip">Hydrodynamic Dispersion  |  Radar  |  Retasking</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/digital_twin_3d.png" class="card-icon" alt="Command">
-              <div class="card-heading-group">
-                <div class="card-tag">Decision & Compliance Layer</div>
-                <div class="clean-card-title">Municipal Command Center</div>
-              </div>
+              <div class="clean-card-title">Municipal Command Center</div>
             </div>
             <ul class="bullet-points-compact">
               <li>Geospatial 3D twin with Bavarian LOD2 data</li>
@@ -878,31 +543,6 @@
               <li>Pinpoints exact sewer outfalls causing violations</li>
               <li>Automated statutory alerts (&lt;60s) to WWA & SUN</li>
             </ul>
-            <div class="card-chip">CesiumJS 3D  |  Bavarian LOD2  |  &lt; 60s Alerts</div>
-          </div>
-        </div>
-
-        <!-- Infographic: End-to-End Pipeline -->
-        <div class="infographic-banner reveal-item">
-          <div class="infographic-header">End-to-End Autonomous Architecture Pipeline</div>
-          <div class="pipeline-row">
-            <div class="pipe-step">
-              <div class="pipe-step-num">Step 1</div>
-              <div class="pipe-step-title">Aquatic In-River Sensing</div>
-              <div class="pipe-step-desc">ASV streams chemical telemetry, obstacle LiDAR scans, and GPS coordinates at 5 Hz.</div>
-            </div>
-            <div class="pipe-arrow">&rarr;</div>
-            <div class="pipe-step">
-              <div class="pipe-step-num">Step 2</div>
-              <div class="pipe-step-title">Predictive Digital Twin</div>
-              <div class="pipe-step-desc">Cloud twin simulates hydrodynamics, assimilates storm radar, and computes optimal waypoints.</div>
-            </div>
-            <div class="pipe-arrow">&rarr;</div>
-            <div class="pipe-step">
-              <div class="pipe-step-num">Step 3</div>
-              <div class="pipe-step-title">City & Authority Actions</div>
-              <div class="pipe-step-desc">CesiumJS renders live 3D risk heatmaps, updates outfall asset health, and alerts authorities.</div>
-            </div>
           </div>
         </div>
       </div>
@@ -910,72 +550,35 @@
 
     <!-- SLIDE 6: Autonomous Closed-Loop Guidance (Section 3 - 2/3) -->
     <section class="slide" id="slide-6">
-      <div class="category-pill">Technical Solution 2/3</div>
       <h2 class="slide-title">Autonomous Closed-Loop Guidance</h2>
       <div class="slide-body">
         <div class="grid-2">
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/adaptive_retask.png" class="card-icon" alt="Retask">
-              <div class="card-heading-group">
-                <div class="card-tag">Autonomy Core</div>
-                <div class="clean-card-title">4D Adaptive Retasking</div>
-              </div>
+              <div class="clean-card-title">4D Adaptive Retasking</div>
             </div>
             <ul class="bullet-points">
+              <li>Dynamically recomputes waypoints in real time</li>
               <li><strong>Chemical Gradient:</strong> homes upstream to leaking pipe</li>
               <li><strong>Storm Rain Radar:</strong> pre-positions vessel before runoff</li>
               <li><strong>Data Freshness:</strong> prioritizes unvisited river reaches</li>
               <li>Dynamic goal updates dispatched in under 35 seconds</li>
             </ul>
-            <div class="card-chip">Multi-Objective Optimizer  |  Upstream Gradient Homing  |  &lt; 35s Loop</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/safety_resilience.png" class="card-icon" alt="Shield">
-              <div class="card-heading-group">
-                <div class="card-tag">Digital Twin Rationale</div>
-                <div class="clean-card-title">Why Digital Twinning?</div>
-              </div>
+              <div class="clean-card-title">Why Digital Twinning?</div>
             </div>
             <ul class="bullet-points">
               <li><strong>Active Gradient Tracing:</strong> overcomes point dilution</li>
               <li><strong>Predictive Protection:</strong> anticipates storms before lab lag</li>
               <li>One mobile vessel replaces 50+ biofouled static probes</li>
               <li>Continuous feedback synchronizes twin with physical state</li>
+              <li>Empirical evidence justifies targeted retention investments</li>
             </ul>
-            <div class="card-chip">Solves Point Dilution  |  Predictive Protection  |  CapEx Optimization</div>
-          </div>
-        </div>
-
-        <!-- Infographic: The 4D Closed Loop Cycle -->
-        <div class="infographic-banner reveal-item">
-          <div class="infographic-header">The 4D Autonomous Decision Cycle (Continuous Closed Loop)</div>
-          <div class="loop-row">
-            <div class="loop-step">
-              <div class="loop-step-num">1. SENSE</div>
-              <div class="loop-step-title">Gradient Spike</div>
-              <div class="loop-step-desc">Mobile payload detects chemical spike above baseline.</div>
-            </div>
-            <div class="pipe-arrow">&rarr;</div>
-            <div class="loop-step">
-              <div class="loop-step-num">2. ASSIMILATE</div>
-              <div class="loop-step-title">Radar & Flow</div>
-              <div class="loop-step-desc">Twin integrates DWD rain radar & Pegnitz flow rate.</div>
-            </div>
-            <div class="pipe-arrow">&rarr;</div>
-            <div class="loop-step">
-              <div class="loop-step-num">3. RETASK</div>
-              <div class="loop-step-title">Optimal Waypoint</div>
-              <div class="loop-step-desc">Optimizer computes upstream navigation goal in &lt; 35s.</div>
-            </div>
-            <div class="pipe-arrow">&rarr;</div>
-            <div class="loop-step">
-              <div class="loop-step-num">4. LOCALIZED</div>
-              <div class="loop-step-title">Source Confirmed</div>
-              <div class="loop-step-desc">Leaking outfall pinpointed with geo-proof.</div>
-            </div>
           </div>
         </div>
       </div>
@@ -983,34 +586,26 @@
 
     <!-- SLIDE 7: Stakeholder Action & AI Public Access (Section 3 - 3/3) -->
     <section class="slide" id="slide-7">
-      <div class="category-pill">Technical Solution 3/3</div>
       <h2 class="slide-title">Stakeholder Action & AI Public Access</h2>
       <div class="slide-body">
         <div class="grid-2">
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/authority.png" class="card-icon" alt="Authority">
-              <div class="card-heading-group">
-                <div class="card-tag">Governance & CapEx Prioritization</div>
-                <div class="clean-card-title">City & Authority Command</div>
-              </div>
+              <div class="clean-card-title">City & Authority Command</div>
             </div>
             <ul class="bullet-points">
               <li><strong>Outfall Asset Health:</strong> links chemical spikes to specific pipe IDs</li>
               <li><strong>Targeted CapEx:</strong> empirical proof for 1.5M - 5M+ EUR basin upgrades</li>
               <li><strong>Chronic Seepage:</strong> uncovers leaking pipes before structural collapse</li>
-              <li>Automated audit logs for EU Water Framework Directive & OGewV</li>
+              <li>Automated compliance logs for EU Water Framework Directive & OGewV</li>
             </ul>
-            <div class="card-chip">Asset Health Scoring  |  Targeted €1.5M-€5M+ CapEx  |  EU WFD Compliance</div>
           </div>
 
           <div class="clean-card reveal-item">
             <div class="card-top-row">
               <img src="assets/icons/ai_mcp.png" class="card-icon" alt="AI MCP">
-              <div class="card-heading-group">
-                <div class="card-tag">Citizen Interaction & Open Data</div>
-                <div class="clean-card-title">AI Public Access via MCP</div>
-              </div>
+              <div class="clean-card-title">AI Public Access via MCP</div>
             </div>
             <ul class="bullet-points">
               <li>Model Context Protocol (MCP) connects AI models to live twin data</li>
@@ -1018,31 +613,6 @@
               <li><strong>Live Citizen Traffic Light:</strong> instant Green / Yellow / Red alerts</li>
               <li>Eliminates 48h lab delay with direct public health warnings</li>
             </ul>
-            <div class="card-chip">MCP Integration  |  Conversational AI Assistant  |  Citizen Traffic Light</div>
-          </div>
-        </div>
-
-        <!-- Infographic: MCP & Open Data -->
-        <div class="infographic-banner reveal-item">
-          <div class="infographic-header">Open Data & MCP Integration Architecture (Public & City Access)</div>
-          <div class="pipeline-row">
-            <div class="pipe-step">
-              <div class="pipe-step-num">Layer 1</div>
-              <div class="pipe-step-title">Public Open Data Sources</div>
-              <div class="pipe-step-desc">Bavarian LOD2 3D mesh, DWD precipitation radar, and GKD Bayern gauge telemetry.</div>
-            </div>
-            <div class="pipe-arrow">&rarr;</div>
-            <div class="pipe-step">
-              <div class="pipe-step-num">Layer 2</div>
-              <div class="pipe-step-title">PlumeTrace MCP Server</div>
-              <div class="pipe-step-desc">Model Context Protocol exposes river safety status, outfall scores, and alerts to AI agents.</div>
-            </div>
-            <div class="pipe-arrow">&rarr;</div>
-            <div class="pipe-step">
-              <div class="pipe-step-num">Layer 3</div>
-              <div class="pipe-step-title">Public & City Interfaces</div>
-              <div class="pipe-step-desc">Natural language AI answers citizen queries instantly; city dashboard automates compliance.</div>
-            </div>
           </div>
         </div>
       </div>
@@ -1113,12 +683,11 @@
                <strong>The result:</strong> acute plumes arrive, cause damage, and clear completely undetected.`
       },
       {
-        title: "Slide 4: Key Stakeholders & Challenge Definition",
-        time: "1:20 min",
+        title: "Slide 4: Key Stakeholders",
+        time: "1:15 min",
         text: `<strong>This monitoring failure creates acute problems for our two key stakeholder groups today:</strong><br><br>
                <strong>First, Water Authorities like SUN and WWA:</strong> They must invest millions of euros into retention basins, but without spatial plume tracking, they are forced to invest blindly without knowing which overflow pipes cause the greatest damage. Furthermore, laboratory delays mean they only learn of acute spills days after they have already washed away.<br><br>
-               <strong>Second, Citizens and Surfers:</strong> People entering the Pegnitz at the Fuchslochwelle or in city parks have zero real-time warning. They unknowingly expose themselves to acute bacterial contamination because municipal data is either delayed by days or buried in complex chemical reports.<br><br>
-               <strong>This frames our formal DTAS challenge:</strong> <em>How can digital twinning be applied to autonomous systems in order to address the challenge of detecting and localizing transient Combined Sewer Overflows (CSOs) for the Wasserwirtschaftsamt and regional environmental authorities?</em>`
+               <strong>Second, Citizens and Surfers:</strong> People entering the Pegnitz at the Fuchslochwelle or in city parks have zero real-time warning. They unknowingly expose themselves to acute bacterial contamination because municipal data is either delayed by days or buried in complex chemical reports.`
       },
       {
         title: "Slide 5: The PlumeTrace Architecture",
