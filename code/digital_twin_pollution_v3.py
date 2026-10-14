@@ -14,14 +14,14 @@ from std_msgs.msg import String
 class DigitalTwin(Node):
     def __init__(self):
         super().__init__('pollution_digital_twin')
-        for key,val in {'alert_nh3_mg_l':0.6,'low_do_mg_l':7.0,'exit_nh3_mg_l':0.1,
+
+        for key,val in {'alert_nh3_mg_l':0.6,'low_do_mg_l':7.0,
                         'min_alarm_samples':2,'state_period_sec':5.0,'telemetry_timeout_sec':3.0,
                         'sensor_timeout_sec':6.0,'waypoint_timeout_sec':120.0,
                         'arrival_tolerance_m':0.25}.items():
             self.declare_parameter(key,val)
         self.alert=float(self.get_parameter('alert_nh3_mg_l').value)
         self.low_do=float(self.get_parameter('low_do_mg_l').value)
-        self.exit=float(self.get_parameter('exit_nh3_mg_l').value)
         self.min_alarm=int(self.get_parameter('min_alarm_samples').value)
         self.odom_timeout=float(self.get_parameter('telemetry_timeout_sec').value)
         self.sensor_timeout=float(self.get_parameter('sensor_timeout_sec').value)
@@ -80,7 +80,7 @@ class DigitalTwin(Node):
             self.mode='ROUTING_TO_HOTSPOT';self.decision='NAVIGATE'
             self.target_sent_at=time.monotonic()
             self.emit(self.waypoint_pub,self.target)
-        elif self.mode=='BASELINE_ROUTE' and self.plume_seen and a<self.exit:
+        elif self.mode=='BASELINE_ROUTE' and self.plume_seen and a == 0.0:
             self.mode='STOPPED';self.decision='STOP';self.emit(self.decision_pub,'STOP')
         self.publish_state(log=self.mode!='BASELINE_ROUTE')
 
