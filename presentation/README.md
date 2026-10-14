@@ -9,7 +9,7 @@ This directory contains slide decks, visual brand assets, pitch outlines, rehear
 | File / Asset | Description |
 | :--- | :--- |
 | **[`plumetrace_presentation.pdf`](plumetrace_presentation.pdf)** | **Vector 16:9 PDF Slide Deck** covering Sections 1, 2, and 3 (7 slides). Pixel-perfect vector typography, clean card layout, official logo, and strict 5-color palette. |
-| **[`plumetrace_presentation.pptx`](plumetrace_presentation.pptx)** | **Editable PowerPoint Presentation (16:9)** covering Sections 1, 2, and 3 (7 slides). Formatted with Calibri, brand palette, top-aligned text frames, and embedded Speaker Notes. |
+| **[`plumetrace_deck.pptx`](plumetrace_deck.pptx)** | **Editable PowerPoint Presentation (16:9)** covering Sections 1, 2, and 3 (7 slides). Fixed layout with crisp 3.5% corner radius, left-aligned text, larger fonts, and embedded Speaker Notes. |
 | **[`deck_preview.html`](deck_preview.html)** | **Interactive 16:9 Presentation Viewer** for all 7 slides. Features step-by-step click reveal animations (`Space` / `→`), fullscreen mode (`F`), and toggleable Speaker Notes drawer (`N`). |
 | **[`generate_deck.py`](generate_deck.py)** | Standalone Python script using `python-pptx` to build and export the native PowerPoint presentation. |
 | **[`export_pdf.py`](export_pdf.py)** | Standalone Python Playwright script to re-export `deck_preview.html` to a 16:9 vector PDF with one command. |

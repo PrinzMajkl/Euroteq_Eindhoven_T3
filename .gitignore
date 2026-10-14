@@ -1,0 +1,7 @@
+# Office temporary lock files
+~$*
+*.tmp
+
+# Python cache
+__pycache__/
+*.py[cod]
