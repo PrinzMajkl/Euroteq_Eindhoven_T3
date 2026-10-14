@@ -16,7 +16,6 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
 ### Slide Visual Content
 - Main Title: PlumeTrace
 - Subtitle: Autonomous Water Protection for the Pegnitz River
-- Meta: EuroTeQ Track 3 (Eindhoven / Nuremberg)
 - Visual: Circular brand logo emblem (assets/logo.jpeg)
 
 ### Presenter Script (~45 seconds)
