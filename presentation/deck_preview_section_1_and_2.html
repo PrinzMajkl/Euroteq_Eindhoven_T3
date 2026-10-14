@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PlumeTrace - Presentation Preview</title>
+  <title>PlumeTrace - Presentation Deck</title>
   <style>
     :root {
       --navy: #023047;
@@ -130,13 +130,6 @@
       line-height: 1.25;
     }
 
-    .slide-1-meta {
-      font-size: 1.35rem;
-      color: var(--navy);
-      font-weight: 600;
-      margin-top: 6px;
-    }
-
     /* Progressive Reveal Animation */
     .reveal-item {
       opacity: 0;
@@ -151,13 +144,26 @@
       pointer-events: auto;
     }
 
-    /* 4-Card Clean Layout (Slide 2) */
+    /* Grids */
     .grid-4 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 22px;
     }
 
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 22px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+    }
+
+    /* Clean Card & Box Containers */
     .clean-card {
       background: rgba(142, 202, 230, 0.12);
       border: 2px solid var(--sky);
@@ -174,6 +180,25 @@
       color: var(--navy);
     }
 
+    .box-container {
+      background: rgba(142, 202, 230, 0.12);
+      border: 2px solid var(--sky);
+      border-radius: 10px;
+      padding: 24px 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .box-header {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--navy);
+      border-bottom: 2px solid var(--cyan);
+      padding-bottom: 10px;
+    }
+
+    /* Bullet Lists */
     .bullet-points {
       list-style: none;
       display: flex;
@@ -198,6 +223,31 @@
       line-height: 1;
     }
 
+    .bullet-points-compact {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 1.05rem;
+      color: var(--navy);
+    }
+
+    .bullet-points-compact li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.3;
+    }
+
+    .bullet-points-compact li::before {
+      content: "-";
+      color: var(--cyan);
+      font-weight: bold;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    /* Bottom Highlight Banner */
     .bottom-highlight {
       background: rgba(142, 202, 230, 0.18);
       border: 2px solid var(--cyan);
@@ -216,64 +266,7 @@
       font-weight: 700;
     }
 
-    /* 2-Column Clean Layout (Slide 3 & 4) */
-    .grid-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 28px;
-    }
-
-    .box-container {
-      background: rgba(142, 202, 230, 0.12);
-      border: 2px solid var(--sky);
-      border-radius: 10px;
-      padding: 24px 26px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .box-header {
-      font-size: 1.45rem;
-      font-weight: 700;
-      color: var(--navy);
-      border-bottom: 2px solid var(--cyan);
-      padding-bottom: 10px;
-    }
-
-    /* Status Pills (Slide 4) */
-    .status-row {
-      display: flex;
-      gap: 14px;
-      margin-top: 8px;
-    }
-
-    .status-pill {
-      flex: 1;
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 1.05rem;
-      font-weight: 700;
-      text-align: center;
-      letter-spacing: 0.04em;
-    }
-
-    .status-safe {
-      background: var(--cyan);
-      color: var(--white);
-    }
-
-    .status-caution {
-      background: var(--gold);
-      color: var(--navy);
-    }
-
-    .status-alert {
-      background: var(--orange);
-      color: var(--white);
-    }
-
-    /* Controls Bar Below Deck */
+    /* Controls Bar */
     .controls-bar {
       width: 100%;
       max-width: 1200px;
@@ -316,7 +309,7 @@
       border-color: var(--orange);
     }
 
-    /* Speaker Notes Drawer */
+    /* Speaker Notes */
     .speaker-drawer {
       width: 100%;
       max-width: 1200px;
@@ -364,14 +357,64 @@
     .speaker-content strong {
       color: var(--white);
     }
+
+    /* ==========================================================
+       PRINT STYLESHEET (FOR PERFECT VECTOR 16:9 PDF EXPORT)
+       ========================================================== */
+    @media print {
+      @page {
+        size: 16in 9in;
+        margin: 0;
+      }
+
+      body {
+        background: #ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: visible !important;
+      }
+
+      .controls-bar,
+      .speaker-drawer {
+        display: none !important;
+      }
+
+      .deck-viewport {
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+        height: auto !important;
+        aspect-ratio: auto !important;
+        overflow: visible !important;
+        position: static !important;
+      }
+
+      .slide {
+        position: relative !important;
+        display: flex !important;
+        opacity: 1 !important;
+        width: 16in !important;
+        height: 9in !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        box-sizing: border-box !important;
+        padding: 60px 80px !important;
+      }
+
+      .reveal-item {
+        opacity: 1 !important;
+        transform: none !important;
+      }
+    }
   </style>
 </head>
 <body>
 
-  <!-- 16:9 Canvas -->
+  <!-- 16:9 Canvas Viewport -->
   <div class="deck-viewport" id="viewport">
 
-    <!-- SLIDE 1 (No bullet points) -->
+    <!-- SLIDE 1: Title Slide -->
     <section class="slide active" id="slide-1">
       <div class="slide-body">
         <div class="slide-1-layout">
@@ -384,7 +427,7 @@
       </div>
     </section>
 
-    <!-- SLIDE 2 (Progressive reveal of 4 cards) -->
+    <!-- SLIDE 2: Why Pegnitz -->
     <section class="slide" id="slide-2">
       <h2 class="slide-title">Why Pegnitz</h2>
       <div class="slide-body">
@@ -424,7 +467,7 @@
       </div>
     </section>
 
-    <!-- SLIDE 3 (Progressive reveal of boxes and bottom highlight) -->
+    <!-- SLIDE 3: Current Monitoring -->
     <section class="slide" id="slide-3">
       <h2 class="slide-title">Current Monitoring</h2>
       <div class="slide-body">
@@ -455,7 +498,7 @@
       </div>
     </section>
 
-    <!-- SLIDE 4 (Progressive reveal of stakeholder problem boxes) -->
+    <!-- SLIDE 4: Key Stakeholders -->
     <section class="slide" id="slide-4">
       <h2 class="slide-title">Key Stakeholders</h2>
       <div class="slide-body">
@@ -477,6 +520,112 @@
               <li>Unknowingly enter water during toxic overflow events</li>
               <li>High risk of gastrointestinal and skin infections</li>
               <li>Delayed municipal reports provide no immediate guidance</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: System Architecture (Technical Solution 1/3) -->
+    <section class="slide" id="slide-5">
+      <h2 class="slide-title">System Architecture</h2>
+      <div class="slide-body">
+        <div class="grid-3">
+          <div class="clean-card reveal-item">
+            <div class="clean-card-title">Physical Platform</div>
+            <ul class="bullet-points-compact">
+              <li>TurtleBot3 surface robotics testbed</li>
+              <li>ROS 2 Jazzy onboard computing</li>
+              <li>LDS-02 LiDAR and overhead tracking</li>
+              <li>Emulated chemical sensor payload</li>
+            </ul>
+          </div>
+
+          <div class="clean-card reveal-item">
+            <div class="clean-card-title">Simulation Mirror</div>
+            <ul class="bullet-points-compact">
+              <li>Gazebo Harmonic physics engine</li>
+              <li>Bi-directional ROS-Gazebo bridge</li>
+              <li>Ghost follower pose tracking</li>
+              <li>Dynamic obstacle injection</li>
+            </ul>
+          </div>
+
+          <div class="clean-card reveal-item">
+            <div class="clean-card-title">3D Digital Twin</div>
+            <ul class="bullet-points-compact">
+              <li>CesiumJS with Bavarian LOD2 3D data</li>
+              <li>Real-time WebSocket telemetry stream</li>
+              <li>Geo-referenced pipe outfall health</li>
+              <li>Interactive urban risk heatmaps</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Autonomous Closed Loop (Technical Solution 2/3) -->
+    <section class="slide" id="slide-6">
+      <h2 class="slide-title">Autonomous Closed Loop</h2>
+      <div class="slide-body">
+        <div class="grid-2">
+          <div class="box-container reveal-item">
+            <div class="box-header">4D Adaptive Retasking</div>
+            <ul class="bullet-points">
+              <li>Dynamically recomputes waypoints in real time</li>
+              <li><strong>Chemical Gradient:</strong> homes upstream to leaking pipe</li>
+              <li><strong>Rain Radar:</strong> pre-positions robot before storm runoff</li>
+              <li><strong>Data Freshness:</strong> prioritizes unvisited river reaches</li>
+            </ul>
+          </div>
+
+          <div class="box-container reveal-item">
+            <div class="box-header">Safety and Resilience</div>
+            <ul class="bullet-points">
+              <li>Dual obstacle cloud: reroute navigation vs collision stop</li>
+              <li>Edge buffer: zero data loss during network dropouts</li>
+              <li>Tri-fold sync: odometry, AMCL, and Gazebo alignment</li>
+              <li>Dynamic Nav2 goal updates in under 35 seconds</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Why Mobile Robotics? (Technical Solution 3/3) -->
+    <section class="slide" id="slide-7">
+      <h2 class="slide-title">Why Mobile Robotics?</h2>
+      <div class="slide-body">
+        <div class="grid-4">
+          <div class="clean-card reveal-item">
+            <div class="clean-card-title">Gradient Tracing</div>
+            <ul class="bullet-points">
+              <li>Tracks concentration gradients upstream</li>
+              <li>Locates exact leaking pipe instead of diluted mix</li>
+            </ul>
+          </div>
+
+          <div class="clean-card reveal-item">
+            <div class="clean-card-title">Asset Intelligence</div>
+            <ul class="bullet-points">
+              <li>Links water chemistry to specific municipal outfall IDs</li>
+              <li>Direct evidence for multi-million EUR basin upgrades</li>
+            </ul>
+          </div>
+
+          <div class="clean-card reveal-item">
+            <div class="clean-card-title">River Corridor Mapping</div>
+            <ul class="bullet-points">
+              <li>LiDAR detects riverbank erosion and sediment build-up</li>
+              <li>Supports EU renaturation compliance</li>
+            </ul>
+          </div>
+
+          <div class="clean-card reveal-item">
+            <div class="clean-card-title">Operational Economics</div>
+            <ul class="bullet-points">
+              <li>One self-cleaning mobile robot replaces 50+ fixed probes</li>
+              <li>Eliminates biofouling and flood destruction</li>
             </ul>
           </div>
         </div>
@@ -506,7 +655,7 @@
   </div>
 
   <script>
-    const totalSlides = 4;
+    const totalSlides = 7;
     let currentSlide = 1;
     let currentStep = 0;
     let notesOpen = false;
@@ -536,8 +685,7 @@
         html: `<strong>Spoken Script:</strong><br>
         "To address this, we looked at what municipal authorities currently measure.<br><br>
         In Nuremberg, the drainage service SUN tracks eight standard parameters: temperature, pH, conductivity, turbidity, dissolved oxygen, and nutrients like ammonium, nitrate, and phosphate. Ammonium is the critical chemical fingerprint of raw sewage.<br><br>
-        The problem is not chemical ignorance - it is <strong>temporal and spatial rigidity</strong>.<br><br>
-        Manual grab sampling happens once a month. A storm spill lasts just 3 hours. That means between scheduled samples, there are weeks of complete blindness. Millions of liters of wastewater can pass through, infect recreators, and clear away before the next bottle is dipped."`
+        The sampling gap is two-fold: automated sensors are confined to a few fixed points, while manual sampling happens as rarely as once a month with days of lab delay. The result: acute plumes arrive, cause damage, and clear completely undetected."`
       },
       4: {
         label: "Slide 4: Key Stakeholders",
@@ -546,6 +694,33 @@
         "This monitoring failure creates acute problems for our two key stakeholder groups today:<br><br>
         First, <strong>Water Authorities</strong> like SUN and WWA: They must invest millions of euros into retention basins, but without spatial plume tracking, they are forced to invest blindly without knowing which overflow pipes cause the greatest damage. Furthermore, laboratory delays mean they only learn of acute spills days after they have already washed away.<br><br>
         Second, <strong>Citizens and Surfers</strong>: People entering the Pegnitz at the Fuchslochwelle or in city parks have zero real-time warning. They unknowingly expose themselves to acute bacterial contamination because municipal data is either delayed by days or buried in complex chemical reports."`
+      },
+      5: {
+        label: "Slide 5: System Architecture",
+        time: "60 seconds",
+        html: `<strong>Spoken Script:</strong><br>
+        "To solve this, we designed the <strong>PlumeTrace System Architecture</strong> across three tightly synchronized tiers:<br><br>
+        On the water, our <strong>Physical Platform</strong> is a robotic surface vessel equipped with ROS 2 Jazzy, 360-degree LiDAR, tracking cameras, and emulated real-time chemical payloads.<br>
+        In the cloud, a <strong>Simulation Mirror</strong> running Gazebo Harmonic tracks physics and obstacles in real time, validating robot health and sensor sanity.<br>
+        At the command level, our <strong>3D Digital Twin</strong> in CesiumJS visualizes Bavarian LOD2 building and river geometry, streaming live WebSocket telemetry to generate actionable heatmaps and asset health scores for city managers."`
+      },
+      6: {
+        label: "Slide 6: Autonomous Closed Loop",
+        time: "60 seconds",
+        html: `<strong>Spoken Script:</strong><br>
+        "The core innovation of PlumeTrace is its <strong>Autonomous Closed Loop</strong>.<br><br>
+        Instead of driving a static patrol line, our system continuously recomputes waypoints based on a 4D objective function: tracking chemical gradients upstream, anticipating rain runoff via live weather radar, and ensuring older areas are revisited.<br><br>
+        Crucially, we build in industrial resilience: a dual obstacle cloud separates smooth rerouting from emergency collision stops, while onboard edge buffers guarantee zero telemetry loss even when wireless links drop."`
+      },
+      7: {
+        label: "Slide 7: Why Mobile Robotics?",
+        time: "60 seconds",
+        html: `<strong>Spoken Script:</strong><br>
+        "Why does mobile robotics decisively outperform traditional fixed monitoring networks?<br><br>
+        First, <strong>Gradient Tracing</strong>: A static sensor only tells you pollution passed by. A mobile robot follows the plume upstream directly to the faulty outfall pipe.<br>
+        Second, <strong>Asset Intelligence</strong>: We give water authorities concrete evidence to prioritize multi-million euro infrastructure budgets.<br>
+        Third, <strong>Corridor Mapping</strong>: LiDAR scans detect physical bank erosion and siltation for EU river renaturation programs.<br>
+        And fourth, <strong>Economics</strong>: Instead of maintaining hundreds of submerged probes prone to biofouling and flood destruction, one mobile platform delivers continuous, protected spatial coverage."`
       }
     };
 
@@ -580,26 +755,22 @@
       const items = getSlideItems(currentSlide);
 
       if (direction > 0) {
-        // Forward: reveal next item or advance slide
         if (currentStep < items.length) {
           items[currentStep].classList.add('revealed');
           currentStep++;
         } else if (currentSlide < totalSlides) {
           currentSlide++;
           currentStep = 0;
-          // Reset items on new slide
           const nextItems = getSlideItems(currentSlide);
           nextItems.forEach(el => el.classList.remove('revealed'));
           updateSlide();
         }
       } else {
-        // Backward: un-reveal item or go back to previous slide
         if (currentStep > 0) {
           currentStep--;
           items[currentStep].classList.remove('revealed');
         } else if (currentSlide > 1) {
           currentSlide--;
-          // Show all items on previous slide
           const prevItems = getSlideItems(currentSlide);
           prevItems.forEach(el => el.classList.add('revealed'));
           currentStep = prevItems.length;
@@ -648,7 +819,6 @@
       }
     });
 
-    // Initialize slide 1
     updateSlide();
   </script>
 </body>
