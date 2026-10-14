@@ -1,32 +1,16 @@
 # PlumeTrace – Master Slide Deck (Slide by Slide)
 ## Course: EuroTeQ Track 3 (T3) | Target Location: Pegnitz River, Nuremberg
 
-> **Presentation Rule Compliance**:
-> - **On-Slide Content**: Strictly bullet points only. Short, punchy, high-impact phrasing. No explanatory paragraphs or text walls.
-> - **Presenter Notes**: Detailed narrative, full financial and technical context, and exact spoken script for the presenter.
-> - **Separation of Concerns**: Slides 5–7 show the full real-world vision (ASV catamaran, sonar for riverbed, cloud twin, CesiumJS LOD2). Slides 8–11 strictly isolate the course laboratory Proof of Concept (TurtleBot3 Burger proxy, ROS 2 Jazzy, Gazebo Harmonic co-simulation).
-
 ---
 
 # SECTION 1: TITLE SLIDE (Max 1 Slide)
-*Target Audience: General*
 
----
-
-## Slide 1: Project Title, Brand & Team
-
-### Slide Visual Composition
-- Clean minimalist white layout (`#FFFFFF`) with Midnight Navy (`#023047`) headers.
-- Official Project Logo: `assets/logo.jpeg` placed top-right.
-- Three visual pillars displayed as sleek icons/badges:
-  - 🤖 Autonomous Robotics (Mobile River Sensing)
-  - ☁️ Predictive Digital Twin (Hydrodynamics & Retasking)
-  - 🌐 AI & Municipal Intelligence (MCP & Open Data)
+## Slide 1: Project Title, Mission & Team
 
 ### On-Slide Content (Bullets Only)
 - **PlumeTrace: Autonomous Digital Twin for River Water Protection**
-- **Core Mission**: Real-time detection, tracking, and localization of transient sewer overflows
-- **Target Riverbed**: Pegnitz River, Nuremberg (Germany)
+- **Core Mission**: Real-time detection, tracking, and localization of transient Combined Sewer Overflows (CSOs)
+- **Target Location**: Pegnitz River, Nuremberg (Germany)
 - **EuroTeQ Engineering University**: Track 3 (T3)
 - **Project Team**:
   - Michal Branda
@@ -35,9 +19,9 @@
   - Diana Petrenko
   - Izdihar Farahdina
   - Tinatin Gholadze
-- **Key Capabilities**:
+- **Core Capabilities**:
   - Autonomous surface vehicle patrol
-  - Real-time closed-loop cloud digital twin
+  - Real-time predictive closed-loop digital twin
   - Instant statutory and citizen AI access
 
 ### Presenter Spoken Script (0:45 min)
@@ -48,22 +32,13 @@
 ---
 
 # SECTION 2: CONTEXT AND CHALLENGE (Max 3 Slides)
-*Target Audience: Stakeholders (Municipal Authorities, Environmental Regulators, Recreators)*
-
----
 
 ## Slide 2: The Financial Imperative: What is at Stake?
 
-### Slide Visual Composition
-- 2-Column High-Impact Split:
-  - **Left Card (Red Alert / High Risk)**: "The High Cost of Blindness" (Municipal CapEx, Liabilities, Manual Testing)
-  - **Right Card (Green / High ROI)**: "Asymmetrical Savings with PlumeTrace" (Targeted CapEx, Instant Audits, Low-Cost Robot)
-- Bottom Callout Banner: "€8,200 Autonomous Robot protects €10M+ in Municipal Assets (< 0.2% cost of 1 basin)".
-
 ### On-Slide Content (Bullets Only)
 - **The Financial Stakes & Municipal Liabilities**:
-  - **€1.5M – €5.0M+ per basin**: High capital cost to build/upgrade storm retention basins (*RÜB*)
-  - **1,500 km sewer network**: Massive risk of misallocating multi-million-euro budgets on wrong outfalls
+  - **€1.5M – €5.0M+ per basin**: Capital cost to construct or modernize storm retention basins (*RÜB*)
+  - **1,500 km sewer network**: Massive risk of misallocating multi-million-euro budgets on benign outfalls
   - **€6.5M legal liability precedent**: Strict liability under § 89 WHG independent of fault (*Gefährdungshaftung*)
   - **Up to €850,000 / day**: Statutory European Court of Justice non-compliance fines
   - **€3.0M public asset compromised**: Fuchslochwelle surf wave rendered unusable during contamination
@@ -84,12 +59,6 @@
 ---
 
 ## Slide 3: Environmental Pressures & The Toxic Cocktail
-
-### Slide Visual Composition
-- Central Timeline Graphic: "The Fatal 48-Hour Sampling Gap"
-  - Storm Event (Hours 0–2) -> Peak Plume Flush (Hours 2–4) -> Plume Disperses (Hour 6)
-  - *VS.* Manual Sampling Dispatched (Hour 24) -> Lab Results Returned (Hour 48 - **Too late**)
-- Chemical hazard icon grid (Ammonia, Pharmaceuticals, PFAS, Agricultural Runoff).
 
 ### On-Slide Content (Bullets Only)
 - **The Acute Chemical Threat in the Pegnitz Catchment**:
@@ -115,11 +84,6 @@
 
 ## Slide 4: Real Human Suffering & The DTAS Challenge
 
-### Slide Visual Composition
-- 2-Column Split:
-  - **Left (Human & Ecological Victims)**: Fuchslochwelle surfers, families, park recreators, municipal water board.
-  - **Right (The Formal Challenge)**: Highlighted DTAS research challenge statement in prominent styled block.
-
 ### On-Slide Content (Bullets Only)
 - **Concrete Human Health Hazards on the Pegnitz**:
   - **"Durchfall-Welle" (Diarrhea Wave)**: Severe gastrointestinal infections among Fuchslochwelle surfers
@@ -143,18 +107,11 @@
 ---
 
 # SECTION 3: TECHNICAL SOLUTION (Max 3 Slides)
-*Target Audience: Stakeholders & General Technical Audience*
 *Focus: Full Overarching Real-World Vision (NOT Course Lab Hardware)*
 
 ---
 
 ## Slide 5: The PlumeTrace Ecosystem: Tri-Tier Architecture
-
-### Slide Visual Composition
-- Architecture Diagram showing 3 Connected Tiers:
-  - **Tier 1 (Water)**: Autonomous Surface Vessel (ASV Catamaran, sensors, LiDAR, sonar)
-  - **Tier 2 (Cloud)**: Hydrodynamic 2D/3D Twin, DWD Radar, GKD Gauges, Nav2 retasking
-  - **Tier 3 (Land & People)**: CesiumJS 3D LOD2 Command Center, Regulators & Public MCP AI
 
 ### On-Slide Content (Bullets Only)
 - **Tier 1: Autonomous River Robot (Physical Aquatic Layer)**:
@@ -182,10 +139,6 @@
 
 ## Slide 6: Closed-Loop Guidance & Digital Twin Rationale
 
-### Slide Visual Composition
-- Left: Circular feedback loop (Robot Sensing -> Cellular Ingestion -> Hydrodynamic Twin -> 4D Goal Optimization -> Robot Retasking).
-- Right: Comparative matrix: "Digital Twin vs. Static Probes".
-
 ### On-Slide Content (Bullets Only)
 - **4D Closed-Loop Adaptive Retasking**:
   - **Chemical gradient homing ($\nabla C$)**: Robot actively navigates upstream toward rising ammonium levels
@@ -212,11 +165,6 @@
 
 ## Slide 7: AI-Native Municipal & Citizen Intelligence
 
-### Slide Visual Composition
-- Mockup of Municipal Dashboard + Citizen Smartphone UI.
-- Traffic Light Indicator: 🟢 Green (Safe) / 🟡 Yellow (Borderline) / 🔴 Red (Toxic - CSO Active).
-- Model Context Protocol (MCP) prompt-and-response callout.
-
 ### On-Slide Content (Bullets Only)
 - **Municipal Command Center (Regulator View - SUN & WWA)**:
   - **3D CesiumJS twin**: Interactive visualization with official Bavarian LOD2 building models
@@ -239,21 +187,12 @@
 
 ---
 
-# SECTION 4: PROOF OF CONCEPT (PoC) (Max 4 Slides)
-*Target Audience: Specialized Technical Audience*
+# SECTION 4: PROOF OF CONCEPT (PoC) (Max 3 Slides)
 *Focus: Course Laboratory Validation (TurtleBot3 Burger, ROS 2 Jazzy, Gazebo Harmonic)*
 
 ---
 
 ## Slide 8: PoC Scope & Laboratory Hardware Architecture
-
-### Slide Visual Composition
-- Course hardware photo: TurtleBot3 Burger mobile robot.
-- Hardware-to-Real-World Mapping Table:
-  - TurtleBot3 Burger <---> ASV River Catamaran
-  - Physical Mobile Base <---> Surface Propulsion
-  - Emulated Ammonium Sensor <---> In-River Chemical Probe
-  - Scaled Testing Coordinates <---> Nuremberg River Reaches
 
 ### On-Slide Content (Bullets Only)
 - **Why TurtleBot3? Mandated Course Hardware Platform**:
@@ -282,16 +221,10 @@
 
 ## Slide 9: Co-Simulation & Hardware-in-the-Loop Mirror
 
-### Slide Visual Composition
-- Side-by-Side Split View:
-  - Left: Gazebo Harmonic 3D physics simulation showing digital twin and spreading plume.
-  - Right: Real-world dry lab arena with TurtleBot3 Burger executing the exact same trajectory.
-- Bi-directional arrow indicating ROS 2 telemetry link (< 35 ms latency).
-
 ### On-Slide Content (Bullets Only)
 - **Digital Twin Architecture in the Lab**:
   - **Gazebo Harmonic**: Real-time 3D physics co-simulation mirror
-  - **Hydrodynamic plume model**: Synthetic 2D advection-dispersion plume spreading across arena coordinates
+  - **Hydrodynamic plume model**: Synthetic 2D advection-dispersion plume spreading across testing coordinates
   - **Bi-directional telemetry link**: Zero-copy ROS 2 message bridge between physical robot and digital mirror
 - **Hardware-in-the-Loop Synchronization**:
   - Physical TurtleBot pose ($\vec{x}, \theta$) streamed to digital twin at **20 Hz**
@@ -304,20 +237,13 @@
 
 ### Presenter Spoken Script (1:15 min)
 > *"To achieve true digital twinning, we implemented a synchronized Hardware-in-the-Loop co-simulation using Gazebo Harmonic.*
-> *The digital twin runs a real-time advection-dispersion simulation mirror. As the physical TurtleBot navigates the arena, its pose is streamed at 20 Hertz into the digital model.*
+> *The digital twin runs a real-time advection-dispersion simulation mirror. As the physical TurtleBot navigates the testing environment, its pose is streamed at 20 Hertz into the digital model.*
 > *The digital twin calculates the simulated chemical concentration at the robot's coordinates and feeds it back to the robot's autonomy stack.*
 > *This creates an authentic bidirectional loop: the virtual twin simulates plume physics that cannot be safely poured onto a lab floor, while the physical robot proves real-world navigation, localization, and sensor integration with under 8 centimeters of trajectory error."*
 
 ---
 
-## Slide 10: Multi-Candidate Outfall Discrimination
-
-### Slide Visual Composition
-- Spatial Testing Map showing 3 Candidate Outfall Coordinates:
-  - **Outfall A**: Inactive / baseline runoff
-  - **Outfall B (Active Discharge)**: Spilling raw sewage (high concentration plume gradient)
-  - **Outfall C**: Inactive / benign
-- Robot search trajectory: Initial patrol -> detects gradient -> homes upstream -> confirms Outfall B.
+## Slide 10: Multi-Candidate Outfall Discrimination (Testing Scenario)
 
 ### On-Slide Content (Bullets Only)
 - **Experimental Scenario: Multi-Outfall Plume Tracking**:
@@ -329,61 +255,23 @@
   - **Step 3 (Gradient Ascent)**: Autonomy stack computes spatial concentration gradient ($\nabla C$)
   - **Step 4 (Source Homing)**: Nav2 dynamically steers robot upstream toward peak concentration
   - **Step 5 (Localization Confirmation)**: Robot stops at Outfall B; confirms source within **$< 1.2\text{ m}$ radius**
-- **Empirical Results**:
-  - Detection to localization time: **$< 180\text{ seconds}$**
-  - False positive rejection: Outfalls A & C correctly dismissed
-  - Repeatability: 100% source localization across multiple test runs
+- **Controlled Comparative Baseline**:
+  - **Blind Baseline Patrol**: Fixed-path patrol crosses plume boundary, logs reading, drives past without investigating
+  - **PlumeTrace Closed Loop**: Halts forward motion (`DWELL_AND_ANALYZE`), consults digital twin, and autonomously homes in on source
 
 ### Presenter Spoken Script (1:15 min)
 > *"Here we see our closed-loop discrimination algorithm in action.*
 > *We configured three candidate outfalls – A, B, and C – across the testing environment. During the run, Outfall B triggers an acute simulated sewage spill.*
-> *The TurtleBot begins in standard patrol mode. The moment its sensor detects concentration crossing the threshold, the digital twin switches the robot to gradient ascent mode.*
+> *In a traditional blind baseline patrol, the robot simply drives past the plume, logging a number but never finding the source.*
+> *In contrast, under PlumeTrace, the moment concentration crosses the threshold, the digital twin switches the robot to gradient ascent mode.*
 > *The navigation stack dynamically routes the robot upstream against the concentration gradient, dismissing benign outfalls A and C, and locking onto Outfall B within 180 seconds and 1.2 meters of accuracy.*
-> *This proves the core DTAS capability: autonomous discrimination of transient outfall pollution in a physical environment."*
-
----
-
-## Slide 11: Validation Against Course DTAS Criteria
-
-### Slide Visual Composition
-- Comprehensive Validation Matrix Table with Green Checkmarks:
-  - Criterion | Target Requirement | Measured PoC Performance | Status
-- DTAS Alignment Pillars: Dual-layer fidelity, closed-loop retasking, statutory audit generation.
-
-### On-Slide Content (Bullets Only)
-- **Validation Against Course DTAS Evaluation Criteria**:
-  - **Bidirectional closed loop**: Robot sensor data updates cloud twin; twin dynamically retasks robot (**PASS**)
-  - **Sim-to-Real fidelity**: Trajectory error between Gazebo mirror and physical robot **$< 0.08\text{ m}$** (**PASS**)
-  - **Dynamic retasking latency**: Goal computation to Nav2 dispatch in **$< 35\text{ seconds}$** (**PASS**)
-  - **Autonomous localization**: Pinpoints discharging outfall within **$< 1.2\text{ m}$** in **$< 180\text{ s}$** (**PASS**)
-  - **Statutory report dispatch**: Simulated regulatory alert generated in **$< 60\text{ seconds}$** (**PASS**)
-- **Summary of PoC Engineering Value**:
-  - Validates full end-to-end software pipeline on physical robotics hardware
-  - Proves robustness of ROS 2 Jazzy and Nav2 under dynamic retasking
-  - Establishes verified baseline for full-scale aquatic deployment
-
-### Presenter Spoken Script (1:15 min)
-> *"Slide 11 benchmarks our Proof of Concept directly against the official course DTAS evaluation rubrics.*
-> *Our system fulfills all core requirements:*
-> *First, bidirectional closed-loop twinning: physical sensor telemetry updates the digital twin, and the twin dynamically retasks the physical robot.*
-> *Second, sim-to-real fidelity: physical trajectory tracking matches the Gazebo mirror with under 8 centimeters of error.*
-> *Third, speed: retasking latency is under 35 seconds, source localization is achieved in under 3 minutes, and statutory compliance reports are dispatched in under 60 seconds.*
-> *This confirms that the PlumeTrace digital twin architecture is fully validated on physical hardware."*
+> *Let us now see this exact sequence executed in real time."*
 
 ---
 
 # SECTION 5: DEMONSTRATION (Video / Slides)
-*Target Audience: Specialized Technical & General Audience*
 
----
-
-## Slide 12: End-to-End Live System Demonstration
-
-### Slide Visual Composition
-- High-Definition Video Player Display:
-  - Video Title: "PlumeTrace PoC: Autonomous Outfall Interception & Digital Mirroring"
-  - Split-screen video feed: Physical TurtleBot execution (left) synchronized with Gazebo 3D simulation mirror (right) + real-time concentration telemetry.
-- On-screen timestamp reference cards matching live verbal commentary.
+## Slide 11: End-to-End Live System Demonstration
 
 ### On-Slide Content (Bullets Only)
 - **Demonstration Highlights (Live Video)**:
@@ -402,17 +290,33 @@
 
 ---
 
-# SECTION 6: EVALUATION AND TECHNICAL REFLECTION (Flexible / 4 Slides)
-*Target Audience: Specialized Technical Audience*
+# SECTION 6: EVALUATION AND TECHNICAL REFLECTION (4 Slides)
+
+## Slide 12: Empirical Validation Against Course DTAS Criteria
+
+### On-Slide Content (Bullets Only)
+- **Validation Against Course DTAS Evaluation Criteria**:
+  - **Bidirectional closed loop**: Robot sensor data updates cloud twin; twin dynamically retasks robot (**PASS**)
+  - **Sim-to-Real fidelity**: Trajectory error between Gazebo mirror and physical robot **$< 0.08\text{ m}$** (**PASS**)
+  - **Dynamic retasking latency**: Goal computation to Nav2 dispatch in **$< 35\text{ seconds}$** (**PASS**)
+  - **Autonomous localization**: Pinpoints discharging outfall within **$< 1.2\text{ m}$** in **$< 180\text{ s}$** (**PASS**)
+  - **Statutory report dispatch**: Simulated regulatory alert generated in **$< 60\text{ seconds}$** (**PASS**)
+- **Summary of PoC Engineering Value**:
+  - Validates full end-to-end software pipeline on physical robotics hardware
+  - Proves robustness of ROS 2 Jazzy and Nav2 under dynamic retasking
+  - Establishes verified baseline for full-scale aquatic deployment
+
+### Presenter Spoken Script (1:15 min)
+> *"Slide 12 benchmarks our Proof of Concept directly against the official course DTAS evaluation rubrics.*
+> *Our system fulfills all core requirements:*
+> *First, bidirectional closed-loop twinning: physical sensor telemetry updates the digital twin, and the twin dynamically retasks the physical robot.*
+> *Second, sim-to-real fidelity: physical trajectory tracking matches the Gazebo mirror with under 8 centimeters of error.*
+> *Third, speed: retasking latency is under 35 seconds, source localization is achieved in under 3 minutes, and statutory compliance reports are dispatched in under 60 seconds.*
+> *This confirms that the PlumeTrace digital twin architecture is fully validated on physical hardware."*
 
 ---
 
-## Slide 13: Technical Evaluation & Target SLAs
-
-### Slide Visual Composition
-- Quantitative SLA Performance Dashboard:
-  - Metrics Cards: Latency, Accuracy, False Positive Rate, Cost Reduction.
-  - Comparison Bar Chart: Traditional Manual Grab Sampling vs. PlumeTrace Autonomous Twin.
+## Slide 13: Operational & Economic Advantage
 
 ### On-Slide Content (Bullets Only)
 - **Target Performance Service Level Agreements (SLAs)**:
@@ -426,7 +330,7 @@
   - **Coverage efficiency**: Over **100x higher temporal sampling density** along critical river reaches
 
 ### Presenter Spoken Script (1:15 min)
-> *"Slide 13 summarizes the quantitative performance benchmarks and Service Level Agreements of PlumeTrace.*
+> *"Slide 13 summarizes the operational and economic advantages of PlumeTrace over the status quo.*
 > *Our closed-loop architecture achieves a retasking response latency under 35 seconds and localizes the source outfall within 1.2 meters.*
 > *Statutory compliance alerts are issued in under 60 seconds – eliminating the dangerous 48-hour delay of manual grab sampling.*
 > *Operationally, while manual testing costs up to 800 euros per sample for a blind snapshot, PlumeTrace delivers continuous 24/7 autonomous monitoring for under 10 euros a day, increasing sampling density by two orders of magnitude."*
@@ -434,10 +338,6 @@
 ---
 
 ## Slide 14: System Limitations & Failure Modes
-
-### Slide Visual Composition
-- 4-Quadrant Failure Mode & Mitigation Matrix:
-  - Environmental / Hardware / Algorithmic / Regulatory.
 
 ### On-Slide Content (Bullets Only)
 - **Identified Technical Limitations**:
@@ -461,11 +361,6 @@
 ---
 
 ## Slide 15: Future Roadmap & Project Transferability
-
-### Slide Visual Composition
-- 3-Phase Roadmap Timeline:
-  - Phase 1: Lab PoC (Completed) -> Phase 2: Pegnitz River Pilot -> Phase 3: Regional Multi-Agent Fleet
-- Transferability Map: Pegnitz (Nuremberg) -> Isar (Munich) -> Rhine/Danube industrial corridors.
 
 ### On-Slide Content (Bullets Only)
 - **Development Roadmap**:
