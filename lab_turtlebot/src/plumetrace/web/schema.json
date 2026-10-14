@@ -1,555 +1,555 @@
 {
- "$schema": "http://json-schema.org/draft-07/schema#",
- "$id": "plumetrace/web/schema.json",
- "title": "PlumeTrace gateway messages (server -> client)",
- "description": "Every message from ws://localhost:8765 validates against one entry of oneOf. Client commands: definitions/command.",
- "definitions": {
-  "hello": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "hello"
-    },
-    "reach": {
-     "type": "string"
-    },
-    "reach_id": {
-     "type": "string"
-    },
-    "time_factor": {
-     "type": "number"
-    },
-    "origin": {
-     "type": "object",
-     "required": [
-      "lat",
-      "lon",
-      "h"
-     ]
-    },
-    "scale": {
-     "type": "number"
-    },
-    "commands": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     }
-    },
-    "alert_mg_l": {
-     "type": "number"
-    }
-   },
-   "required": [
-    "type",
-    "reach",
-    "reach_id",
-    "time_factor",
-    "origin",
-    "commands"
-   ]
-  },
-  "pose": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "pose"
-    },
-    "t": {
-     "type": "number"
-    },
-    "lat": {
-     "type": "number"
-    },
-    "lon": {
-     "type": "number"
-    },
-    "heading_deg": {
-     "type": "number"
-    },
-    "arena": {
-     "type": "object",
-     "properties": {
-      "x": {
-       "type": "number"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://plumetrace.local/schema.json",
+  "title": "PlumeTrace gateway messages (server -> client)",
+  "description": "Every message from ws://localhost:8765 validates against one entry of oneOf. Client commands: definitions/command.",
+  "definitions": {
+    "hello": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "hello"
+        },
+        "reach": {
+          "type": "string"
+        },
+        "reach_id": {
+          "type": "string"
+        },
+        "time_factor": {
+          "type": "number"
+        },
+        "origin": {
+          "type": "object",
+          "required": [
+            "lat",
+            "lon",
+            "h"
+          ]
+        },
+        "scale": {
+          "type": "number"
+        },
+        "commands": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alert_mg_l": {
+          "type": "number"
+        }
       },
-      "y": {
-       "type": "number"
+      "required": [
+        "type",
+        "reach",
+        "reach_id",
+        "time_factor",
+        "origin",
+        "commands"
+      ]
+    },
+    "pose": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "pose"
+        },
+        "t": {
+          "type": "number"
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lon": {
+          "type": "number"
+        },
+        "heading_deg": {
+          "type": "number"
+        },
+        "arena": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            },
+            "yaw": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y",
+            "yaw"
+          ]
+        },
+        "river": {
+          "type": "object",
+          "properties": {
+            "x": {
+              "type": "number"
+            },
+            "y": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ]
+        }
       },
-      "yaw": {
-       "type": "number"
-      }
-     },
-     "required": [
-      "x",
-      "y",
-      "yaw"
-     ]
+      "required": [
+        "type",
+        "t",
+        "lat",
+        "lon",
+        "heading_deg",
+        "arena",
+        "river"
+      ]
     },
-    "river": {
-     "type": "object",
-     "properties": {
-      "x": {
-       "type": "number"
+    "sample": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "sample"
+        },
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "t": {
+          "type": "number"
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lon": {
+          "type": "number"
+        },
+        "nh3_n_mg_l": {
+          "type": "number",
+          "minimum": 0
+        },
+        "do_mg_l": {
+          "type": "number"
+        },
+        "qc_flags": {
+          "type": "integer"
+        },
+        "is_replay": {
+          "type": "boolean"
+        },
+        "river": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ]
+        },
+        "arena": {
+          "type": "object",
+          "required": [
+            "x",
+            "y"
+          ]
+        }
       },
-      "y": {
-       "type": "number"
-      }
-     },
-     "required": [
-      "x",
-      "y"
-     ]
-    }
-   },
-   "required": [
-    "type",
-    "t",
-    "lat",
-    "lon",
-    "heading_deg",
-    "arena",
-    "river"
-   ]
-  },
-  "sample": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "sample"
+      "required": [
+        "type",
+        "seq",
+        "t",
+        "lat",
+        "lon",
+        "nh3_n_mg_l",
+        "do_mg_l",
+        "qc_flags",
+        "is_replay"
+      ]
     },
-    "seq": {
-     "type": "integer",
-     "minimum": 1
-    },
-    "t": {
-     "type": "number"
-    },
-    "lat": {
-     "type": "number"
-    },
-    "lon": {
-     "type": "number"
-    },
-    "nh3_n_mg_l": {
-     "type": "number",
-     "minimum": 0
-    },
-    "do_mg_l": {
-     "type": "number"
-    },
-    "qc_flags": {
-     "type": "integer"
-    },
-    "is_replay": {
-     "type": "boolean"
-    },
-    "river": {
-     "type": "object",
-     "required": [
-      "x",
-      "y"
-     ]
-    },
-    "arena": {
-     "type": "object",
-     "required": [
-      "x",
-      "y"
-     ]
-    }
-   },
-   "required": [
-    "type",
-    "seq",
-    "t",
-    "lat",
-    "lon",
-    "nh3_n_mg_l",
-    "do_mg_l",
-    "qc_flags",
-    "is_replay"
-   ]
-  },
-  "posterior": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "posterior"
-    },
-    "labels": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     }
-    },
-    "probabilities": {
-     "type": "array",
-     "items": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1
-     }
-    },
-    "map_label": {
-     "type": "string"
-    },
-    "map_strength": {
-     "type": "number"
-    }
-   },
-   "required": [
-    "type",
-    "labels",
-    "probabilities",
-    "map_label",
-    "map_strength"
-   ]
-  },
-  "plume_points": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "plume_points"
-    },
-    "t": {
-     "type": "number"
-    },
-    "units": {
-     "type": "string"
-    },
-    "points": {
-     "type": "array",
-     "minItems": 1,
-     "items": {
-      "type": "array",
-      "items": {
-       "type": "number"
+    "posterior": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "posterior"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "probabilities": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "map_label": {
+          "type": "string"
+        },
+        "map_strength": {
+          "type": "number"
+        }
       },
-      "minItems": 3,
-      "maxItems": 3
-     }
-    }
-   },
-   "required": [
-    "type",
-    "t",
-    "points"
-   ]
-  },
-  "obstacles": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "obstacles"
+      "required": [
+        "type",
+        "labels",
+        "probabilities",
+        "map_label",
+        "map_strength"
+      ]
     },
-    "t": {
-     "type": "number"
+    "plume_points": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "plume_points"
+        },
+        "t": {
+          "type": "number"
+        },
+        "units": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "points"
+      ]
     },
     "obstacles": {
-     "type": "array",
-     "items": {
       "type": "object",
       "properties": {
-       "id": {
-        "type": "string"
-       },
-       "origin": {
-        "enum": [
-         "REAL",
-         "VIRTUAL"
-        ]
-       },
-       "mode": {
-        "enum": [
-         "REROUTE",
-         "STOP"
-        ]
-       },
-       "height_m": {
-        "type": "number"
-       },
-       "confidence": {
-        "type": "number"
-       },
-       "footprint": {
-        "type": "array",
-        "items": {
-         "type": "array",
-         "items": {
-          "type": "number"
-         },
-         "minItems": 2,
-         "maxItems": 2
+        "type": {
+          "const": "obstacles"
         },
-        "minItems": 3
-       }
+        "t": {
+          "type": "number"
+        },
+        "obstacles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "origin": {
+                "enum": [
+                  "REAL",
+                  "VIRTUAL"
+                ]
+              },
+              "mode": {
+                "enum": [
+                  "REROUTE",
+                  "STOP"
+                ]
+              },
+              "height_m": {
+                "type": "number"
+              },
+              "confidence": {
+                "type": "number"
+              },
+              "footprint": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "number"
+                  },
+                  "minItems": 2,
+                  "maxItems": 2
+                },
+                "minItems": 3
+              }
+            },
+            "required": [
+              "id",
+              "origin",
+              "mode",
+              "height_m",
+              "footprint"
+            ]
+          }
+        }
       },
       "required": [
-       "id",
-       "origin",
-       "mode",
-       "height_m",
-       "footprint"
+        "type",
+        "t",
+        "obstacles"
       ]
-     }
-    }
-   },
-   "required": [
-    "type",
-    "t",
-    "obstacles"
-   ]
-  },
-  "sync": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "sync"
     },
-    "streams": {
-     "type": "array",
-     "items": {
+    "sync": {
       "type": "object",
       "properties": {
-       "name": {
-        "type": "string"
-       },
-       "state": {
-        "enum": [
-         "SYNCED",
-         "STALE",
-         "LOST"
-        ]
-       },
-       "staleness_s": {
-        "type": [
-         "number",
-         "null"
-        ]
-       }
+        "type": {
+          "const": "sync"
+        },
+        "streams": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "state": {
+                "enum": [
+                  "SYNCED",
+                  "STALE",
+                  "LOST"
+                ]
+              },
+              "staleness_s": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "name",
+              "state",
+              "staleness_s"
+            ]
+          }
+        }
       },
       "required": [
-       "name",
-       "state",
-       "staleness_s"
+        "type",
+        "streams"
       ]
-     }
-    }
-   },
-   "required": [
-    "type",
-    "streams"
-   ]
-  },
-  "alert": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "alert"
     },
-    "t": {
-     "type": "number"
-    },
-    "seq": {
-     "type": "integer"
-    },
-    "nh3_n_mg_l": {
-     "type": "number"
-    },
-    "lat": {
-     "type": "number"
-    },
-    "lon": {
-     "type": "number"
-    },
-    "likely_outfall": {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    "probability": {
-     "type": [
-      "number",
-      "null"
-     ]
-    },
-    "message": {
-     "type": "string"
-    }
-   },
-   "required": [
-    "type",
-    "t",
-    "nh3_n_mg_l",
-    "lat",
-    "lon",
-    "likely_outfall",
-    "probability",
-    "message"
-   ]
-  },
-  "mission": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "mission"
-    },
-    "mode": {
-     "enum": [
-      "SIM",
-      "MIRROR",
-      "MIXED"
-     ]
-    },
-    "state": {
-     "enum": [
-      "IDLE",
-      "RUNNING",
-      "HOLD",
-      "DONE",
-      "ABORTED"
-     ]
-    },
-    "samples_taken": {
-     "type": "integer"
-    },
-    "scenario": {
-     "type": "string"
-    },
-    "time_factor": {
-     "type": "number"
-    },
-    "reach": {
-     "type": "string"
-    }
-   },
-   "required": [
-    "type",
-    "mode",
-    "state",
-    "samples_taken",
-    "time_factor",
-    "reach"
-   ]
-  },
-  "ack": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "ack"
-    },
-    "command": {
-     "type": [
-      "string",
-      "null"
-     ]
-    },
-    "ok": {
-     "type": "boolean"
-    },
-    "detail": {
-     "type": "string"
-    },
-    "t": {
-     "type": "number"
-    }
-   },
-   "required": [
-    "type",
-    "command",
-    "ok"
-   ]
-  },
-  "command": {
-   "type": "object",
-   "properties": {
-    "type": {
-     "const": "command"
-    },
-    "command": {
-     "enum": [
-      "abort",
-      "return_home",
-      "add_nogo",
-      "remove_nogo",
-      "add_obstacle",
-      "remove_obstacle"
-     ]
-    },
-    "id": {
-     "type": "string"
-    },
-    "polygon": {
-     "type": "array",
-     "items": {
-      "type": "array",
-      "items": {
-       "type": "number"
+    "alert": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "alert"
+        },
+        "t": {
+          "type": "number"
+        },
+        "seq": {
+          "type": "integer"
+        },
+        "nh3_n_mg_l": {
+          "type": "number"
+        },
+        "lat": {
+          "type": "number"
+        },
+        "lon": {
+          "type": "number"
+        },
+        "likely_outfall": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "probability": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
       },
-      "minItems": 2,
-      "maxItems": 2
-     },
-     "minItems": 3
+      "required": [
+        "type",
+        "t",
+        "nh3_n_mg_l",
+        "lat",
+        "lon",
+        "likely_outfall",
+        "probability",
+        "message"
+      ]
     },
-    "center": {
-     "type": "array",
-     "items": {
-      "type": "number"
-     },
-     "minItems": 2,
-     "maxItems": 2
+    "mission": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "mission"
+        },
+        "mode": {
+          "enum": [
+            "SIM",
+            "MIRROR",
+            "MIXED"
+          ]
+        },
+        "state": {
+          "enum": [
+            "IDLE",
+            "RUNNING",
+            "HOLD",
+            "DONE",
+            "ABORTED"
+          ]
+        },
+        "samples_taken": {
+          "type": "integer"
+        },
+        "scenario": {
+          "type": "string"
+        },
+        "time_factor": {
+          "type": "number"
+        },
+        "reach": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "mode",
+        "state",
+        "samples_taken",
+        "time_factor",
+        "reach"
+      ]
     },
-    "size_m": {
-     "type": "number"
+    "ack": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ack"
+        },
+        "command": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "t": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "command",
+        "ok"
+      ]
     },
-    "mode": {
-     "enum": [
-      "REROUTE",
-      "STOP"
-     ]
-    },
-    "height_m": {
-     "type": "number"
+    "command": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "command"
+        },
+        "command": {
+          "enum": [
+            "abort",
+            "return_home",
+            "add_nogo",
+            "remove_nogo",
+            "add_obstacle",
+            "remove_obstacle"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "polygon": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "minItems": 3
+        },
+        "center": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "size_m": {
+          "type": "number"
+        },
+        "mode": {
+          "enum": [
+            "REROUTE",
+            "STOP"
+          ]
+        },
+        "height_m": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "command"
+      ]
     }
-   },
-   "required": [
-    "type",
-    "command"
-   ]
-  }
- },
- "oneOf": [
-  {
-   "$ref": "#/definitions/hello"
   },
-  {
-   "$ref": "#/definitions/pose"
-  },
-  {
-   "$ref": "#/definitions/sample"
-  },
-  {
-   "$ref": "#/definitions/posterior"
-  },
-  {
-   "$ref": "#/definitions/plume_points"
-  },
-  {
-   "$ref": "#/definitions/obstacles"
-  },
-  {
-   "$ref": "#/definitions/sync"
-  },
-  {
-   "$ref": "#/definitions/alert"
-  },
-  {
-   "$ref": "#/definitions/mission"
-  },
-  {
-   "$ref": "#/definitions/ack"
-  }
- ]
+  "oneOf": [
+    {
+      "$ref": "#/definitions/hello"
+    },
+    {
+      "$ref": "#/definitions/pose"
+    },
+    {
+      "$ref": "#/definitions/sample"
+    },
+    {
+      "$ref": "#/definitions/posterior"
+    },
+    {
+      "$ref": "#/definitions/plume_points"
+    },
+    {
+      "$ref": "#/definitions/obstacles"
+    },
+    {
+      "$ref": "#/definitions/sync"
+    },
+    {
+      "$ref": "#/definitions/alert"
+    },
+    {
+      "$ref": "#/definitions/mission"
+    },
+    {
+      "$ref": "#/definitions/ack"
+    }
+  ]
 }
