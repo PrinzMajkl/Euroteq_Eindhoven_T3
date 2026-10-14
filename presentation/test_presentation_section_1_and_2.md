@@ -79,16 +79,17 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
 ### Slide Visual Content
 - Slide Title: Key Stakeholders
 - Left Column: Water Authorities (WWA, SUN)
-  - Continuous spatial profiling along riverbanks
-  - Uncover chronic seepage from aging pipes
-  - Geo-referenced heatmaps to prioritize basin investments
-  - Automated threshold alerts in under 60 seconds
+  - Cannot locate pollution origin (fixed stations lack spatial tracking)
+  - Blind infrastructure spending (1.5M - 5M+ EUR per basin without plume data)
+  - Chronic pipe seepage undetected until structural failure
+  - Lab results arrive 24-48 hours too late for emergency action
 - Right Column: Citizens and Surfers
-  - Eliminate complex chemical graphs
-  - Real-time traffic light mobile app (SAFE / CAUTION / ALERT)
-  - Immediate guidance on water contact safety
+  - Zero real-time visibility into water safety
+  - Unknowingly enter water during toxic overflow events
+  - High risk of gastrointestinal and skin infections
+  - Delayed municipal reports provide no immediate guidance
 
 ### Presenter Script (~50 seconds)
-> "PlumeTrace serves two main stakeholder groups with tailored intelligence:  
-> For Water and City Authorities, our robot acts as a continuous spatial profiler. By cruising riverbanks over time, it catches chronic pipe leaks before failure and provides 3D pollution maps to guide multi-million euro infrastructure investments.  
-> For Citizens and Surfers, we replace complex chemistry with a simple Traffic Light app: Safe, Caution, and Alert, delivering immediate guidance on water contact safety."
+> "This monitoring failure creates acute problems for our two key stakeholder groups today:  
+> First, Water Authorities like SUN and WWA: They must invest millions of euros into retention basins, but without spatial plume tracking, they are forced to invest blindly without knowing which overflow pipes cause the greatest damage. Furthermore, laboratory delays mean they only learn of acute spills days after they have already washed away.  
+> Second, Citizens and Surfers: People entering the Pegnitz at the Fuchslochwelle or in city parks have zero real-time warning. They unknowingly expose themselves to acute bacterial contamination because municipal data is either delayed by days or buried in complex chemical reports."
