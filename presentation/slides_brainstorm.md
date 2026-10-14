@@ -24,7 +24,13 @@ This document contains the complete, section-by-section slide outline, detailed 
   - Visual Theme: Clean, modern, minimalist white background (`#FFFFFF`) with pure Calibri typography.
   - Palette: Midnight Navy (`#023047`), River Cyan (`#219ebc`), Sky Breeze (`#8ecae6`), Amber Gold (`#ffb703`), Tangerine Alert (`#fb8500`).
 - **Institutional Context**: EuroTeQ Engineering University – Track 3 (T3)
-- **Contributing Team**: [Team Members & Academic Affiliations]
+- **Contributing Team**:
+  - Michal Branda
+  - Venkata Kolagotla
+  - Wen-Lin Tsai
+  - Diana Petrenko
+  - Izdihar Farahdina
+  - Tinatin Gholadze
 - **Core Vision Pillars**:
   1. Autonomous River Robotics (Mobile active sensing)
   2. Predictive Cloud Digital Twin (Hydrodynamic simulation & retasking)
@@ -266,34 +272,33 @@ This document contains the complete, section-by-section slide outline, detailed 
   - *Experimental Group (PlumeTrace Adaptive Closed Loop)*:
     - Robot detects ammonium spike ($> 0.6\ \text{mg/L}$), triggers Sampling Pause (`DWELL_AND_ANALYZE`), streams telemetry to the Digital Twin.
     - Twin solver identifies the active outfall candidate with $> 90\%$ probability, computes an upstream waypoint, and pushes it to Nav2.
-    - Result: Robot autonomously turns upstream, follows the concentration gradient, and stops directly at the leaking outfall pipe!
+    - Result: Robot autonomously turns upstream, follows the concentration gradient, and stops directly at the leaking outfall coordinate!
 - **Presenter Spoken Script (Target: 1:15 min)**:
-  > *"To rigorously prove our system's value, we established a comparative baseline experiment in our calibrated lab arena featuring three candidate outfall locations: A, B, and C.*
+  > *"To rigorously prove our system's value, we established a comparative baseline experiment across three candidate outfall locations: A, B, and C.*
   > *In the Control Baseline – which mimics current scheduled monitoring – the robot executes a fixed patrol line. It crosses the pollution plume, but blindly drives past, leaving the source completely undiscovered.*
-  > *In contrast, our Adaptive PlumeTrace system immediately detects the spike, pauses to analyze, consults the Digital Twin, and receives an upstream waypoint. The robot actively navigates to the source and stops directly at the faulty outfall marker, proving the power of closed-loop autonomy."*
+  > *In contrast, our Adaptive PlumeTrace system immediately detects the spike, pauses to analyze, consults the Digital Twin, and receives an upstream waypoint. The robot actively navigates to the source and stops directly at the faulty outfall coordinate, proving the power of closed-loop autonomy."*
 
 ---
 
 ## 5. Demonstration (Video / Slides)
 *Target Audience: Technical Experts (with Stakeholder Relevance)*
-*Format: High-Definition Split-Screen Video Demonstration*
+*Format: High-Definition Split-Screen Video Demonstration with Live Team Commentary*
 
-### Video Demonstration Storyboard (4 Synchronized Panels)
-- **Visual Layout of the Video**:
-  - **Panel 1 (Top Left)**: Physical TurtleBot3 navigating inside the physical lab arena.
-  - **Panel 2 (Top Right)**: Gazebo Harmonic co-simulation mirror displaying physics, obstacles, and ghost robot follower.
-  - **Panel 3 (Bottom Left)**: 2D Plume Inversion Solver displaying real-time Gaussian gradient contours and candidate outfall probabilities.
-  - **Panel 4 (Bottom Right)**: CesiumJS 3D Digital Twin displaying the Nuremberg LOD2 city view, real-time robot position, and live stakeholder alerts.
-- **Sequential Demo Scenes**:
-  1. *Scene 1: Patrol & Baseline Comparison*: Robot begins corridor navigation; baseline trajectory crosses plume and continues blindly, whereas adaptive mode prepares for detection.
-  2. *Scene 2: Threshold Breach & Sampling Pause*: Robot reaches plume boundary ($> 0.6\ \text{mg/L}\ \text{NH}_4^+$); immediately halts forward motion (`DWELL_AND_ANALYZE`); telemetry packet transmitted upstream.
-  3. *Scene 3: Twin Inversion & Goal Dispatch*: Digital Twin calculates posterior probabilities across Outfalls A, B, and C; generates updated Nav2 waypoint directed toward active Outfall B; pushes goal downstream in $< 35\ \text{s}$.
-  4. *Scene 4: Upstream Intercept & Source Localization*: Robot resumes motion, follows the gradient upstream, and stops precisely at Candidate Marker B; CesiumJS dashboard updates Outfall B health score to RED and broadcasts alert.
+### Video Demonstration Layout & Flow
+- **Video Composition (Synchronized Split Screen)**:
+  - **Left View**: Physical TurtleBot3 navigating the testing environment under real embedded motor dynamics.
+  - **Right View**: Gazebo Harmonic co-simulation mirror maintaining continuous state synchronization.
+  - **Bottom Overlay**: Live chemical plume gradient and CesiumJS 3D digital twin alert feed.
+- **Presenter Live Commentary Guide (Delivered verbally by team members during playback)**:
+  1. *Patrol & Spill Trigger*: Introduce baseline patrol; highlight simulated storm overflow event injected at Candidate Outfall B.
+  2. *Threshold Interception & Dwell*: Call attention to the instant the sensor registers the plume; highlight autonomous sampling pause.
+  3. *Closed-Loop Inversion*: Highlight the digital twin's rapid recalculation and generation of an updated Nav2 goal.
+  4. *Upstream Localization & Alert*: Track the robot ascending the gradient, locking onto Outfall B, and triggering an automated statutory alert on the municipal dashboard.
 
 ### DTAS Criteria Verification Checklist
 - [x] **1. Bidirectional Communication**: Real-time physical telemetry (`/odom`, `/scan`, `/ammonia`) streamed upstream; dynamic Nav2 goal waypoints pushed downstream from cloud twin.
 - [x] **2. State Synchronisation**: Continuous pose and chemical synchronization across physical TurtleBot, AMCL localization, Gazebo `ghost_follower`, and CesiumJS 3D coordinate frames with active drift monitoring.
-- [x] **3. Environmental Interaction**: Physical 360° LiDAR interacting with lab arena boundaries + tight cyber-physical coupling where the robot's physical $(x, y)$ position interacts with the simulated spatial chemical field.
+- [x] **3. Environmental Interaction**: Physical LiDAR obstacle detection + tight cyber-physical coupling where the robot's physical $(x, y)$ position interacts with the simulated spatial chemical field.
 
 ---
 

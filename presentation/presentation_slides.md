@@ -29,10 +29,12 @@
 - **Target Riverbed**: Pegnitz River, Nuremberg (Germany)
 - **EuroTeQ Engineering University**: Track 3 (T3)
 - **Project Team**:
-  - [Team Member 1 - Institution]
-  - [Team Member 2 - Institution]
-  - [Team Member 3 - Institution]
-  - [Team Member 4 - Institution]
+  - Michal Branda
+  - Venkata Kolagotla
+  - Wen-Lin Tsai
+  - Diana Petrenko
+  - Izdihar Farahdina
+  - Tinatin Gholadze
 - **Key Capabilities**:
   - Autonomous surface vehicle patrol
   - Real-time closed-loop cloud digital twin
@@ -246,36 +248,35 @@
 ## Slide 8: PoC Scope & Laboratory Hardware Architecture
 
 ### Slide Visual Composition
-- Course hardware photo: TurtleBot3 Burger in dry laboratory arena.
+- Course hardware photo: TurtleBot3 Burger mobile robot.
 - Hardware-to-Real-World Mapping Table:
   - TurtleBot3 Burger <---> ASV River Catamaran
-  - Arena Boundary Walls <---> Pegnitz Riverbanks
+  - Physical Mobile Base <---> Surface Propulsion
   - Emulated Ammonium Sensor <---> In-River Chemical Probe
-  - Arena Coordinates <---> Nuremberg River Reaches
+  - Scaled Testing Coordinates <---> Nuremberg River Reaches
 
 ### On-Slide Content (Bullets Only)
 - **Why TurtleBot3? Mandated Course Hardware Platform**:
   - Serves as the **scaled terrestrial proxy** for an Autonomous Surface Vessel (ASV)
-  - Operates inside an indoor dry laboratory arena replicating urban river navigation
+  - Validates full autonomy stack under real physical constraints (motor noise, wheel slip, Wi-Fi latency)
 - **Laboratory Hardware Stack**:
   - **Chassis**: TurtleBot3 Burger differential-drive mobile robot
   - **Compute**: Raspberry Pi 4 (onboard ROS 2 executor) + remote workstation (orchestration)
-  - **Sensing**: 360° 2D LDS-02 LiDAR for obstacle mapping & wall tracking
+  - **Sensing**: 360° 2D LDS-02 LiDAR for local obstacle mapping & safety monitoring
   - **Chemical sensor emulation**: Time-synchronized ROS 2 node sampling simulated plume field
-- **Physical-to-Aquatic Abstraction**:
-  - River current vector ($0.3\text{ m/s}$) mapped to synthetic coordinate drift
-  - Taped arena boundaries represent Pegnitz riverbanks and culvert walls
-  - AruCo fiducial markers represent candidate municipal outfall culverts (A, B, C)
+- **Physical-to-Aquatic Cyber-Physical Mapping**:
+  - Validates dynamic retasking under simulated river current drift vectors
+  - Tests multi-candidate outfall localization across discrete spatial coordinates (A, B, C)
+  - Eliminates regulatory restrictions of testing chemical discharges in public rivers (§ 89 WHG)
 - **Core Software Stack**:
   - **ROS 2 Jazzy Jalisco**: Modular communication nodes, topics, actions, and QoS profiles
-  - **Nav2 (Navigation 2)**: Dynamic waypoint replanning and obstacle avoidance
+  - **Nav2 (Navigation 2)**: Dynamic waypoint replanning and collision avoidance
 
 ### Presenter Spoken Script (1:15 min)
 > *"Now, we transition from the overarching vision to our concrete laboratory Proof of Concept.*
 > *To validate the DTAS concepts within the course constraints, we utilized the mandated TurtleBot3 Burger platform as a scaled terrestrial proxy for our river surface vessel.*
-> *The TurtleBot3 operates inside an indoor dry lab arena representing a section of the Pegnitz. It utilizes an onboard Raspberry Pi 4 running ROS 2 Jazzy, a 360-degree LiDAR for boundary mapping, and a synchronized chemical sensing node.*
-> *River flow dynamics are mathematically mapped to robot coordinate drift, and arena boundaries replicate riverbank geometry with AruCo markers identifying candidate sewer outfalls.*
-> *This provides a rigorous, repeatable testing ground for closed-loop digital twinning."*
+> *The TurtleBot3 operates with an onboard Raspberry Pi 4 running ROS 2 Jazzy, a 360-degree LiDAR for obstacle mapping, and a synchronized chemical sensing node.*
+> *This setup allows us to rigorously test the full cyber-physical closed loop – dynamic waypoint replanning, sensor ingestion, and digital twin synchronization – under real hardware constraints, without the regulatory restrictions of discharging simulated pollutants into a public river."*
 
 ---
 
@@ -312,18 +313,18 @@
 ## Slide 10: Multi-Candidate Outfall Discrimination
 
 ### Slide Visual Composition
-- Arena Map showing 3 Outfall Candidates:
+- Spatial Testing Map showing 3 Candidate Outfall Coordinates:
   - **Outfall A**: Inactive / baseline runoff
-  - **Outfall B (Active Culvert)**: Spilling raw sewage (high concentration plume gradient)
+  - **Outfall B (Active Discharge)**: Spilling raw sewage (high concentration plume gradient)
   - **Outfall C**: Inactive / benign
 - Robot search trajectory: Initial patrol -> detects gradient -> homes upstream -> confirms Outfall B.
 
 ### On-Slide Content (Bullets Only)
 - **Experimental Scenario: Multi-Outfall Plume Tracking**:
-  - **3 Candidate Outfalls (A, B, C)** placed along arena boundary
+  - **3 Candidate Outfalls (A, B, C)** mapped as discrete testing sources
   - Single active discharge initiated at **Outfall B** replicating sudden storm overflow
 - **Closed-Loop Autonomous Sequence**:
-  - **Step 1 (Patrol)**: Robot executes baseline sweep along river boundary
+  - **Step 1 (Patrol)**: Robot executes baseline sweep along testing boundary
   - **Step 2 (Plume Interception)**: Sensor detects concentration spike exceeding **$C_{threshold}$**
   - **Step 3 (Gradient Ascent)**: Autonomy stack computes spatial concentration gradient ($\nabla C$)
   - **Step 4 (Source Homing)**: Nav2 dynamically steers robot upstream toward peak concentration
@@ -335,7 +336,7 @@
 
 ### Presenter Spoken Script (1:15 min)
 > *"Here we see our closed-loop discrimination algorithm in action.*
-> *We configured three candidate outfalls – A, B, and C – along the arena perimeter. During the run, Outfall B triggers an acute simulated sewage spill.*
+> *We configured three candidate outfalls – A, B, and C – across the testing environment. During the run, Outfall B triggers an acute simulated sewage spill.*
 > *The TurtleBot begins in standard patrol mode. The moment its sensor detects concentration crossing the threshold, the digital twin switches the robot to gradient ascent mode.*
 > *The navigation stack dynamically routes the robot upstream against the concentration gradient, dismissing benign outfalls A and C, and locking onto Outfall B within 180 seconds and 1.2 meters of accuracy.*
 > *This proves the core DTAS capability: autonomous discrimination of transient outfall pollution in a physical environment."*
@@ -379,31 +380,25 @@
 ## Slide 12: End-to-End Live System Demonstration
 
 ### Slide Visual Composition
-- Centered High-Definition Video Player Frame:
+- High-Definition Video Player Display:
   - Video Title: "PlumeTrace PoC: Autonomous Outfall Interception & Digital Mirroring"
-  - Split screen in video: Real-world TurtleBot arena (left) synchronized with Gazebo 3D twin (right) + real-time concentration graph (bottom).
-- Callout annotations highlighting key video timestamps:
-  - `0:15`: Spill event triggered
-  - `0:45`: Gradient detected & twin retasks robot
-  - `1:20`: Robot homes in and confirms Outfall B
+  - Split-screen video feed: Physical TurtleBot execution (left) synchronized with Gazebo 3D simulation mirror (right) + real-time concentration telemetry.
+- On-screen timestamp reference cards matching live verbal commentary.
 
 ### On-Slide Content (Bullets Only)
-- **Demonstration Highlights (Recorded Video)**:
-  - **Physical arena execution**: TurtleBot3 executing real-time autonomous patrol
-  - **Live digital mirror**: Synchronized Gazebo Harmonic physics simulation
-  - **Spill event injection**: Simulated CSO plume released at Outfall B
-  - **Closed-loop retasking**: Nav2 path dynamically re-routing toward concentration peak
-  - **Outfall confirmation**: Visual and spatial lock-on at discharging culvert
-  - **Instant reporting**: Real-time statutory notification triggered on dashboard
+- **Demonstration Highlights (Live Video)**:
+  - **Synchronized split screen**: Physical TurtleBot navigation alongside Gazebo 3D digital mirror
+  - **Transient spill injection**: Sudden Combined Sewer Overflow simulated at Outfall B
+  - **Real-time gradient tracking**: Closed-loop autonomy ascends chemical concentration plume
+  - **Precision outfall localization**: Robot homes in and confirms active discharge source (< 1.2 m)
+  - **Instant statutory dispatch**: Compliance alert triggered on municipal command dashboard (< 60 s)
 
-### Presenter Spoken Script (1:30 min)
-> *"Now let us watch the system in action during our live laboratory validation.*
-> *[Start Video]*
-> *On the left, you see the physical TurtleBot3 patrolling the arena. On the right, you see the synchronized Gazebo Harmonic digital twin.*
-> *At timestamp 15 seconds, a storm overflow occurs at Outfall B. The digital twin simulates the expanding plume.*
-> *As the TurtleBot encounters the plume edge, notice how the path immediately adapts: the closed-loop controller takes over, ascending the chemical gradient.*
-> *Within 90 seconds, the robot navigates directly to Outfall B, confirms the active discharge, and triggers an automated alert in the municipal dashboard.*
-> *This video demonstrates seamless synchronization between the physical agent, simulation twin, and autonomous decision-making."*
+### Presenter Spoken Script (Live Commentary by Team during Video)
+> *(Note for presenters: Team members provide live verbal commentary while the video plays)*
+> *"We now show our live demonstration video capturing the physical system and digital twin running concurrently.*
+> *Notice on the left: the physical TurtleBot navigates under real-world motor dynamics. On the right: the Gazebo digital twin maintains real-time state synchronization.*
+> *As the spill triggers at Outfall B, our chemical node registers the plume. Observe how the navigation stack immediately replans the trajectory – ascending the gradient and confirming the leaking outfall.*
+> *Within seconds of confirmation, the municipal dashboard updates, proving the end-to-end cyber-physical loop in action."*
 
 ---
 
