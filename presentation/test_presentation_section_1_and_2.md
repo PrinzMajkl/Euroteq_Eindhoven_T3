@@ -75,10 +75,10 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
 
 ---
 
-## Slide 4: Stakeholders and Autonomous Closed Loop
+## Slide 4: Key Stakeholders
 
 ### Slide Visual Content
-- Slide Title: Stakeholders and Autonomous Closed Loop
+- Slide Title: Key Stakeholders
 - Left Column: Water Authorities (WWA, SUN)
   - Continuous spatial profiling along riverbanks
   - Uncover chronic seepage from aging pipes
@@ -88,11 +88,8 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
   - Eliminate complex chemical graphs
   - Real-time traffic light mobile app (SAFE / CAUTION / ALERT)
   - Immediate guidance on water contact safety
-- Bottom Highlight:
-  - Closed-Loop Vision: Robot waypoints adapt dynamically to live sensors, rain radar, and data age.
 
-### Presenter Script (~60 seconds)
+### Presenter Script (~50 seconds)
 > "PlumeTrace serves two main stakeholder groups with tailored intelligence:  
 > For Water and City Authorities, our robot acts as a continuous spatial profiler. By cruising riverbanks over time, it catches chronic pipe leaks before failure and provides 3D pollution maps to guide multi-million euro infrastructure investments.  
-> For Citizens and Surfers, we replace complex chemistry with a simple Traffic Light app: Safe, Caution, and Alert.  
-> And how does it operate? Through an autonomous closed loop. The robot's path is not pre-scripted - our Digital Twin computes optimal waypoints in real-time based on live chemical gradients, weather radar, and data age."
+> For Citizens and Surfers, we replace complex chemistry with a simple Traffic Light app: Safe, Caution, and Alert, delivering immediate guidance on water contact safety."
