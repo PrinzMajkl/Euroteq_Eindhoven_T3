@@ -1,0 +1,11 @@
+{"new": "RUNNING", "type": "state", "t": 24.622, "state": "RUNNING"}
+{"x": 1.565, "y": -1.53, "yaw": -0.078, "type": "goal_sent", "t": 25.044, "state": "RUNNING"}
+{"status": 4, "type": "goal_result", "t": 45.376, "state": "RUNNING"}
+{"type": "dwell", "t": 45.376, "state": "RUNNING"}
+{"seq": 1, "nh3": 1.1434, "type": "sample", "t": 48.405, "state": "RUNNING"}
+{"x": 1.525, "y": -2.139, "yaw": -0.01, "type": "goal_sent", "t": 49.045, "state": "RUNNING"}
+{"status": 4, "type": "goal_result", "t": 63.482, "state": "RUNNING"}
+{"type": "dwell", "t": 63.482, "state": "RUNNING"}
+{"seq": 2, "nh3": 1.4467, "type": "sample", "t": 66.51, "state": "RUNNING"}
+{"final": "DONE", "samples": 2, "map_label": "A", "probabilities": [1.0, 0.0, 0.0], "type": "done", "t": 66.521, "state": "RUNNING"}
+RESULT PASS: scenario A active outfall A, done event final DONE map_label A probabilities [1.0, 0.0, 0.0] samples 2 after 59 s

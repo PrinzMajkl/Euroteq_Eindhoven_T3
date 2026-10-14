@@ -1,0 +1,10 @@
+# Open-data sources for PlumeTrace: Gewaesserkundlicher Dienst Bayern (GKD), CC BY 4.0, www.gkd.bayern.de.
+# A fetcher with an empty station_path runs in fixture mode from data/fixtures/*.csv (synthetic).
+gkd_discharge:
+  base_url: https://www.gkd.bayern.de/en
+  station_path: kelheim/nuernberg-lederersteg-24225000   # gauge Nürnberg Lederersteg, Pegnitz
+gkd_chemistry:
+  base_url: https://www.gkd.bayern.de/en
+  station_path: regnitz/nuernberg-lederersteg-17651      # chemistry station Nürnberg, Lederersteg
+# Bavaria has no open overflow (EDM) feed: overflow events always come from data/fixtures/thames_edm_events.csv.
+overflow_events: {}

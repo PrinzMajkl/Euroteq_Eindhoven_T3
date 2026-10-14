@@ -1,0 +1,7 @@
+{"new": "RUNNING", "type": "state", "t": 16.52, "state": "RUNNING"}
+{"x": 1.565, "y": -1.53, "yaw": -0.078, "type": "goal_sent", "t": 16.755, "state": "RUNNING"}
+{"status": 4, "type": "goal_result", "t": 38.418, "state": "RUNNING"}
+{"type": "dwell", "t": 38.418, "state": "RUNNING"}
+{"seq": 1, "nh3": 0.0413, "type": "sample", "t": 41.508, "state": "RUNNING"}
+{"final": "DONE", "samples": 1, "map_label": "C", "probabilities": [0.0, 0.0, 1.0], "type": "done", "t": 41.677, "state": "RUNNING"}
+RESULT PASS: scenario C active outfall C, done event final DONE map_label C probabilities [0.0, 0.0, 1.0] samples 1 after 60 s

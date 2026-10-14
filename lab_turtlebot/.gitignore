@@ -1,0 +1,16 @@
+# colcon output
+build/
+install/
+log/
+# ROBOTIS sources: already built on the lablaptop in ~/turtlebot3_ws; each is its own git repo
+src/DynamixelSDK/
+src/turtlebot3/
+src/turtlebot3_msgs/
+src/turtlebot3_simulations/
+# python
+__pycache__/
+*.pyc
+.pytest_cache/
+# secrets and local output
+src/plumetrace/web/config.local.js
+overlay/
