@@ -87,7 +87,7 @@
       gap: 22px;
     }
 
-    /* Slide 1 - Title */
+    /* Slide 1 - Title (No Bullets) */
     .slide-1-layout {
       display: flex;
       align-items: center;
@@ -96,8 +96,8 @@
     }
 
     .slide-1-logo {
-      width: 220px;
-      height: 220px;
+      width: 230px;
+      height: 230px;
       border-radius: 50%;
       object-fit: cover;
       box-shadow: 0 8px 24px rgba(2, 48, 71, 0.16);
@@ -112,7 +112,7 @@
     }
 
     .slide-1-title {
-      font-size: 4rem;
+      font-size: 4.4rem;
       font-weight: 700;
       color: var(--navy);
       line-height: 1.05;
@@ -124,33 +124,31 @@
     }
 
     .slide-1-subtitle {
-      font-size: 1.65rem;
+      font-size: 1.85rem;
       color: var(--cyan);
       font-weight: 600;
-      margin-bottom: 8px;
+      line-height: 1.25;
     }
 
-    .clean-list {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      font-size: 1.3rem;
+    .slide-1-meta {
+      font-size: 1.35rem;
       color: var(--navy);
+      font-weight: 600;
+      margin-top: 6px;
     }
 
-    .clean-list li {
-      display: flex;
-      align-items: center;
-      gap: 12px;
+    /* Progressive Reveal Animation */
+    .reveal-item {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
     }
 
-    .bullet-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--orange);
-      flex-shrink: 0;
+    .reveal-item.revealed {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
     }
 
     /* 4-Card Clean Layout (Slide 2) */
@@ -373,7 +371,7 @@
   <!-- 16:9 Canvas -->
   <div class="deck-viewport" id="viewport">
 
-    <!-- SLIDE 1 -->
+    <!-- SLIDE 1 (No bullet points) -->
     <section class="slide active" id="slide-1">
       <div class="slide-body">
         <div class="slide-1-layout">
@@ -381,22 +379,18 @@
           <div class="slide-1-text">
             <h1 class="slide-1-title"><span>PlumeTrace</span></h1>
             <div class="slide-1-subtitle">Autonomous Water Protection for the Pegnitz River</div>
-            <ul class="clean-list">
-              <li><span class="bullet-dot"></span> EuroTeQ Track 3 (Eindhoven / Nuremberg)</li>
-              <li><span class="bullet-dot"></span> Robotic surface profiling and real-time digital twin</li>
-              <li><span class="bullet-dot"></span> Detecting transient sewer overflows (CSOs)</li>
-            </ul>
+            <div class="slide-1-meta">EuroTeQ Track 3 (Eindhoven / Nuremberg)</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- SLIDE 2 -->
+    <!-- SLIDE 2 (Progressive reveal of cards and bottom highlight) -->
     <section class="slide" id="slide-2">
       <h2 class="slide-title">The Pegnitz: Four Critical Pressures</h2>
       <div class="slide-body">
         <div class="grid-4">
-          <div class="clean-card">
+          <div class="clean-card reveal-item">
             <div class="clean-card-title">Fuchslochwelle Surfers</div>
             <ul class="bullet-points">
               <li>Raw sewage spikes after rainfall</li>
@@ -404,7 +398,7 @@
             </ul>
           </div>
 
-          <div class="clean-card">
+          <div class="clean-card reveal-item">
             <div class="clean-card-title">Sewer Overflows (CSOs)</div>
             <ul class="bullet-points">
               <li>1,500 km municipal network overloaded by storms</li>
@@ -412,7 +406,7 @@
             </ul>
           </div>
 
-          <div class="clean-card">
+          <div class="clean-card reveal-item">
             <div class="clean-card-title">Knoblauchsland Agriculture</div>
             <ul class="bullet-points">
               <li>Nitrate leaching into drinking water aquifers</li>
@@ -420,7 +414,7 @@
             </ul>
           </div>
 
-          <div class="clean-card">
+          <div class="clean-card reveal-item">
             <div class="clean-card-title">Summer Heat and Drought</div>
             <ul class="bullet-points">
               <li>Low flow concentrates pollutants</li>
@@ -429,18 +423,18 @@
           </div>
         </div>
 
-        <div class="bottom-highlight">
+        <div class="bottom-highlight reveal-item">
           <span>Core Bottleneck:</span> Monthly grab sampling misses short 2-4 hour overflow events.
         </div>
       </div>
     </section>
 
-    <!-- SLIDE 3 -->
+    <!-- SLIDE 3 (Progressive reveal of boxes and bottom highlight) -->
     <section class="slide" id="slide-3">
       <h2 class="slide-title">Current Monitoring: The Temporal Blind Spot</h2>
       <div class="slide-body">
         <div class="grid-2">
-          <div class="box-container">
+          <div class="box-container reveal-item">
             <div class="box-header">What Municipalities Measure (SUN)</div>
             <ul class="bullet-points">
               <li>Temperature, pH, conductivity, turbidity</li>
@@ -450,7 +444,7 @@
             </ul>
           </div>
 
-          <div class="box-container">
+          <div class="box-container reveal-item">
             <div class="box-header">The Sampling Gap</div>
             <ul class="bullet-points">
               <li>Manual grab sampling: 1x per month</li>
@@ -461,18 +455,18 @@
           </div>
         </div>
 
-        <div class="bottom-highlight">
+        <div class="bottom-highlight reveal-item">
           <span>The Result:</span> Statutory violations and toxic spills pass completely unrecorded.
         </div>
       </div>
     </section>
 
-    <!-- SLIDE 4 -->
+    <!-- SLIDE 4 (Progressive reveal of boxes and bottom highlight) -->
     <section class="slide" id="slide-4">
       <h2 class="slide-title">Stakeholders and Autonomous Closed Loop</h2>
       <div class="slide-body">
         <div class="grid-2">
-          <div class="box-container">
+          <div class="box-container reveal-item">
             <div class="box-header">Water Authorities (WWA, SUN)</div>
             <ul class="bullet-points">
               <li>Continuous spatial profiling along riverbanks</li>
@@ -482,7 +476,7 @@
             </ul>
           </div>
 
-          <div class="box-container">
+          <div class="box-container reveal-item">
             <div class="box-header">Citizens and Surfers</div>
             <ul class="bullet-points">
               <li>Eliminate complex chemical graphs</li>
@@ -497,7 +491,7 @@
           </div>
         </div>
 
-        <div class="bottom-highlight">
+        <div class="bottom-highlight reveal-item">
           <span>Closed-Loop Vision:</span> Robot waypoints adapt dynamically to live sensors, rain radar, and data age.
         </div>
       </div>
@@ -507,10 +501,10 @@
 
   <!-- Controls Bar -->
   <div class="controls-bar">
-    <div>Use Arrow Keys (&larr; / &rarr;)</div>
+    <div>Use Arrow Keys (&larr; / &rarr;) or Space to advance items</div>
     <div class="nav-buttons">
-      <button class="btn" id="prevBtn" onclick="changeSlide(-1)">&larr; Previous</button>
-      <button class="btn" id="nextBtn" onclick="changeSlide(1)">Next &rarr;</button>
+      <button class="btn" id="prevBtn" onclick="navigateStep(-1)">&larr; Back</button>
+      <button class="btn" id="nextBtn" onclick="navigateStep(1)">Next &rarr;</button>
       <button class="btn" id="notesBtn" onclick="toggleNotes()">Speaker Script (N)</button>
       <button class="btn" id="fsBtn" onclick="toggleFullscreen()">Fullscreen (F)</button>
     </div>
@@ -528,6 +522,7 @@
   <script>
     const totalSlides = 4;
     let currentSlide = 1;
+    let currentStep = 0;
     let notesOpen = false;
 
     const scripts = {
@@ -570,6 +565,11 @@
       }
     };
 
+    function getSlideItems(slideIndex) {
+      const slide = document.getElementById(`slide-${slideIndex}`);
+      return slide ? Array.from(slide.querySelectorAll('.reveal-item')) : [];
+    }
+
     function updateSlide() {
       for (let i = 1; i <= totalSlides; i++) {
         const slide = document.getElementById(`slide-${i}`);
@@ -579,21 +579,53 @@
           slide.classList.remove('active');
         }
       }
-      document.getElementById('prevBtn').disabled = (currentSlide === 1);
-      document.getElementById('nextBtn').disabled = (currentSlide === totalSlides);
 
+      // Update speaker notes
       const data = scripts[currentSlide];
       document.getElementById('scriptSlideLabel').innerText = data.label;
       document.getElementById('scriptTime').innerText = data.time;
       document.getElementById('scriptBody').innerHTML = data.html;
+
+      // Update navigation button states
+      document.getElementById('prevBtn').disabled = (currentSlide === 1 && currentStep === 0);
+      const items = getSlideItems(currentSlide);
+      document.getElementById('nextBtn').disabled = (currentSlide === totalSlides && currentStep === items.length);
     }
 
-    function changeSlide(delta) {
-      const next = currentSlide + delta;
-      if (next >= 1 && next <= totalSlides) {
-        currentSlide = next;
-        updateSlide();
+    function navigateStep(direction) {
+      const items = getSlideItems(currentSlide);
+
+      if (direction > 0) {
+        // Forward: reveal next item or advance slide
+        if (currentStep < items.length) {
+          items[currentStep].classList.add('revealed');
+          currentStep++;
+        } else if (currentSlide < totalSlides) {
+          currentSlide++;
+          currentStep = 0;
+          // Reset items on new slide
+          const nextItems = getSlideItems(currentSlide);
+          nextItems.forEach(el => el.classList.remove('revealed'));
+          updateSlide();
+        }
+      } else {
+        // Backward: un-reveal item or go back to previous slide
+        if (currentStep > 0) {
+          currentStep--;
+          items[currentStep].classList.remove('revealed');
+        } else if (currentSlide > 1) {
+          currentSlide--;
+          // Show all items on previous slide
+          const prevItems = getSlideItems(currentSlide);
+          prevItems.forEach(el => el.classList.add('revealed'));
+          currentStep = prevItems.length;
+          updateSlide();
+        }
       }
+
+      document.getElementById('prevBtn').disabled = (currentSlide === 1 && currentStep === 0);
+      const currentItems = getSlideItems(currentSlide);
+      document.getElementById('nextBtn').disabled = (currentSlide === totalSlides && currentStep === currentItems.length);
     }
 
     function toggleNotes() {
@@ -622,9 +654,9 @@
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
-        changeSlide(1);
+        navigateStep(1);
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        changeSlide(-1);
+        navigateStep(-1);
       } else if (e.key.toLowerCase() === 'n' || e.key.toLowerCase() === 's') {
         toggleNotes();
       } else if (e.key.toLowerCase() === 'f') {
@@ -632,6 +664,7 @@
       }
     });
 
+    // Initialize slide 1
     updateSlide();
   </script>
 </body>
