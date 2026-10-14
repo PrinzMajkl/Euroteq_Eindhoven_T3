@@ -62,11 +62,10 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
   - Dissolved oxygen and nutrients (Nitrate, Phosphate)
   - Ammonium (NH4+): primary raw sewage tracer
 - Right Column: The Sampling Gap
-  - Main problem: Plume arrives, causes harm, and clears undetected
   - Convective storm overflow lasts only 2 to 4 hours
   - Laboratory processing requires 24-48 hours
 - Bottom Highlight:
-  - The Result: Statutory violations and toxic spills pass completely unrecorded.
+  - The Result: Plume arrives, causes harm, and clears undetected.
 
 ### Presenter Script (~50 seconds)
 > "To address this, we looked at what municipal authorities currently measure.  
