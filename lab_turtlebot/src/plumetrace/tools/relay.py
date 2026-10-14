@@ -30,7 +30,8 @@ except ImportError as e:  # pragma: no cover
     raise SystemExit(f'relay.py needs websockets >= 13 (pip install --user websockets): {e}')
 
 WEB = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'web'))
-STICKY = ('hello', 'mission', 'posterior', 'obstacles', 'sync', 'plume_points', 'pose')  # replayed to late joiners
+STICKY = ('hello', 'mission', 'posterior', 'obstacles', 'sync', 'plume_points', 'plume_true', 'pose', 'sample',
+          'alert', 'event', 'battery')  # replayed to late joiners
 RELAY_CONFIG = b"\n// added by tools/relay.py: live data comes from this same origin\nwindow.PLUMETRACE_CONFIG.wsUrl = 'auto';\n"
 
 

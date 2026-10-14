@@ -598,6 +598,36 @@
         "kind",
         "data"
       ]
+    },
+    "battery": {
+      "type": "object",
+      "required": [
+        "type",
+        "t",
+        "voltage",
+        "percentage"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "battery"
+        },
+        "t": {
+          "type": "number"
+        },
+        "voltage": {
+          "type": "number",
+          "description": "V (Burger LiPo, about 11.0-12.6)"
+        },
+        "percentage": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
     }
   },
   "oneOf": [
@@ -636,6 +666,9 @@
     },
     {
       "$ref": "#/definitions/ack"
+    },
+    {
+      "$ref": "#/definitions/battery"
     }
   ]
 }

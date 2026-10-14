@@ -13,123 +13,164 @@
 <!-- optional, git-ignored: personal secrets such as the Cesium ion token (404 when absent is fine) -->
 <script src="config.local.js" onerror="void 0"></script>
 <style>
+  /* minimal theme: one accent colour + status colours; 12 / 14 px type */
   :root {
-    --bg: #f4f6f8; --panel: #ffffff; --ink: #1d2733; --muted: #5f6b78; --line: #d9dee4;
+    --bg: #f5f6f8; --panel: #ffffff; --ink: #1d2733; --muted: #6b7682; --line: #e3e7ec;
     --accent: #1f6feb; --ok: #1a7f37; --warn: #b76e00; --bad: #c62828; --alert: #b71c1c; --severe: #6a1b9a;
-    --bar-a: #1f6feb; --bar-b: #8250df; --bar-c: #d97706;
+    --bar-a: #1f6feb; --bar-b: #8250df; --bar-c: #d97706;  /* outfall pin colours on the map */
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #0f141a; --panel: #18202a; --ink: #e6edf3; --muted: #9aa7b4; --line: #2b3643;
+    :root { --bg: #0f141a; --panel: #161d26; --ink: #e6edf3; --muted: #8d99a6; --line: #26303c;
             --accent: #58a6ff; --ok: #3fb950; --warn: #d29922; --bad: #f85149; --alert: #da3633; --severe: #a371f7; }
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
-               font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+               font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
   a { color: var(--accent); }
   #app { display: grid; height: 100%;
-         grid-template-rows: auto auto 1fr auto; grid-template-columns: 260px 1fr 300px;
+         grid-template-rows: auto auto 1fr auto; grid-template-columns: 270px 1fr 320px;
          grid-template-areas: "top top top" "alert alert alert" "left map right" "time time time"; }
-  header { grid-area: top; display: flex; gap: 16px; align-items: center; padding: 8px 14px;
+  header { grid-area: top; display: flex; gap: 10px; align-items: center; padding: 8px 16px;
            background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-  header h1 { font-size: 16px; margin: 0; }
-  .pill { padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-  .pill b { color: var(--ink); }
+  header h1 { font-size: 14px; margin: 0 6px 0 0; font-weight: 700; }
+  .pill { padding: 1px 10px; border-radius: 999px; background: var(--bg); font-size: 12px; color: var(--muted); }
+  .pill b { color: var(--ink); font-weight: 600; }
   .SYNCED { color: var(--ok) !important; } .STALE { color: var(--warn) !important; } .LOST { color: var(--bad) !important; }
+  #syncall { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--muted); font-size: 0; vertical-align: middle; cursor: help; }
+  #syncall.SYNCED { background: var(--ok); } #syncall.STALE { background: var(--warn); } #syncall.LOST { background: var(--bad); }
+  #state.st-RUNNING { color: var(--accent); } #state.st-DONE { color: var(--ok); } #state.st-ABORTED { color: var(--bad); } #state.st-HOLD { color: var(--warn); }
   #alert { grid-area: alert; display: none; align-items: center; gap: 12px; flex-wrap: wrap;
-           background: var(--alert); color: #fff; padding: 8px 14px; font-weight: 600; }
+           background: var(--alert); color: #fff; padding: 5px 16px; font-weight: 600; font-size: 12px; }
   #alert span { flex: 1; }
-  #alert button { width: auto; margin: 0; background: #fff; color: var(--alert); border: 0; font-weight: 700; text-align: center; }
-  aside { background: var(--panel); padding: 12px; overflow: auto; border-right: 1px solid var(--line); }
-  #right { grid-area: right; border-right: 0; border-left: 1px solid var(--line); }
-  #left { grid-area: left; }
-  aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 6px; }
+  #alert button { width: auto; margin: 0; padding: 3px 12px; background: #fff; color: var(--alert); border: 0; font-weight: 700; text-align: center; }
+  aside { background: var(--panel); padding: 14px 16px; overflow: auto; }
+  #right { grid-area: right; border-left: 1px solid var(--line); }
+  #left { grid-area: left; border-right: 1px solid var(--line); }
+  aside h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 18px 0 6px; font-weight: 600; }
   aside h2:first-child { margin-top: 0; }
-  dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
+  .card { margin-bottom: 14px; }
+  dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; font-size: 12px; }
   dt { color: var(--muted); } dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-  button { width: 100%; margin: 3px 0; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--line);
-           background: var(--bg); color: var(--ink); cursor: pointer; font: inherit; text-align: left; }
+  button { width: 100%; margin: 3px 0; padding: 6px 8px; border-radius: 6px; border: 1px solid var(--line);
+           background: transparent; color: var(--ink); cursor: pointer; font: inherit; font-size: 12px; text-align: left; }
   button:hover { border-color: var(--accent); }
   button:disabled { opacity: .5; cursor: default; }
   button.danger { color: var(--bad); }
   button.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
-  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; } .btnrow button { flex: 1; text-align: center; min-width: 120px; }
+  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; } .btnrow button { flex: 1; text-align: center; min-width: 90px; }
   #hint { color: var(--muted); font-size: 12px; min-height: 1.4em; }
   .small { font-size: 12px; color: var(--muted); }
+  /* collapsible secondary sections (open state remembered in localStorage) */
+  details.sec { border-top: 1px solid var(--line); padding: 2px 0; }
+  details.sec > summary { cursor: pointer; list-style: none; font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+                          color: var(--muted); font-weight: 600; padding: 8px 0; user-select: none; }
+  details.sec > summary::-webkit-details-marker { display: none; }
+  details.sec > summary::before { content: '▸'; display: inline-block; width: 14px; transition: transform .15s; }
+  details.sec[open] > summary::before { transform: rotate(90deg); }
+  details.sec > summary:hover { color: var(--ink); }
+  details.sec > :not(summary) { margin-bottom: 8px; }
   #map { grid-area: map; position: relative; min-height: 300px; }
   #cesium { position: absolute; inset: 0; }
-  .bars .row { display: grid; grid-template-columns: 22px 1fr 52px; align-items: center; gap: 6px; margin: 6px 0; }
-  .bars .track { height: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
-  .bars .fill { height: 100%; width: 33%; transition: width .3s; }
+  .bars .row { display: grid; grid-template-columns: 18px 1fr 48px; align-items: center; gap: 6px; margin: 5px 0; font-size: 12px; }
+  .bars .row span { text-align: right; font-variant-numeric: tabular-nums; }
+  .bars .track { height: 8px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+  .bars .fill { height: 100%; width: 33%; transition: width .3s; background: var(--accent) !important; opacity: .45; }
+  .bars .row.lead .fill { opacity: 1; } .bars .row.lead b { color: var(--accent); }
   #alerts, #events { list-style: none; padding: 0; margin: 0; max-height: 220px; overflow: auto; font-size: 12px; }
-  #alerts li { border-left: 3px solid var(--alert); padding: 3px 6px; margin: 4px 0; background: var(--bg); }
-  #events li { border-left: 3px solid var(--accent); padding: 3px 6px; margin: 3px 0; background: var(--bg); }
+  #alerts li { border-left: 2px solid var(--alert); padding: 2px 8px; margin: 4px 0; }
+  #events li { border-left: 2px solid var(--line); padding: 2px 8px; margin: 3px 0; }
   #events li.done { border-left-color: var(--ok); font-weight: 600; } #events li.abort { border-left-color: var(--bad); }
   #events .k { font-weight: 600; }
-  /* pollution panel */
-  .pollrow { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 6px; margin: 4px 0; }
-  .big { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  /* status / pollution card */
+  .pollrow { display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 6px; margin: 3px 0; }
+  .pollrow > span:first-child { color: var(--muted); font-size: 12px; }
+  .big { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
   .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700;
           color: #fff; background: var(--muted); white-space: nowrap; }
   .chip.ok { background: var(--ok); } .chip.elev { background: var(--warn); } .chip.alert { background: var(--bad); }
   .chip.severe { background: var(--severe); box-shadow: 0 0 0 2px var(--bad); }
-  #spark { width: 100%; height: 56px; display: block; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); margin: 6px 0; }
+  #spark { width: 100%; height: 36px; display: block; border-radius: 4px; background: var(--bg); margin: 6px 0 4px; }
+  #p-line { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  #p-line b { color: var(--ink); font-weight: 600; }
   #river-note { margin-top: 6px; }
-  footer { grid-area: time; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 14px; }
-  #tl { position: relative; height: 34px; }
-  #tl input { width: 100%; margin: 0; }
-  #tlmarks { position: absolute; left: 0; right: 0; top: 22px; height: 10px; }
-  .mk { position: absolute; width: 2px; height: 10px; }
-  .mk.s { background: var(--accent); } .mk.e { background: var(--bad); width: 4px; }
-  #legend { position: absolute; left: 10px; bottom: 30px; background: var(--panel); border: 1px solid var(--line);
-            border-radius: 6px; padding: 6px 9px; font-size: 12px; opacity: .95; max-width: 230px; }
-  #legend > div, #legend label { display: flex; align-items: center; gap: 6px; }
-  #legend label { cursor: pointer; margin: 1px 0; }
-  #legend .lg-title { font-weight: 700; margin-top: 4px; }
-  #ramp { width: 200px; height: 12px; border: 1px solid var(--line); border-radius: 2px; display: block !important; }
+  .c-warn { color: var(--warn) !important; font-weight: 700; } .c-bad { color: var(--bad) !important; font-weight: 700; }
+  #m-prog { margin: 6px 0 8px; padding: 4px 8px; border-left: 2px solid var(--accent); background: var(--bg); color: var(--ink); overflow-wrap: anywhere; }
+  #events li.battery_low { border-left-color: var(--bad); font-weight: 600; } #events li.run { border-left-color: var(--muted); font-style: italic; }
+  table.runs { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+  table.runs th { color: var(--muted); font-weight: 600; text-align: left; padding: 2px 3px; white-space: nowrap; }
+  table.runs td:last-child { white-space: nowrap; }
+  table.runs td { border-top: 1px solid var(--line); padding: 3px; vertical-align: top; }
+  table.runs tr.cur td { background: var(--bg); font-weight: 600; }
+  table.runs tr.cur td:first-child { box-shadow: inset 2px 0 0 var(--accent); }
+  table.runs .ok { color: var(--ok); } table.runs .bg { color: var(--warn); } table.runs .ab { color: var(--bad); }
+  footer { grid-area: time; background: var(--panel); border-top: 1px solid var(--line); padding: 4px 16px; }
+  #tl { position: relative; height: 30px; }
+  #tl input { width: 100%; margin: 0; accent-color: var(--accent); }
+  #tlmarks { position: absolute; left: 0; right: 0; top: 20px; height: 8px; }
+  .mk { position: absolute; width: 2px; height: 8px; }
+  .mk.s { background: var(--accent); } .mk.e { background: var(--bad); width: 3px; }
+  /* legend: one small collapsible card on the map */
+  #legend { position: absolute; left: 10px; bottom: 30px; background: var(--panel); border-radius: 8px; padding: 6px 10px;
+            font-size: 12px; opacity: .95; max-width: 230px; box-shadow: 0 1px 6px rgba(0, 0, 0, .25); }
+  #legend > summary { cursor: pointer; list-style: none; font-weight: 600; color: var(--muted); }
+  #legend > summary::-webkit-details-marker { display: none; }
+  #legend > summary::before { content: '▸ '; } #legend[open] > summary::before { content: '▾ '; }
+  #legend label { display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 1px 0; }
+  #legend .lg-layers { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0; }
+  #legend .lg-obs { display: flex; gap: 8px; flex-wrap: wrap; color: var(--muted); margin-top: 2px; }
+  #legend .lg-obs span { display: inline-flex; align-items: center; gap: 4px; }
+  #ramp { width: 200px; height: 10px; border-radius: 2px; display: block !important; margin-top: 6px; }
   #ticks { position: relative; width: 200px; height: 26px; display: block !important; }
   #ticks span { position: absolute; top: 0; transform: translateX(-50%); font-size: 10px; text-align: center; white-space: nowrap; }
   #ticks span::before { content: ''; display: block; width: 1px; height: 4px; background: var(--ink); margin: 0 auto 1px; }
   #ticks span.al { color: var(--bad); font-weight: 700; }
-  .sw { width: 18px; height: 10px; display: inline-block; }
-  #placeholder { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #ffd54f; color: #222;
-                 padding: 3px 10px; font-weight: 700; border-radius: 4px; font-size: 12px; letter-spacing: .05em; }
+  .sw { width: 14px; height: 8px; display: inline-block; }
+  #placeholder { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: rgba(255, 213, 79, .9); color: #222;
+                 padding: 2px 10px; font-weight: 600; border-radius: 4px; font-size: 12px; }
   /* incident modal */
-  #inc-modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .55); display: none; z-index: 1000;
-               align-items: flex-start; justify-content: center; padding: 3vh 2vw; overflow: auto; }
-  #inc-box { background: var(--panel); color: var(--ink); width: min(980px, 96vw); border-radius: 10px;
-             border: 3px solid var(--alert); box-shadow: 0 10px 40px rgba(0, 0, 0, .5); }
+  #inc-modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .5); display: none; z-index: 1000;
+               align-items: flex-start; justify-content: center; padding: 4vh 2vw; overflow: auto; }
+  #inc-box { background: var(--panel); color: var(--ink); width: min(900px, 96vw); border-radius: 10px; overflow: hidden;
+             box-shadow: 0 10px 40px rgba(0, 0, 0, .45); }
   #inc-head { background: var(--alert); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  #inc-head h2 { margin: 0; font-size: 20px; flex: 1; letter-spacing: .02em; }
-  #inc-head button { width: auto; margin: 0; background: rgba(255, 255, 255, .15); color: #fff; border: 1px solid rgba(255, 255, 255, .6); text-align: center; }
-  .confirmed { background: var(--ok); color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: 700; margin: 10px 16px 0; }
-  .inc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 16px; }
-  #inc-modal h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 12px 0 6px; }
-  .tier { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; margin: 5px 0; font-size: 12px; background: var(--bg); }
-  .tier .tn { font-weight: 700; font-size: 13px; }
-  .tier.done { border-left: 5px solid var(--ok); }
-  .tier.current { box-shadow: inset 0 0 0 2px var(--alert); }
-  .tier.next { border: 1px dashed var(--warn); border-left: 5px solid var(--warn); }
+  #inc-head h2 { margin: 0; font-size: 14px; flex: 1; letter-spacing: .02em; }
+  #inc-head button { width: auto; margin: 0; background: rgba(255, 255, 255, .15); color: #fff; border: 1px solid rgba(255, 255, 255, .5); text-align: center; }
+  .confirmed { background: var(--ok); color: #fff; padding: 6px 12px; border-radius: 6px; font-weight: 600; margin: 12px 16px 0; font-size: 12px; }
+  #inc-sum { padding: 12px 16px 0; grid-template-columns: auto 1fr auto 1fr; }
+  #inc-sum dd { text-align: left; }
+  .tabs { display: flex; gap: 4px; padding: 12px 16px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+  .tabs button { width: auto; margin: 0; border: 0; border-bottom: 2px solid transparent; border-radius: 0; padding: 6px 10px; color: var(--muted); font-weight: 600; }
+  .tabs button.on { color: var(--ink); border-bottom-color: var(--alert); }
+  .tabs button:hover { border-color: transparent; color: var(--ink); } .tabs button.on:hover { border-bottom-color: var(--alert); }
+  .tabp { padding: 10px 16px 16px; } .tabp[hidden] { display: none; }
+  #inc-modal h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); margin: 12px 0 6px; }
+  .tier { border-radius: 6px; padding: 6px 8px; margin: 4px 0; font-size: 12px; background: var(--bg); }
+  .tier .tn { font-weight: 700; }
+  .tier.done { box-shadow: inset 3px 0 0 var(--ok); }
+  .tier.current { box-shadow: inset 3px 0 0 var(--alert); }
+  .tier.next { box-shadow: inset 3px 0 0 var(--warn); }
+  .tier.line { padding: 3px 8px; color: var(--muted); background: transparent; }
   .tier .st { float: right; font-weight: 700; }
   .verify { color: var(--warn); font-weight: 700; }
-  .note { font-size: 12px; color: var(--ink); background: var(--bg); border-left: 3px solid var(--warn); padding: 4px 8px; margin: 6px 0; }
-  .actions label { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; margin: 5px 0; cursor: pointer; }
-  .actions input { margin-top: 3px; }
-  .actions small { color: var(--ok); white-space: nowrap; }
+  .note { font-size: 12px; color: var(--ink); background: var(--bg); border-left: 2px solid var(--warn); padding: 4px 8px; margin: 6px 0; }
+  .actions label { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; margin: 6px 0; cursor: pointer; }
+  .actions input { margin-top: 4px; }
+  .actions small { color: var(--ok); white-space: nowrap; font-size: 12px; }
   .fld { display: block; font-size: 12px; color: var(--muted); margin: 6px 0; }
   .fld input[type=text], textarea { display: block; width: 100%; margin-top: 2px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
     background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
-  .fld input[type=range] { width: 100%; }
+  .fld input[type=range] { width: 100%; accent-color: var(--alert); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   #w-area { margin: 4px 0; padding-left: 18px; }
-  .inc-foot { padding: 0 16px 14px; }
   #inc-log { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow: auto; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
-             border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+             border-radius: 6px; background: var(--bg); }
   #inc-log li { padding: 2px 8px; border-bottom: 1px solid var(--line); }
   #inc-log .lk { display: inline-block; min-width: 82px; color: var(--muted); }
   @media (max-width: 900px) {
     #app { grid-template-columns: 1fr; grid-template-rows: auto auto 55vh auto auto auto;
            grid-template-areas: "top" "alert" "map" "left" "right" "time"; }
-    aside { border: 0; border-top: 1px solid var(--line); }
-    .inc-grid { grid-template-columns: 1fr; }
+    aside { border: 0 !important; border-top: 1px solid var(--line) !important; }
+    #inc-sum, .two { grid-template-columns: auto 1fr; }
     #legend { max-width: 180px; } #ramp, #ticks { width: 160px; }
   }
 </style>
@@ -138,80 +179,95 @@
 <div id="app">
   <header>
     <h1 id="reach">PLACEHOLDER REACH</h1>
-    <span class="pill">mode <b id="mode">—</b></span>
-    <span class="pill">state <b id="state">—</b></span>
-    <span class="pill">sync <b id="syncall">—</b></span>
-    <span class="pill">time factor <b id="tf">—</b>×</span>
+    <span class="pill">mission <b id="state">—</b></span>
     <span class="pill">link <b id="ws">connecting</b></span>
+    <span class="pill" title="overall stream sync; details under Sync per stream">sync <b id="syncall" title="no sync data yet">—</b></span>
   </header>
   <div id="alert"></div>
   <aside id="left">
-    <h2>Mission</h2>
-    <dl>
-      <dt>Mode</dt><dd id="m-mode">—</dd>
-      <dt>State</dt><dd id="m-state">—</dd>
-      <dt>Samples</dt><dd id="m-samples">0</dd>
-      <dt>Scenario</dt><dd id="m-scn">—</dd>
-      <dt>Battery</dt><dd id="m-batt">n/a (SIM)</dd>
-    </dl>
-    <h2>Robot</h2>
-    <button id="b-find">Find robot</button>
-    <button id="b-follow">Follow robot: off</button>
-    <h2>Mission events</h2>
-    <ul id="events"><li class="small">no events yet</li></ul>
-    <h2>Sync per stream</h2>
-    <dl id="streams"></dl>
-    <h2>Commands</h2>
-    <button class="danger" data-cmd="abort">Abort mission</button>
-    <button data-cmd="return_home">Return home</button>
-    <button id="b-nogo">Draw no-go zone</button>
-    <button id="b-rr">Place obstacle · REROUTE</button>
-    <button id="b-stop">Place obstacle · STOP</button>
-    <button id="b-del">Remove selected zone/obstacle</button>
+    <div class="card">
+      <h2>Mission</h2>
+      <dl>
+        <dt>Run</dt><dd id="m-run">—</dd>
+        <dt>Samples</dt><dd id="m-samples">0</dd>
+        <dt>Battery</dt><dd id="m-batt">n/a (SIM)</dd>
+      </dl>
+      <div id="m-prog" class="small" title="current activity from mission events">waiting for mission</div>
+      <div class="btnrow">
+        <button id="b-find">Find robot</button>
+        <button id="b-follow">Follow: off</button>
+      </div>
+    </div>
+    <details class="sec" data-k="events"><summary>Mission events</summary>
+      <ul id="events"><li class="small">no events yet</li></ul>
+    </details>
+    <details class="sec" data-k="commands"><summary>Commands</summary>
+      <button class="danger" data-cmd="abort">Abort mission</button>
+      <button data-cmd="return_home">Return home</button>
+      <button id="b-nogo">Draw no-go zone</button>
+      <button id="b-rr">Place obstacle · REROUTE</button>
+      <button id="b-stop">Place obstacle · STOP</button>
+      <button id="b-del">Remove selected zone/obstacle</button>
+    </details>
     <div id="hint"></div>
+    <details class="sec" data-k="sync"><summary>Sync per stream</summary>
+      <dl><dt>Mode</dt><dd id="mode">—</dd><dt>Time factor</dt><dd><span id="tf">—</span>×</dd></dl>
+      <dl id="streams" style="margin-top:6px"></dl>
+    </details>
   </aside>
   <div id="map">
     <div id="cesium"></div>
     <div id="placeholder">PLACEHOLDER REACH · synthetic data</div>
-    <div id="legend">
-      <div class="lg-title">Plume layer</div>
-      <label><input type="radio" name="plume-layer" value="est" checked> Estimated plume</label>
-      <label><input type="radio" name="plume-layer" value="true"> True plume (simulation)</label>
-      <label><input type="radio" name="plume-layer" value="off"> Off</label>
-      <label><input type="checkbox" id="cols"> 3D columns</label>
-      <div class="lg-title">NH₃-N (mg/L)</div>
+    <details id="legend" data-k="legend" open>
+      <summary>Plume NH₃-N (mg/L)</summary>
       <div id="ramp"></div>
       <div id="ticks"></div>
-      <div id="plume-info" class="small">no plume data yet</div>
-      <div><span class="sw" style="background:#555"></span>real obstacle</div>
-      <div><span class="sw" style="border:2px dashed #ff9800"></span>virtual obstacle</div>
-      <div><span class="sw" style="border:2px dotted #e53935"></span>no-go zone</div>
-    </div>
+      <div class="lg-layers">
+        <label><input type="radio" name="plume-layer" value="est" checked> Estimated</label>
+        <label><input type="radio" name="plume-layer" value="true"> True (sim)</label>
+        <label><input type="radio" name="plume-layer" value="off"> Off</label>
+        <label><input type="checkbox" id="cols"> 3D</label>
+      </div>
+      <div id="plume-info" class="small" hidden>no plume data yet</div>
+      <div class="lg-obs">
+        <span><span class="sw" style="background:#555"></span>real</span>
+        <span><span class="sw" style="border:2px dashed #ff9800"></span>virtual</span>
+        <span><span class="sw" style="border:2px dotted #e53935"></span>no-go</span>
+      </div>
+    </details>
   </div>
   <aside id="right">
-    <h2>Pollution (live)</h2>
-    <div class="pollrow"><span>NH₃-N</span><span class="big" id="p-nh3">—</span><span class="chip" id="p-nh3-chip">no data</span></div>
-    <div class="pollrow"><span>DO</span><span class="big" id="p-do">—</span><span class="chip" id="p-do-chip">no data</span></div>
-    <canvas id="spark" title="NH₃-N, last 60 samples; dashed line = alert threshold"></canvas>
-    <dl>
-      <dt>Background</dt><dd id="p-bg">—</dd>
-      <dt>Max seen</dt><dd id="p-max">—</dd>
-      <dt>Where</dt><dd id="p-where">—</dd>
-    </dl>
-    <button id="b-inc" hidden>Open incident</button>
-    <h2>River · gauge</h2>
-    <dl id="river"></dl>
-    <div id="river-note" class="small"></div>
-    <h2>Which outfall?</h2>
-    <div class="bars" id="bars"></div>
-    <dl><dt>Strength</dt><dd id="q">—</dd></dl>
-    <h2>Alerts</h2>
-    <ul id="alerts"></ul>
-    <h2>Samples</h2>
-    <dl><dt>Received</dt><dd id="n-samples">0</dd><dt>Last NH₃-N</dt><dd id="last">—</dd></dl>
-    <button id="b-export">Export samples (CSV)</button>
-    <h2>Replay</h2>
-    <input type="file" id="czml" accept=".czml,.json">
+    <div class="card">
+      <h2>Pollution</h2>
+      <div class="pollrow"><span>NH₃-N</span><span class="big" id="p-nh3">—</span><span class="chip" id="p-nh3-chip">no data</span></div>
+      <div class="pollrow"><span>DO</span><span class="big" id="p-do">—</span><span class="chip" id="p-do-chip">no data</span></div>
+      <canvas id="spark" title="NH₃-N, last 60 samples; dashed line = alert threshold"></canvas>
+      <div id="p-line">max <b id="p-max">—</b> · <span id="p-where">—</span><br>background <span id="p-bg">—</span></div>
+      <button id="b-inc" hidden>Open incident</button>
+    </div>
+    <div class="card">
+      <h2>Which outfall?</h2>
+      <div class="bars" id="bars"></div>
+      <dl><dt>Strength</dt><dd id="q">—</dd></dl>
+    </div>
+    <details class="sec" data-k="runs"><summary>Runs</summary>
+      <table class="runs" id="runs"><thead><tr><th title="Run number on this page">Run #</th><th title="Scenario">Scn</th><th title="Samples received">Samples</th><th title="Max NH₃-N (mg/L)">Max</th><th title="Outfall and probability from the done event">Result</th><th>Status</th></tr></thead>
+        <tbody id="runs-body"><tr><td colspan="6" class="small">no run yet</td></tr></tbody></table>
+      <button id="b-runs">Export all runs (JSON)</button>
+    </details>
+    <details class="sec" data-k="alerts"><summary>Alerts</summary>
+      <ul id="alerts"></ul>
+    </details>
+    <details class="sec" data-k="river"><summary>River · gauge</summary>
+      <dl id="river"></dl>
+      <div id="river-note" class="small"></div>
+    </details>
+    <details class="sec" data-k="samples"><summary>Samples · export · replay</summary>
+      <dl><dt>Received</dt><dd id="n-samples">0</dd><dt>Last NH₃-N</dt><dd id="last">—</dd></dl>
+      <button id="b-export">Export samples (CSV)</button>
+      <div class="small" style="margin-top:8px">Replay (CZML)</div>
+      <input type="file" id="czml" accept=".czml,.json">
+    </details>
   </aside>
   <footer>
     <div id="tl"><input type="range" id="scrub" min="0" max="0" value="0"><div id="tlmarks"></div></div>
@@ -227,35 +283,42 @@
       <button id="inc-min" title="Minimise to the red incident bar (Esc)">Minimise</button>
     </div>
     <div id="inc-confirmed" class="confirmed" hidden></div>
-    <div class="inc-grid">
-      <div>
-        <h3>Incident</h3>
-        <dl id="inc-sum"></dl>
-        <h3>Recommended actions</h3>
-        <div class="actions" id="inc-actions"></div>
-        <h3>Report details (Meldebogen)</h3>
+    <dl id="inc-sum"></dl>
+    <div class="tabs" role="tablist">
+      <button data-tab="actions" class="on" role="tab">1 · Actions</button>
+      <button data-tab="ladder" role="tab">2 · Escalation</button>
+      <button data-tab="warning" role="tab">3 · Public warning</button>
+      <button data-tab="report" role="tab">4 · Report &amp; log</button>
+    </div>
+    <div class="tabp" data-panel="actions">
+      <div class="actions" id="inc-actions"></div>
+    </div>
+    <div class="tabp" data-panel="ladder" hidden>
+      <div class="note"><b>Simulated — no message is sent.</b> Contact each authority by phone yourself; the button only records that you did.</div>
+      <div id="inc-tiers"></div>
+      <button id="inc-esc" class="danger">Escalate to next level</button>
+    </div>
+    <div class="tabp" data-panel="warning" hidden>
+      <button id="inc-warn">Request public warning</button>
+      <div id="inc-warnbox" hidden>
+        <div class="small">Addressed to: <span id="w-issuer"></span></div>
+        <label class="fld">Warning radius: <b id="w-rlab">500 m</b><input type="range" id="w-r" min="100" max="2000" step="50" value="500"></label>
+        <div class="small"><b>Affected area</b><ul id="w-area"></ul></div>
+        <textarea id="w-text" rows="14" spellcheck="false"></textarea>
+        <button id="w-copy">Copy draft to clipboard</button>
+        <div class="note" id="w-disc"></div>
+      </div>
+    </div>
+    <div class="tabp" data-panel="report" hidden>
+      <h3 style="margin-top:0">Report details (Meldebogen)</h3>
+      <div class="small">Demo pre-fill from live data; edit any field to override it (an edited field is no longer auto-updated).</div>
+      <div class="two">
         <label class="fld">Observation (colour, odour, foam, dead fish)<input type="text" id="inc-obs"></label>
         <label class="fld">Estimated quantity<input type="text" id="inc-qty" placeholder="unknown"></label>
         <label class="fld">Reporter<input type="text" id="inc-rep"></label>
+        <label class="fld">Water body<input type="text" id="inc-wb"></label>
+        <label class="fld">Suspected source<input type="text" id="inc-src"></label>
       </div>
-      <div>
-        <h3>Escalation ladder</h3>
-        <div class="note"><b>Simulated — no message is sent.</b> Contact each authority by phone yourself; the button only records that you did.</div>
-        <div id="inc-tiers"></div>
-        <button id="inc-esc" class="danger">Escalate to next level</button>
-        <h3>Public warning</h3>
-        <button id="inc-warn">Request public warning</button>
-        <div id="inc-warnbox" hidden>
-          <div class="small">Addressed to: <span id="w-issuer"></span></div>
-          <label class="fld">Warning radius: <b id="w-rlab">500 m</b><input type="range" id="w-r" min="100" max="2000" step="50" value="500"></label>
-          <div class="small"><b>Affected area</b><ul id="w-area"></ul></div>
-          <textarea id="w-text" rows="14" spellcheck="false"></textarea>
-          <button id="w-copy">Copy draft to clipboard</button>
-          <div class="note" id="w-disc"></div>
-        </div>
-      </div>
-    </div>
-    <div class="inc-foot">
       <h3>Incident log</h3>
       <ul id="inc-log"></ul>
       <div class="btnrow" style="margin-top:6px">
@@ -433,7 +496,8 @@ const robotRing = ents.add({ id: 'robot-ring', show: false, position: Cesium.Car
     material: new Cesium.ColorMaterialProperty(new Cesium.CallbackProperty(() => Cesium.Color.YELLOW.withAlpha(ringA), false)) } });
 const track = [];
 ents.add({ polyline: { positions: new Cesium.CallbackProperty(() => track, false), width: 2, material: Cesium.Color.WHITE.withAlpha(0.7) } });
-const samples = [];
+const samples = [];      // samples of the current run only (cleared when a new run starts)
+const sampleEnts = [];   // map entities of those samples, same order
 const obsEnts = new Map();
 let posterior = null;
 
@@ -505,7 +569,7 @@ $('cols').onchange = (e) => { PLUME.cols = e.target.checked; renderPlume(); };
 let follow = false;
 function setFollow(on) {
   follow = on;
-  const b = $('b-follow'); b.classList.toggle('active', on); b.textContent = on ? 'Follow robot: ON' : 'Follow robot: off';
+  const b = $('b-follow'); b.classList.toggle('active', on); b.textContent = on ? 'Follow: ON' : 'Follow: off';
   viewer.trackedEntity = on && robot.show ? robot : undefined;
 }
 $('b-follow').onclick = () => setFollow(!follow);
@@ -625,7 +689,7 @@ function sourceConfirmed(m) {
   if (label == null) return;
   const p = probFor(d, label);
   if (!isLocalised(d)) { logInc('mission', `Mission ended (${d.final ?? '?'}) without localising; best guess outfall ${label}${isNum(p) ? ` (p ${(p * 100).toFixed(1)} %)` : ''}`, d); return; }
-  for (const id of Object.keys(STATE.outfalls)) { const e = ents.getById('outfall-' + id); if (e && e.point) e.point.pixelSize = 11; }
+  resetSourceMarks();
   STATE.confirmed = { label: String(label), p, t: m.t, final: d.final, time: nowIso() };
   const o = STATE.outfalls[label];
   if (o) {
@@ -642,6 +706,14 @@ function sourceConfirmed(m) {
   }
   logInc('source', `Source confirmed by mission: outfall ${label}${isNum(p) ? ` (p ${(p * 100).toFixed(1)} %)` : ''}`, d);
   if (INC) { INC.confirmed = STATE.confirmed; INC.likely = String(label); if (isNum(p)) INC.prob = p; renderIncident(); }
+}
+
+function resetSourceMarks() {  // outfall pins back to normal, "SOURCE CONFIRMED" pulse removed
+  for (const id of Object.keys(STATE.outfalls)) {
+    const e = ents.getById('outfall-' + id);
+    if (e && e.point) { e.point.pixelSize = 11; e.point.disableDepthTestDistance = undefined; }
+  }
+  if (confirmPulse.ent) { ents.remove(confirmPulse.ent); confirmPulse.ent = null; }
 }
 
 // ---------- incident workflow ----------
@@ -666,7 +738,8 @@ function openIncident(src) {
           via: src.via, lat: src.lat, lon: src.lon, max_c: +src.c, max_at: { lat: src.lat, lon: src.lon, seq: src.seq, t: src.t },
           min_do: isNum(src.do) ? +src.do : null, likely: src.likely ?? pl.label, prob: isNum(src.prob) ? +src.prob : pl.p,
           severity: +src.c >= TH.nh3_n_severe || (isNum(src.do) && +src.do < TH.do_critical) ? 'SEVERE' : 'ALERT',
-          notified: [], actions: {}, warning: null, confirmed: STATE.confirmed, observation: '', quantity: '', reporter: '', last_message: src.message || '' };
+          notified: [], actions: {}, warning: null, confirmed: STATE.confirmed, observation: '', quantity: '', reporter: '',
+          water_body: '', suspected: '', auto: {}, run: RUN ? RUN.n : null, scenario: RUN ? RUN.scenario : null, last_message: src.message || '' };
   logInc('incident', `Incident ${INC.id} opened (${src.via}): NH₃-N ${num(src.c, 3)} mg/L at ${locationText(src.lat, src.lon)}; severity ${INC.severity}`);
   $('inc-actions').innerHTML = ACTIONS.length ? ACTIONS.map((a, i) =>
     `<label><input type="checkbox" data-act="${i}"><span>${esc(a)} <small id="act-t-${i}"></small></span></label>`).join('')
@@ -679,7 +752,7 @@ function openIncident(src) {
   });
   $('w-issuer').textContent = PW.issuers; $('w-disc').textContent = PW.disclaimer;
   $('w-r').value = PW.default_radius_m; $('b-inc').hidden = false;
-  renderIncident(); showModal(true);
+  showTab('actions'); renderIncident(); showModal(true);  // opens by itself only here, once per incident
 }
 function upgradeSeverity(reason) {
   if (!INC || INC.severity === 'SEVERE') return;
@@ -702,11 +775,12 @@ $('inc-min').onclick = () => showModal(false);
 $('b-inc').onclick = () => showModal(true);
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('inc-modal').style.display === 'flex') showModal(false); });
 function updateBar() {
-  if (!INC) return;
+  if (!INC) { $('alert').style.display = 'none'; return; }
   const a = $('alert'); a.style.display = 'flex';
-  a.innerHTML = `<span>INCIDENT ${esc(INC.id)} · ${esc(INC.severity)} · NH₃-N max ${num(INC.max_c, 2)} mg/L · likely outfall ${esc(INC.likely ?? '?')}` +
-    ` · ${INC.notified.length}/${LADDER.length} tiers notified${INC.confirmed ? ` · SOURCE CONFIRMED: outfall ${esc(INC.confirmed.label)}` : ''}` +
-    `${INC.last_message ? ' · ' + esc(INC.last_message) : ''}</span><button id="bar-open">Open incident</button>`;
+  a.title = `Incident ${INC.id} · ${INC.notified.length}/${LADDER.length} tiers notified${INC.last_message ? ' · ' + INC.last_message : ''}`;
+  a.innerHTML = `<span>${esc(INC.severity)} · NH₃-N ${num(INC.max_c, 2)} mg/L · ` +
+    (INC.confirmed ? `source confirmed: outfall ${esc(INC.confirmed.label)}` : `likely outfall ${esc(INC.likely ?? '?')}${isNum(INC.prob) ? ' ' + (INC.prob * 100).toFixed(0) + ' %' : ''}`) +
+    `</span><button id="bar-open">Open</button>`;
   $('bar-open').onclick = () => showModal(true);
 }
 function renderIncident() {
@@ -726,13 +800,15 @@ function renderIncident() {
   const cf = $('inc-confirmed');
   cf.hidden = !INC.confirmed;
   if (INC.confirmed) cf.textContent = `Source confirmed: outfall ${INC.confirmed.label}` + (isNum(INC.confirmed.p) ? ` (probability ${(INC.confirmed.p * 100).toFixed(1)} %)` : '') + ' — marked on the map.';
-  renderTiers(); renderWarning(false); updateBar();
+  refreshReport(); renderTiers(); renderWarning(false); updateBar();
 }
 function renderTiers() {
   const done = INC ? INC.notified.length : 0;
   $('inc-tiers').innerHTML = LADDER.length ? LADDER.map((t, i) => {
     const n = INC && INC.notified[i];
     const cls = ['tier', n ? 'done' : '', i === done - 1 ? 'current' : '', i === done ? 'next' : ''].join(' ');
+    if (i !== done - 1 && i !== done)  // only the current and the next tier are expanded
+      return `<div class="${cls} line"><span class="st">${n ? 'notified ' + esc(clock(n.time)) : 'pending'}</span>Tier ${esc(t.tier)} · ${esc(t.name)}</div>`;
     return `<div class="${cls}"><span class="st">${n ? 'notified ' + esc(clock(n.time)) : i === done ? 'next' : 'pending'}</span>` +
       `<div class="tn">Tier ${esc(t.tier)} · ${esc(t.name)}</div>` +
       `<div>Phone: <b>${esc(t.phone)}</b>${t.verified === false ? ' <span class="verify">verify number</span>' : ''}</div>` +
@@ -835,8 +911,41 @@ $('w-copy').onclick = async () => {
   setTimeout(() => { $('w-copy').textContent = 'Copy draft to clipboard'; }, 2500);
   logInc('warning', 'Warning draft copied to clipboard (not sent by this tool)');
 };
-for (const [id, key, label] of [['inc-obs', 'observation', 'Observation'], ['inc-qty', 'quantity', 'Estimated quantity'], ['inc-rep', 'reporter', 'Reporter']]) {
-  $(id).onchange = (e) => { if (!INC) return; INC[key] = e.target.value; logInc('report', `${label}: ${e.target.value}`); renderWarning(false); };
+const REPORT_INPUTS = [['inc-obs', 'observation', 'Observation'], ['inc-qty', 'quantity', 'Estimated quantity'], ['inc-rep', 'reporter', 'Reporter'],
+                       ['inc-wb', 'water_body', 'Water body'], ['inc-src', 'suspected', 'Suspected source']];
+for (const [id, key, label] of REPORT_INPUTS) {
+  $(id).onchange = (e) => {
+    if (!INC) return;
+    INC[key] = e.target.value; (INC.auto = INC.auto || {})[key] = false;  // edited by the operator: stop auto-filling it
+    logInc('report', `${label}: ${e.target.value}`); renderWarning(false);
+  };
+}
+function suspectedText() {
+  if (INC.likely == null) return 'unknown';
+  const d = RUN && RUN.done, best = d && !isLocalised(d);
+  return `outfall ${INC.likely}${isNum(INC.prob) ? ` (${(INC.prob * 100).toFixed(0)} %)` : ''}` +
+    (INC.confirmed ? ', confirmed by mission' : best ? `, best guess at mission end (${d.final ?? 'not final'})` : ', model posterior');
+}
+// demo pre-fill of the Meldebogen fields from live data (robot survey, no human observer)
+function autoReport(key) {
+  switch (key) {
+    case 'reporter': return 'PlumeTrace TurtleBot3 (autonomous survey, demo)';
+    case 'water_body': return 'Pegnitz, Nürnberg (Lederersteg reach, 1:100 lab model)';
+    case 'observation': return `NH₃-N ${num(INC.max_c, 3)} mg/L vs background ${STATE.bg.toFixed(3)} mg/L; ` +
+      `DO ${INC.min_do == null ? 'not measured' : num(INC.min_do, 2) + ' mg/L'}; no visual observation (robot)`;
+    case 'suspected': return suspectedText();
+    case 'quantity': return posterior && isNum(posterior.map_strength) ? `unknown (estimated strength ${(+posterior.map_strength).toFixed(2)}× default)` : 'unknown';
+    default: return '';
+  }
+}
+function refreshReport() {
+  if (!INC) return;
+  INC.auto = INC.auto || {};
+  for (const [id, key] of REPORT_INPUTS) {
+    if (INC.auto[key] !== false && (INC.auto[key] === true || !INC[key])) { INC[key] = autoReport(key); INC.auto[key] = true; }
+    const el = $(id);
+    if (document.activeElement !== el && el.value !== (INC[key] || '')) el.value = INC[key] || '';
+  }
 }
 
 // reports
@@ -844,11 +953,11 @@ function reportValue(field) {
   const f = String(field).toLowerCase(), G = (PR.river || {}).gauge;
   if (f.startsWith('time')) return `${INC.start} (${new Date(INC.start).toLocaleString()})`;
   if (f.startsWith('location')) return locationText(INC.lat, INC.lon);
-  if (f.startsWith('water body')) return `Pegnitz, Nürnberg${G ? ` (gauge ${G.id} ${G.name}, river km ${G.river_km})` : ''}`;
+  if (f.startsWith('water body')) return INC.water_body || `Pegnitz, Nürnberg${G ? ` (gauge ${G.id} ${G.name}, river km ${G.river_km})` : ''}`;
   if (f.startsWith('observation')) return INC.observation || 'not recorded';
   if (f.startsWith('nh3')) return `max ${num(INC.max_c, 3)} mg/L (sample #${INC.max_at.seq ?? '?'} at ${fmtLL(INC.max_at.lat, INC.max_at.lon)}); severity ${INC.severity}`;
   if (f.startsWith('do')) return INC.min_do == null ? 'not measured' : `min ${num(INC.min_do, 2)} mg/L`;
-  if (f.startsWith('suspected source')) return INC.likely == null ? 'unknown' : `outfall ${INC.likely}${isNum(INC.prob) ? ` (${(INC.prob * 100).toFixed(0)} %)` : ''}${INC.confirmed ? ', confirmed by mission' : ', model posterior'}`;
+  if (f.startsWith('suspected source')) return INC.suspected || suspectedText();
   if (f.startsWith('estimated quantity')) return INC.quantity || 'unknown';
   if (f.startsWith('reporter')) return INC.reporter || 'not recorded';
   if (f.startsWith('notified')) return INC.notified.length ? INC.notified.map((n) => `tier ${n.tier} ${n.name} (${n.phone}) at ${n.time}`).join('; ') : 'none recorded';
@@ -884,6 +993,149 @@ $('inc-txt').onclick = () => {
   logInc('export', 'Meldebogen report exported (text)');
 };
 
+// ---------- incident tabs, collapsible sections ----------
+function showTab(name) {
+  document.querySelectorAll('#inc-box .tabs button').forEach((b) => b.classList.toggle('on', b.dataset.tab === name));
+  document.querySelectorAll('#inc-box .tabp').forEach((p) => { p.hidden = p.dataset.panel !== name; });
+}
+document.querySelectorAll('#inc-box .tabs button').forEach((b) => b.onclick = () => showTab(b.dataset.tab));
+document.querySelectorAll('details[data-k]').forEach((d) => {
+  const key = 'plumetrace.open.' + d.dataset.k;
+  try { const v = localStorage.getItem(key); if (v !== null) d.open = v === '1'; } catch (e) { /* storage blocked: keep the default */ }
+  d.addEventListener('toggle', () => { try { localStorage.setItem(key, d.open ? '1' : '0'); } catch (e) { /* ignore */ } });
+});
+
+// ---------- runs: lab_mission A, B, C back to back on one page (tools/run_abc.py) ----------
+// A new run starts when mission.scenario changes from the previous non-empty value, or when a sample arrives
+// with seq <= the last seq of the current run after the run had ended (mission DONE / ABORTED / IDLE, done
+// event, or a fresh hello = gateway restart). The finished run is archived, the per-run view is cleared.
+const RUNS = [];   // archived run snapshots, oldest first
+let RUN = null;    // current run
+const RUN_END_STATES = ['DONE', 'ABORTED', 'IDLE'];
+const BATT = { warned: false, last: null, warn_v: 11.3, bad_v: 11.0, rearm_v: 11.5 };  // Burger 3S LiPo
+function ensureRun() {
+  if (!RUN) RUN = { n: RUNS.length + 1, scenario: null, start: nowIso(), t0: null, t1: null, end: null, lastSeq: 0, ended: false,
+                    done: null, doneText: '', final_state: null, return_home: null, activity: 'waiting for mission', events: [], hellos: 0 };
+  return RUN;
+}
+function runStatus(r) {
+  if (r.done) return isLocalised(r.done) ? 'localised ✓' : r.done.final === 'ABORTED' ? 'aborted' : 'best guess';
+  if (r.final_state === 'ABORTED') return 'aborted';
+  return r === RUN ? 'running' : 'ended (no done)';
+}
+const elapsedS = (r) => r && r.t0 ? ((r.t1 || Date.now()) - r.t0) / 1000 : null;
+const fmtMS = (s) => s == null ? '—' : `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+function doneText(d) {
+  const p = probFor(d, d.map_label);
+  return `done: outfall ${d.map_label ?? '?'}${isNum(p) ? ` ${(p * 100).toFixed(0)} %` : ''}${isLocalised(d) ? '' : ` (best guess, ${d.final ?? 'not final'})`}`;
+}
+// snapshot of the current run; withDetail adds the incident record, logs, events and samples (archive / export)
+function runSnapshot(withDetail) {
+  const r = ensureRun();
+  let minDo = null;
+  for (const s of samples) if (isNum(s.do_mg_l) && (minDo == null || +s.do_mg_l < minDo.mg_l)) minDo = { mg_l: +s.do_mg_l, seq: s.seq, lat: s.lat, lon: s.lon };
+  const d = r.done, p = d ? probFor(d, d.map_label) : null;
+  const snap = {
+    run: r.n, scenario: r.scenario, page_run_start: r.start, mission_start: r.t0 ? new Date(r.t0).toISOString() : null,
+    end: r.end, elapsed_s: elapsedS(r) == null ? null : Math.round(elapsedS(r)), samples: samples.length,
+    max_nh3_n: STATE.max ? { mg_l: STATE.max.c, seq: STATE.max.seq, lat: STATE.max.lat, lon: STATE.max.lon, where: locationText(STATE.max.lat, STATE.max.lon) } : null,
+    min_do: minDo,
+    result: d ? { map_label: d.map_label ?? null, probability: p, final: d.final ?? null, localised: isLocalised(d), probabilities: d.probabilities ?? null } : null,
+    final_state: r.final_state, return_home: r.return_home, status: runStatus(r), gateway_hellos: r.hellos,
+    incident: INC ? { id: INC.id, severity: INC.severity, notified: INC.notified.map((n) => `tier ${n.tier} ${n.name} at ${n.time}`),
+                      likely: INC.likely, probability: INC.prob, confirmed: !!INC.confirmed, closed: INC.closed || null } : null,
+  };
+  if (withDetail) {
+    snap.incident_record = INC ? JSON.parse(JSON.stringify(INC)) : null;
+    snap.incident_report = INC ? Object.fromEntries(reportRows()) : null;
+    snap.incident_log = LOG.slice();
+    snap.events = r.events.slice();
+    snap.samples_data = samples.slice();
+  }
+  return snap;
+}
+function resetRunView() {
+  for (const e of sampleEnts) ents.remove(e);
+  sampleEnts.length = 0; samples.length = 0; track.length = 0;
+  STATE.max = null; STATE.lastSample = null; STATE.confirmed = null;
+  resetSourceMarks();
+  posterior = null; $('bars').innerHTML = ''; $('q').textContent = '—';
+  PLUME.est = null; PLUME.tru = null; renderPlume();
+  // incident: already archived with the run; the next alert opens a fresh one
+  INC = null; LOG.length = 0; renderLog();
+  if (warnEnt) { ents.remove(warnEnt); warnEnt = null; }
+  $('inc-warnbox').hidden = true; $('w-text').value = '';
+  for (const [id] of REPORT_INPUTS) $(id).value = '';
+  showModal(false); $('b-inc').hidden = true; $('alerts').innerHTML = '';
+  for (const id of ['p-nh3', 'p-do', 'p-max', 'p-where', 'last']) $(id).textContent = '—';
+  setChip($('p-nh3-chip'), nh3Class(null)); setChip($('p-do-chip'), doClass(null));
+  $('n-samples').textContent = 0;
+  live = true; $('scrub').max = 0; $('scrub').value = 0; $('tlinfo').textContent = 'timeline: live';
+  EVENTS.length = 0;
+  renderPollution(); drawTimeline();
+}
+function newRun(reason, scenario) {
+  const old = ensureRun();
+  if (!samples.length && !old.done && !INC) {  // nothing happened in this run yet: relabel instead of archiving an empty row
+    if (scenario) old.scenario = scenario;
+    renderRuns(); return;
+  }
+  old.end = nowIso(); if (old.t0 && !old.t1) old.t1 = Date.now();
+  if (INC) { INC.closed = old.end; logInc('incident', `Incident ${INC.id} closed: run ${old.n} ended (${reason})`); }
+  RUNS.push(runSnapshot(true));
+  resetRunView();
+  RUN = null; ensureRun(); RUN.scenario = scenario || null;
+  const m = { type: 'event', kind: 'run', t: null, data: { run: RUN.n, reason, archived: `run ${old.n}` } };
+  EVENTS.unshift(m); RUN.events.push(m); renderEvents();
+  logInc('run', `Run ${RUN.n} started (${reason}); run ${old.n} archived`);
+  renderRuns(); renderProgress();
+}
+function activityFor(m) {
+  const d = m.data || {};
+  switch (m.kind) {
+    case 'goal_sent': return `driving to stop (${num(d.x, 2)}, ${num(d.y, 2)})`;
+    case 'goal_result': return +d.status === 4 ? 'at stop' : `stop not reached (status ${d.status ?? '?'})`;
+    case 'dwell': return 'sampling (dwell)';
+    case 'sample': return `sample #${d.seq ?? '?'}${isNum(d.nh3) ? ` · ${num(d.nh3, 3)} mg/L` : ''}`;
+    case 'sample_timeout': return 'sample timeout, next stop';
+    case 'hold': return 'on HOLD';
+    case 'resume': return 'resumed';
+    case 'return_home_start': return 'returning home';
+    case 'return_home': return +d.status === 4 ? 'home ✓' : `return home failed (status ${d.status ?? '?'})`;
+    case 'command': return `command: ${d.command ?? '?'}`;
+    default: return null;
+  }
+}
+function renderProgress() {
+  const r = RUN;
+  $('m-run').textContent = r ? `#${r.n}${r.scenario ? ' · ' + r.scenario : ''} · ${fmtMS(elapsedS(r))}` : '—';
+  if (!r) return;
+  $('m-prog').textContent = r.doneText ? r.doneText + (r.activity ? ' · ' + r.activity : '') : r.activity || '—';
+}
+setInterval(renderProgress, 1000);
+function runRowHtml(s, cur) {
+  const st = s.status, cls = st.startsWith('localised') ? 'ok' : st === 'best guess' ? 'bg' : st === 'aborted' ? 'ab' : '';
+  const res = s.result ? `${esc(s.result.map_label ?? '?')}${isNum(s.result.probability) ? ' ' + (s.result.probability * 100).toFixed(0) + ' %' : ''}` : '—';
+  const mx = s.max_nh3_n ? `<span title="${esc(s.max_nh3_n.where)}">${s.max_nh3_n.mg_l.toFixed(2)}</span>` : '—';
+  return `<tr class="${cur ? 'cur' : ''}"><td>${s.run}</td><td>${esc(s.scenario || '—')}</td><td>${s.samples}</td><td>${mx}</td><td>${res}</td><td class="${cls}">${esc(st)}</td></tr>`;
+}
+function renderRuns() {
+  const rows = RUNS.map((s) => runRowHtml(s, false));
+  if (RUN) rows.push(runRowHtml(runSnapshot(false), true));
+  $('runs-body').innerHTML = rows.length ? rows.join('') : '<tr><td colspan="6" class="small">no run yet</td></tr>';
+}
+$('b-runs').onclick = () => {
+  const runs = RUNS.slice(); if (RUN) runs.push(Object.assign(runSnapshot(true), { current: true }));
+  download(`plumetrace_runs_${nowIso().replace(/[-:]/g, '').slice(0, 15)}.json`, JSON.stringify({ generated: nowIso(), runs,
+    battery_last: BATT.last, thresholds: TH, disclaimer: PW.disclaimer,
+    note: 'Lab demo (1:100 model). Incidents are simulated records; no message was sent by this tool.' }, null, 2), 'application/json');
+};
+function pushEvent(m) {
+  EVENTS.unshift(m); if (EVENTS.length > 10) EVENTS.length = 10;
+  const r = ensureRun(); r.events.push(m); if (r.events.length > 2000) r.events.shift();
+  renderEvents();
+}
+
 const handlers = {
   hello(m) {
     $('reach').textContent = m.reach; $('tf').textContent = m.time_factor;
@@ -893,6 +1145,10 @@ const handlers = {
       STATE.bg = isNum(m.scenario.background_nh3_n_mg_l) ? +m.scenario.background_nh3_n_mg_l : 0.05;
       STATE.q = isNum(m.scenario.q_m3s) ? +m.scenario.q_m3s : null;
     }
+    // a hello again = gateway restarted (or relay reconnected): nothing is re-created here; it only marks the
+    // current run as ended so that a sample with a restarted seq opens a new run
+    if (RUN && (samples.length || RUN.done)) RUN.ended = true;
+    if (RUN) RUN.hellos++;
     renderRiver(); renderPollution(); renderPlume();
   },
   pose(m) {
@@ -906,34 +1162,42 @@ const handlers = {
   plume_points(m) { PLUME.est = m; if (PLUME.layer === 'est') renderPlume(); },
   plume_true(m) { PLUME.tru = m; if (PLUME.layer === 'true') renderPlume(); },
   sample(m) {
-    if (samples.some((s) => s.seq === m.seq)) return;
+    // de-dup per run: the same sample again (relay replay to a late joiner) is dropped; a restarted seq after the
+    // run ended (gateway restart between A, B, C) starts a new run
+    const r = ensureRun(), dup = samples.find((s) => s.seq === m.seq);
+    if (dup && dup.t === m.t) return;
+    if (samples.length && +m.seq <= r.lastSeq && r.ended) newRun(`sample seq restarted at #${m.seq} (gateway restart)`, null);
+    else if (dup) return;
+    RUN.lastSeq = Math.max(RUN.lastSeq, +m.seq); if (!RUN.t0) RUN.t0 = Date.now();
     samples.push(m);
     const c = +m.nh3_n_mg_l, nc = nh3Class(c), dc = doClass(+m.do_mg_l);
-    ents.add({ id: 'sample-' + m.seq, name: `Sample ${m.seq} · ${nc.label}`, position: at(m.lon, m.lat, 1),
+    sampleEnts.push(ents.add({ id: `sample-r${RUN.n}-${m.seq}`, name: `Sample ${m.seq} · ${nc.label}`, position: at(m.lon, m.lat, 1),
       point: { pixelSize: 12, color: plumeColor(c).withAlpha(1), outlineColor: nc.key === 'ok' ? Cesium.Color.BLACK : Cesium.Color.RED,
         outlineWidth: nc.key === 'ok' ? 1 : 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
       description: `NH₃-N ${num(c, 3)} mg/L — <b>${esc(nc.label)}</b><br>DO ${num(m.do_mg_l, 2)} mg/L — <b>${esc(dc.label)}</b><br>` +
-        `qc ${esc(m.qc_flags)}${m.is_replay ? ' (replayed)' : ''}<br>${esc(locationText(m.lat, m.lon))}` });
+        `qc ${esc(m.qc_flags)}${m.is_replay ? ' (replayed)' : ''}<br>${esc(locationText(m.lat, m.lon))}` }));
     $('n-samples').textContent = samples.length;
     $('last').textContent = num(c, 3) + ' mg/L';
     STATE.lastSample = m;
     if (Number.isFinite(c) && (!STATE.max || c > STATE.max.c)) STATE.max = { c, lat: m.lat, lon: m.lon, seq: m.seq };
     renderPollution();
     incidentFromSample(m);
-    drawTimeline();
+    drawTimeline(); renderRuns();
   },
   posterior(m) {
     posterior = m;
     const bars = $('bars'); bars.innerHTML = '';
+    const lead = m.probabilities.indexOf(Math.max(...m.probabilities));
     m.labels.forEach((l, i) => {
       const p = m.probabilities[i];
-      bars.insertAdjacentHTML('beforeend', `<div class="row"><b>${esc(l)}</b><div class="track"><div class="fill" style="width:${(p * 100).toFixed(1)}%;background:${COLORS[l] || 'var(--accent)'}"></div></div><span>${(p * 100).toFixed(1)} %</span></div>`);
+      bars.insertAdjacentHTML('beforeend', `<div class="row${i === lead ? ' lead' : ''}"><b>${esc(l)}</b><div class="track"><div class="fill" style="width:${(p * 100).toFixed(1)}%;background:${COLORS[l] || 'var(--accent)'}"></div></div><span>${(p * 100).toFixed(1)} %</span></div>`);
     });
     $('q').textContent = m.map_strength.toFixed(2) + '× default';
-    if (INC && !INC.confirmed) { const pl = posteriorLikely(); INC.likely = pl.label; INC.prob = pl.p; renderIncident(); }
+    if (INC) { if (!INC.confirmed) { const pl = posteriorLikely(); INC.likely = pl.label; INC.prob = pl.p; } renderIncident(); }
   },
   alert(m) {
     $('alerts').insertAdjacentHTML('afterbegin', `<li>#${esc(m.seq)} · ${num(m.nh3_n_mg_l, 2)} mg/L${m.likely_outfall ? ' · ' + esc(m.likely_outfall) + (isNum(m.probability) ? ' ' + (m.probability * 100).toFixed(0) + ' %' : '') : ''}<br>${esc(m.message)}</li>`);
+    ensureRun();
     if (!INC) {
       openIncident({ via: 'gateway alert' + (m.seq != null ? ` #${m.seq}` : ''), t: m.t, c: +m.nh3_n_mg_l, lat: m.lat, lon: m.lon, seq: m.seq,
                      likely: m.likely_outfall, prob: m.probability, message: m.message });
@@ -947,10 +1211,22 @@ const handlers = {
     }
   },
   event(m) {
-    EVENTS.unshift(m); if (EVENTS.length > 10) EVENTS.length = 10;
-    renderEvents();
-    if (m.kind === 'done') sourceConfirmed(m);
-    else logInc('event', `Mission ${m.kind}${isNum(m.t) ? ` (t ${(+m.t).toFixed(1)} s)` : ''} ${summarize(m.data)}`);
+    pushEvent(m);
+    const r = RUN, d = m.data || {};
+    if (m.kind === 'done') {
+      r.done = Object.assign({ labels: posterior && posterior.labels }, d);
+      if (r.t0 && !r.t1) r.t1 = Date.now();
+      if (d.final) r.final_state = d.final;
+      r.doneText = doneText(r.done); r.activity = '';
+      sourceConfirmed(m);
+      if (INC) renderIncident();
+    } else {
+      logInc('event', `Mission ${m.kind}${isNum(m.t) ? ` (t ${(+m.t).toFixed(1)} s)` : ''} ${summarize(m.data)}`);
+      const a = activityFor(m); if (a) r.activity = a;
+      if (m.kind === 'return_home') r.return_home = { status: d.status ?? null, succeeded: +d.status === 4 };
+      if (!r.t0 && (m.kind === 'goal_sent' || m.kind === 'dwell')) r.t0 = Date.now();
+    }
+    renderProgress(); renderRuns();
   },
   obstacles(m) {
     const seen = new Set();
@@ -983,12 +1259,36 @@ const handlers = {
       if (s.state === 'LOST' || (s.state === 'STALE' && worst === 'SYNCED')) worst = s.state;
     }
     const el = $('syncall'); el.textContent = worst; el.className = worst;
+    el.title = `${worst}: ` + m.streams.map((s) => `${s.name} ${s.state}`).join(', ');
   },
   mission(m) {
-    $('mode').textContent = $('m-mode').textContent = m.mode;
-    $('state').textContent = $('m-state').textContent = m.state;
-    $('m-samples').textContent = m.samples_taken; $('m-scn').textContent = m.scenario || '—';
+    // each value is shown once: mode (Sync section), state (header), scenario (Mission · Run)
+    $('mode').textContent = m.mode;
+    $('state').textContent = m.state; $('state').className = 'st-' + m.state;
+    $('m-samples').textContent = m.samples_taken;
     $('tf').textContent = m.time_factor; $('reach').textContent = m.reach;
+    const scn = m.scenario || '', r = ensureRun();
+    if (scn && r.scenario && scn !== r.scenario) newRun(`scenario ${r.scenario} → ${scn}`, scn);
+    else if (scn && !r.scenario) r.scenario = scn;
+    const cur = RUN;
+    if (m.state === 'RUNNING' && !cur.t0) cur.t0 = Date.now();
+    if (m.state === 'RUNNING' && cur.activity === 'waiting for mission') cur.activity = 'mission running';
+    if (m.state === 'DONE' || m.state === 'ABORTED') cur.final_state = m.state;
+    if (RUN_END_STATES.includes(m.state) && (samples.length || cur.done)) cur.ended = true;  // sticky until the next run
+    renderProgress(); renderRuns();
+  },
+  battery(m) {
+    if (!isNum(m.voltage)) return;
+    const v = +m.voltage, p = m.percentage, el = $('m-batt');
+    BATT.last = { t: m.t, voltage: v, percentage: isNum(p) ? +p : null, time: nowIso() };
+    el.textContent = `${v.toFixed(2)} V` + (isNum(p) ? ` (${Math.round(+p * 100)} %)` : '');
+    el.className = v < BATT.bad_v ? 'c-bad' : v < BATT.warn_v ? 'c-warn' : '';
+    el.title = `last battery message ${clock(BATT.last.time)}; warn < ${BATT.warn_v} V, bad < ${BATT.bad_v} V`;
+    if (v < BATT.bad_v && !BATT.warned) {  // one warning per discharge; re-armed after a swap / charge
+      BATT.warned = true;
+      pushEvent({ type: 'event', kind: 'battery_low', t: m.t, data: { voltage: v, note: `below ${BATT.bad_v} V: end the run and charge or swap the battery` } });
+      logInc('battery', `Battery low: ${v.toFixed(2)} V (< ${BATT.bad_v} V). End the run and charge or swap the battery.`);
+    } else if (v >= BATT.rearm_v) BATT.warned = false;
   },
   ack(m) { $('hint').textContent = m.ok ? `✓ ${m.command} ${m.detail || ''}` : `✗ rejected: ${m.detail}`; },
 };
@@ -1074,7 +1374,7 @@ function drawTimeline() {
 let live = true;
 $('scrub').oninput = (e) => {
   const k = +e.target.value; live = k >= samples.length;
-  samples.forEach((s, i) => { const en = ents.getById('sample-' + s.seq); if (en) en.show = i < k || live; });
+  sampleEnts.forEach((en, i) => { en.show = i < k || live; });
   $('tlinfo').textContent = live ? 'timeline: live' : `timeline: up to sample ${k} of ${samples.length}`;
 };
 $('czml').onchange = async (e) => {

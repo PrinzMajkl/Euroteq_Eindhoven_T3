@@ -130,6 +130,33 @@ reverse proxy at port 8090 (your step; anyone with the address sees the page and
 City view with terrain: create `web/config.local.js` on the laptop by hand with
 `window.PLUMETRACE_CONFIG_LOCAL = { ionToken: '<your token>' };` (never commit it).
 
+## 5b. One-command demo: missions A, B, C with the live dashboard
+
+Robot on the start mark, map done (step 3), river taped (step 2). On the lablaptop:
+
+```bash
+tools/start_demo.sh
+```
+
+It checks the build, `websockets`, `cloudflared` and that the robot answers ping, then opens five terminals
+(gnome-terminal; tmux session `plumetrace` when there is no display or with `--tmux`):
+
+| # | Terminal | What runs |
+| --- | --- | --- |
+| 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
+| 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (quick tunnel, public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the no-sudo install command |
+| 3 | robot | `ssh -t turtlebot@192.168.8.32`, `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: lab_mission A → done → robot drives home → B → C; press Enter before each run after checking the robot sits on the start mark. Ends with a PASS/FAIL table and `~/plumetrace_runs/<time>-abc/summary.json` |
+| 5 | rviz | `rviz2` with `plumetrace_sim/rviz/plumetrace.rviz` |
+
+The dashboard keeps one page open over all three runs: each run is archived in the Runs panel (samples,
+max NH₃-N, result, incident) and the next starts clean. Gazebo is not started: a simulated robot on domain 32
+would publish the same topics as the real one.
+
+Options: `PLUMETRACE_ROBOT=user@host`, `ROS_DOMAIN_ID`, `PLUMETRACE_RELAY_KEY`, and
+`RUN_ABC_ARGS="--confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15"` (arguments after `--` go to every
+lab_mission launch). Stop everything: `tools/start_demo.sh stop` (also runs `tools/lab_stop.sh`).
+
 ## 6. Patrol loop: outfalls A, B, C, home, river bank, home, repeat
 
 Robot on the start mark. Uses `lab_nav` only, not `lab_mission` (its mission controller would send goals too).

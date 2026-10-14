@@ -14,8 +14,11 @@ import time
 import numpy as np
 import rclpy
 from rclpy.executors import MultiThreadedExecutor
+from rcl_interfaces.msg import ParameterDescriptor
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from rclpy.time import Time
+from sensor_msgs.msg import BatteryState
 from std_msgs.msg import String
 from tf2_ros import Buffer, TransformListener
 
@@ -34,7 +37,7 @@ class Gateway(Node):
         self.declare_parameter('port', 8765)
         self.declare_parameter('scenario', 'A')
         # plume_true reveals the leaking outfall: hidden until the mission is done unless this is true
-        self.declare_parameter('show_true_plume', False)
+        self.declare_parameter('show_true_plume', False, ParameterDescriptor(dynamic_typing=True))
         self.frame = ReachFrame.load()
         sc = load_scenario(self.get_parameter('scenario').value)
         self.time_factor = float(sc['time_factor'])
@@ -61,6 +64,8 @@ class Gateway(Node):
         self.create_subscription(SyncStatus, '/twin/sync', lambda m: self.send(P.sync_msg(m)), 10)
         self.create_subscription(MissionState, '/mission/state', self.on_mission, 10)
         self.create_subscription(String, '/mission/events', self.on_event, 50)
+        self.create_subscription(BatteryState, '/battery_state', self.on_battery, qos_profile_sensor_data)
+        self.battery_t = 0.0
         self.create_timer(0.1, self.send_pose)
         self.create_timer(0.5, self.send_plume)
         self.create_timer(1.0, self.send_periodic)
@@ -110,6 +115,12 @@ class Gateway(Node):
         self.mission = ms
         self.send(P.mission_msg(ms, self.time_factor, self.frame.name))
 
+    def on_battery(self, b):
+        now = self.now_s()
+        if now - self.battery_t >= 1.0:  # robot publishes fast; 1 Hz is plenty for the page
+            self.battery_t = now
+            self.send(P.battery_msg(now, b.voltage, b.percentage))
+
     def on_event(self, m):
         e = P.event_msg(m.data, self.now_s())
         if e is not None:
@@ -136,7 +147,7 @@ class Gateway(Node):
             return
         v = self.plume_values()
         self.send(P.plume_points_msg('plume_points', now, self.grid_ll, v))
-        if self.t0 is not None and (self.mission_done or self.get_parameter('show_true_plume').value):
+        if self.t0 is not None and (self.mission_done or str(self.get_parameter('show_true_plume').value).lower() == 'true'):
             self.plume.advance_to(self.time_factor * (now - self.t0))
             self.send(P.plume_points_msg('plume_true', now, self.grid_ll, self.plume.at_river_xy(self.grid_river)))
 

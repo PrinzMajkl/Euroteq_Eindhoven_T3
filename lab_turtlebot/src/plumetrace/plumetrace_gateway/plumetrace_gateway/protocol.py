@@ -1,6 +1,6 @@
 """PlumeTrace gateway protocol: JSON messages to the city view and allow-listed commands from it.
 
-Server -> client types: hello, pose, sample, posterior, plume_points, plume_true, event, obstacles,
+Server -> client types: hello, pose, sample, posterior, plume_points, plume_true, event, battery, obstacles,
 sync, alert, mission, ack.
 Client -> server: {"type": "command", "command": <name>, ...} with name in COMMANDS; anything else is
 rejected with an ack {ok: false}. Positions are WGS84 (lat, lon); obstacle heights are scaled x100
@@ -101,6 +101,17 @@ def event_msg(raw, t):
     if not isinstance(d, dict) or not isinstance(d.get('type'), str):
         return None
     return dict(type='event', t=round(t, 3), kind=d['type'], data={k: v for k, v in d.items() if k not in ('type', 't')})
+
+
+def battery_msg(t, voltage, percentage):
+    """percentage 0-1, or None when the driver reports NaN or an out-of-range value."""
+    pct = float(percentage)
+    if not math.isfinite(pct) or pct < 0:
+        pct = None
+    elif pct > 1.0:  # some drivers report 0-100
+        pct = pct / 100.0 if pct <= 100.0 else None
+    return dict(type='battery', t=round(t, 3), voltage=round(float(voltage), 2),
+                percentage=None if pct is None else round(pct, 3))
 
 
 def hello_scenario(sc):

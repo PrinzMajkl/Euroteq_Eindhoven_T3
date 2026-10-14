@@ -64,6 +64,7 @@ def test_plume_true_event_hello_validate(ctx):
     hello = dict(type='hello', reach='r', reach_id='i', time_factor=10.0, origin=dict(lat=0, lon=0, h=0),
                  commands=list(P.COMMANDS), scenario=P.hello_scenario(sc))
     assert 'active_outfall' not in hello['scenario'] and 'strength' not in json.dumps(hello)
+    assert 'id' not in hello['scenario']  # scenario files are named after the leaking outfall
     for m in (pt, P.plume_points_msg('plume_points', 1.0, grid, [0.1, 0.2]), ev, hello):
         assert not list(v.iter_errors(m)), m
 
@@ -71,3 +72,11 @@ def test_plume_true_event_hello_validate(ctx):
 def test_event_msg_rejects_garbage():
     for bad in ('not json', '[1, 2]', '{"t": 1}', '{"type": 5}', '', None):
         assert P.event_msg(bad, 1.0) is None, bad
+
+
+def test_battery_msg(ctx):
+    _, v = ctx
+    for pct, want in ((0.76, 0.76), (76.0, 0.76), (float('nan'), None), (-1.0, None)):
+        m = P.battery_msg(2.0, 11.83, pct)
+        assert m['percentage'] == want and m['voltage'] == 11.83
+        assert not list(v.iter_errors(m)), m
