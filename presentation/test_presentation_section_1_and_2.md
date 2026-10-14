@@ -56,7 +56,7 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
 
 ### Slide Visual Content
 - Slide Title: Current Monitoring
-- Left Column: Municipal Authorities: SUN & WWA Nürnberg
+- Left Column: Municipal Authorities
   - Stadtentwässerung Nürnberg (SUN) and Wasserwirtschaftsamt (WWA)
   - Temperature, pH, conductivity, turbidity
   - Dissolved oxygen and nutrients (Nitrate, Phosphate)
