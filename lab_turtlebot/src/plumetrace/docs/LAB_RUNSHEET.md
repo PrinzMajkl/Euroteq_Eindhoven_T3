@@ -8,26 +8,32 @@ Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot st
 Every terminal on the lablaptop, after step 0:
 
 ```bash
-cd ~/lab_turtlebot/src/plumetrace && source config/env.sh
+cd ~/euroteq/lab_turtlebot/src/plumetrace && source config/env.sh
 ```
 
 ## 0. Once per lablaptop (5 min)
 
 ```bash
-cd ~ && git clone <repo URL> lab_turtlebot
-cd ~/lab_turtlebot/src/plumetrace
+cd ~ && git clone -b lab-turtlebot https://github.com/PrinzMajkl/Euroteq_Eindhoven_T3.git euroteq
+cd ~/euroteq/lab_turtlebot/src/plumetrace
 tools/lab_setup.sh --pip
 source config/env.sh
 echo $ROS_DOMAIN_ID
 ```
 
 `lab_setup.sh --pip` installs shapely, pymap3d, websockets and jsonschema for this user (no sudo) and builds
-the workspace in `~/lab_turtlebot` on top of `~/turtlebot3_ws`. `ROS_DOMAIN_ID` must print 32 (from `~/.bashrc`).
+the workspace in `~/euroteq/lab_turtlebot` on top of `~/turtlebot3_ws` (the repo root is not the workspace:
+`lab_turtlebot/` is a folder inside it, and the code lives only on the `lab-turtlebot` branch). `ROS_DOMAIN_ID` must print 32 (from `~/.bashrc`).
 Check the tests: `python3 -m pytest -q tests` (31 pass in simulation).
 
-Later sessions: `git pull` in `~/lab_turtlebot`, then `tools/lab_setup.sh` again.
+Later sessions: `git pull` in `~/euroteq`, then `tools/lab_setup.sh` again.
 
 ## 1. Robot up, check the link (5 min)
+
+**Put the robot on the start mark (step 2) before you start the bringup.** Its odometry starts at zero where the
+bringup starts, and the SLAM map in step 3 starts at the odometry origin (slam_toolbox ignores `map_start_pose`
+in mapping mode; it only uses it when it loads a saved pose graph). If the robot was moved or driven since the
+bringup started, stop the bringup, put the robot on the start mark and start the bringup again before step 3.
 
 Robot terminal (ssh): `export TURTLEBOT3_MODEL=burger && ros2 launch turtlebot3_bringup robot.launch.py`
 
@@ -59,13 +65,16 @@ the start mark looking the way the robot faces:
   the back wall up to the near tape clear over the whole river length.
 
 The river sits in the free column between the L-shaped pair of boards (about 1.7 to 2.0 m from the back wall)
-and the board on the right wall (3.0 m from the back wall); it never touches a board in the simulated arena.
+and the board 1.80 m from the left wall that sticks out from the far wall (3.0 to 3.6 m from the back wall,
+0.07 m beyond the far tape); it never touches a board in the simulated arena.
 If a real board stands in the river or on the near bank strip, move that board, not the river.
 
 ## 3. Map the arena (15 min)
 
-Robot on the start mark, facing away from the back wall. The SLAM map starts at that pose (`map_start_pose`
-0, 0, 0), so the map is in the arena frame.
+Robot on the start mark, facing away from the back wall, **and the bringup started while it stood there** (see
+step 1). The SLAM map frame is the robot's odometry frame, so the map is in the arena frame only then. Check in
+RViz after the first seconds: the robot should sit at the map origin with the red x axis pointing away from the
+back wall. If not, stop, restart the bringup on the start mark, and map again.
 
 ```bash
 ros2 launch plumetrace_sim lab_map.launch.py
@@ -120,6 +129,28 @@ reverse proxy at port 8090 (your step; anyone with the address sees the page and
 
 City view with terrain: create `web/config.local.js` on the laptop by hand with
 `window.PLUMETRACE_CONFIG_LOCAL = { ionToken: '<your token>' };` (never commit it).
+
+## 6. Patrol loop: outfalls A, B, C, home, river bank, home, repeat
+
+Robot on the start mark. Uses `lab_nav` only, not `lab_mission` (its mission controller would send goals too).
+
+```bash
+ros2 launch plumetrace_sim lab_nav.launch.py rviz:=true
+python3 tools/wait_ready.py 90 && python3 tools/patrol_abc.py
+```
+
+(launch in terminal A, the patrol in terminal B). One loop: the bank stops at outfalls A, B and C (1 s at
+each, facing the water), home to the start mark, one smooth drive along the near bank from the upstream end to
+the downstream end, home again; then the next loop, until Ctrl-C. Ctrl-C cancels the active goal (the robot
+stops) and puts the controller parameters back. Check the route first with `python3 tools/patrol_abc.py --dry-run`.
+
+It runs fast by default: 0.22 m/s (the Burger's top speed), 1.5 rad/s turns, goals accepted within 0.06 m and
+0.25 rad, set on the running controller and restored when the script exits. `--speed normal` keeps the tuned
+0.15 m/s. Other options: `--loops N`, `--legs abc` or `--legs river`, `--order CBA`, `--dwell S`, `--pause S`,
+`--trace stops` (stop at every bank point instead of one smooth drive), `--min-voltage V` (goes home and stops
+on low battery, default 11.0 V). Log: `~/plumetrace_runs/<time>-patrol/patrol.csv`.
+Run it first with `--loops 1` and a hand near Ctrl-C; drop to `--speed normal` if the robot overshoots stops
+or slides on the turns.
 
 ## Troubleshooting
 
