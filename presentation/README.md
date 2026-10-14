@@ -8,9 +8,11 @@ This directory contains slide decks, visual brand assets, pitch outlines, and re
 
 | File / Asset | Description |
 | :--- | :--- |
-| **[`deck_preview_section_1_and_2.html`](deck_preview_section_1_and_2.html)** | **Interactive 16:9 Slide Presentation Viewer** for Sections 1 & 2. Features keyboard navigation (`←`/`→`), full-screen mode (`F`), brand palette, and toggleable Presenter Speaker Notes (`N`). |
+| **[`plumetrace_section_1_and_2.pptx`](plumetrace_section_1_and_2.pptx)** | **Native PowerPoint Presentation (16:9)** for Sections 1 & 2. Formatted with Calibri, brand palette, white background, cards layout, embedded logo, and embedded Speaker Notes. |
+| **[`generate_deck.py`](generate_deck.py)** | Standalone Python script using `python-pptx` to build and export the native PowerPoint presentation. |
+| **[`deck_preview_section_1_and_2.html`](deck_preview_section_1_and_2.html)** | **Interactive 16:9 Slide Presentation Viewer** for Sections 1 & 2. Features step-by-step click reveal animations, brand palette, and toggleable Presenter Speaker Notes (`N`). |
 | **[`test_presentation_section_1_and_2.md`](test_presentation_section_1_and_2.md)** | Complete textual slide deck copy, visual layout wireframes, timing targets, and word-for-word spoken scripts for Slide 1 (Title) and Slides 2, 3, 4 (Context & Challenge). |
-| **[`brand_style_guide.md`](brand_style_guide.md)** | Graphic identity manual: official 5-color palette, typography (Inter / Plus Jakarta Sans, strictly sans-serif), UI cards, badges, and presentation design rules. |
+| **[`brand_style_guide.md`](brand_style_guide.md)** | Graphic identity manual: official 5-color palette, typography (Calibri, strictly sans-serif), UI cards, badges, and presentation design rules. |
 | **[`slides_brainstorm.md`](slides_brainstorm.md)** | Comprehensive presentation master outline, stakeholder messaging matrices, talking points, and Q&A defense preparation across all 6 rubric sections. |
 | **[`assets/logo.jpeg`](assets/logo.jpeg)** | Official PlumeTrace circular brand emblem (Pegnitz river waves, surfer, autonomous surface robot, and sun). |
 
