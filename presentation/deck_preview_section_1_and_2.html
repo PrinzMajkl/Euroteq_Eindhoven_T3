@@ -6,18 +6,13 @@
   <title>PlumeTrace - Presentation Preview</title>
   <style>
     :root {
-      --color-primary: #023047;
-      --color-brand: #219ebc;
-      --color-tint: #8ecae6;
-      --color-tint-soft: #f4f9fc;
-      --color-warning: #ffb703;
-      --color-accent: #fb8500;
-      --color-bg: #ffffff;
-      --color-card-bg: #ffffff;
-      --color-border: #e2e8f0;
-      --color-text-main: #023047;
-      --color-text-muted: #526777;
-      --font-family: Calibri, 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      --navy: #023047;
+      --cyan: #219ebc;
+      --sky: #8ecae6;
+      --gold: #ffb703;
+      --orange: #fb8500;
+      --white: #ffffff;
+      --font-family: Calibri, 'Segoe UI', sans-serif;
     }
 
     * {
@@ -27,8 +22,8 @@
     }
 
     body {
-      background-color: #0f172a;
-      color: var(--color-text-main);
+      background-color: #011624;
+      color: var(--navy);
       font-family: var(--font-family);
       display: flex;
       flex-direction: column;
@@ -42,12 +37,12 @@
     /* 16:9 Slide Canvas */
     .deck-viewport {
       width: 100%;
-      max-width: 1160px;
+      max-width: 1200px;
       aspect-ratio: 16 / 9;
       position: relative;
-      background: #ffffff;
+      background: var(--white);
       border-radius: 12px;
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -60,12 +55,12 @@
       left: 0;
       width: 100%;
       height: 100%;
-      padding: 56px 64px 44px 64px;
+      padding: 50px 65px;
       display: none;
       flex-direction: column;
-      background: #ffffff;
+      background: var(--white);
       opacity: 0;
-      transition: opacity 0.25s ease-in-out;
+      transition: opacity 0.2s ease-in-out;
     }
 
     .slide.active {
@@ -74,13 +69,13 @@
       z-index: 2;
     }
 
-    /* Titles */
+    /* Slide Title */
     .slide-title {
-      font-size: 2.1rem;
+      font-size: 2.6rem;
       font-weight: 700;
-      color: var(--color-primary);
-      line-height: 1.2;
-      margin-bottom: 24px;
+      color: var(--navy);
+      line-height: 1.15;
+      margin-bottom: 22px;
       letter-spacing: -0.01em;
     }
 
@@ -89,49 +84,49 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
-      gap: 20px;
+      gap: 22px;
     }
 
     /* Slide 1 - Title */
     .slide-1-layout {
       display: flex;
       align-items: center;
-      gap: 50px;
+      gap: 55px;
       height: 100%;
     }
 
     .slide-1-logo {
-      width: 180px;
-      height: 180px;
+      width: 220px;
+      height: 220px;
       border-radius: 50%;
       object-fit: cover;
-      box-shadow: 0 6px 20px rgba(2, 48, 71, 0.12);
-      border: 3px solid var(--color-tint);
+      box-shadow: 0 8px 24px rgba(2, 48, 71, 0.16);
+      border: 4px solid var(--cyan);
       flex-shrink: 0;
     }
 
     .slide-1-text {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 16px;
     }
 
     .slide-1-title {
-      font-size: 3.2rem;
+      font-size: 4rem;
       font-weight: 700;
-      color: var(--color-primary);
-      line-height: 1.1;
+      color: var(--navy);
+      line-height: 1.05;
       letter-spacing: -0.02em;
     }
 
     .slide-1-title span {
-      color: var(--color-brand);
+      color: var(--cyan);
     }
 
     .slide-1-subtitle {
-      font-size: 1.35rem;
-      color: var(--color-text-muted);
-      font-weight: 400;
+      font-size: 1.65rem;
+      color: var(--cyan);
+      font-weight: 600;
       margin-bottom: 8px;
     }
 
@@ -139,22 +134,22 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      font-size: 1.05rem;
-      color: var(--color-primary);
+      gap: 12px;
+      font-size: 1.3rem;
+      color: var(--navy);
     }
 
     .clean-list li {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .bullet-dot {
-      width: 7px;
-      height: 7px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
-      background: var(--color-brand);
+      background: var(--orange);
       flex-shrink: 0;
     }
 
@@ -162,64 +157,64 @@
     .grid-4 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      gap: 22px;
     }
 
     .clean-card {
-      background: var(--color-tint-soft);
-      border: 1px solid var(--color-border);
+      background: rgba(142, 202, 230, 0.12);
+      border: 2px solid var(--sky);
       border-radius: 10px;
-      padding: 18px 22px;
+      padding: 20px 24px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
 
     .clean-card-title {
-      font-size: 1.15rem;
+      font-size: 1.4rem;
       font-weight: 700;
-      color: var(--color-primary);
+      color: var(--navy);
     }
 
     .bullet-points {
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      font-size: 0.96rem;
-      color: var(--color-text-main);
+      gap: 8px;
+      font-size: 1.2rem;
+      color: var(--navy);
     }
 
     .bullet-points li {
       display: flex;
       align-items: flex-start;
-      gap: 9px;
+      gap: 10px;
       line-height: 1.35;
     }
 
     .bullet-points li::before {
-      content: "•";
-      color: var(--color-brand);
+      content: "-";
+      color: var(--cyan);
       font-weight: bold;
-      font-size: 1.2rem;
+      font-size: 1.4rem;
       line-height: 1;
     }
 
     .bottom-highlight {
-      background: #ffffff;
-      border: 1px solid var(--color-border);
+      background: rgba(142, 202, 230, 0.18);
+      border: 2px solid var(--cyan);
       border-radius: 8px;
-      padding: 12px 18px;
-      font-size: 0.98rem;
-      color: var(--color-primary);
+      padding: 14px 22px;
+      font-size: 1.25rem;
+      color: var(--navy);
       font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .bottom-highlight span {
-      color: var(--color-accent);
+      color: var(--orange);
       font-weight: 700;
     }
 
@@ -227,57 +222,69 @@
     .grid-2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 26px;
+      gap: 28px;
     }
 
     .box-container {
-      background: var(--color-tint-soft);
-      border: 1px solid var(--color-border);
+      background: rgba(142, 202, 230, 0.12);
+      border: 2px solid var(--sky);
       border-radius: 10px;
-      padding: 22px 24px;
+      padding: 24px 26px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 14px;
     }
 
     .box-header {
-      font-size: 1.15rem;
+      font-size: 1.45rem;
       font-weight: 700;
-      color: var(--color-primary);
-      border-bottom: 1px solid var(--color-border);
-      padding-bottom: 8px;
+      color: var(--navy);
+      border-bottom: 2px solid var(--cyan);
+      padding-bottom: 10px;
     }
 
-    /* Traffic Light Mini Badges (Slide 4) */
+    /* Status Pills (Slide 4) */
     .status-row {
       display: flex;
-      gap: 10px;
-      margin-top: 6px;
+      gap: 14px;
+      margin-top: 8px;
     }
 
     .status-pill {
       flex: 1;
-      padding: 7px 10px;
-      border-radius: 6px;
-      font-size: 0.88rem;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 1.05rem;
       font-weight: 700;
       text-align: center;
+      letter-spacing: 0.04em;
     }
 
-    .status-green { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
-    .status-yellow { background: #fef9c3; color: #a16207; border: 1px solid #fef08a; }
-    .status-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .status-safe {
+      background: var(--cyan);
+      color: var(--white);
+    }
+
+    .status-caution {
+      background: var(--gold);
+      color: var(--navy);
+    }
+
+    .status-alert {
+      background: var(--orange);
+      color: var(--white);
+    }
 
     /* Controls Bar Below Deck */
     .controls-bar {
       width: 100%;
-      max-width: 1160px;
+      max-width: 1200px;
       margin-top: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      color: #94a3b8;
-      font-size: 0.9rem;
+      color: var(--sky);
+      font-size: 0.95rem;
     }
 
     .nav-buttons {
@@ -286,15 +293,15 @@
     }
 
     .btn {
-      background: #1e293b;
-      color: #ffffff;
-      border: 1px solid #334155;
-      padding: 8px 18px;
+      background: var(--navy);
+      color: var(--white);
+      border: 1px solid var(--cyan);
+      padding: 9px 20px;
       border-radius: 8px;
       cursor: pointer;
       font-family: var(--font-family);
       font-weight: 600;
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -302,24 +309,24 @@
     }
 
     .btn:hover {
-      background: var(--color-brand);
-      border-color: var(--color-brand);
+      background: var(--cyan);
+      border-color: var(--cyan);
     }
 
     .btn.active-state {
-      background: var(--color-accent);
-      border-color: var(--color-accent);
+      background: var(--orange);
+      border-color: var(--orange);
     }
 
     /* Speaker Notes Drawer */
     .speaker-drawer {
       width: 100%;
-      max-width: 1160px;
+      max-width: 1200px;
       margin-top: 12px;
-      background: #1e293b;
-      border: 1px solid #334155;
+      background: var(--navy);
+      border: 1px solid var(--sky);
       border-radius: 10px;
-      padding: 16px 22px;
+      padding: 18px 24px;
       color: #f1f5f9;
       display: none;
       box-shadow: 0 10px 25px rgba(0,0,0,0.3);
@@ -333,31 +340,31 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-      border-bottom: 1px solid #334155;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--cyan);
       padding-bottom: 6px;
     }
 
     .speaker-title {
-      font-size: 0.88rem;
+      font-size: 0.95rem;
       font-weight: 700;
-      color: var(--color-tint);
+      color: var(--sky);
     }
 
     .speaker-time {
-      font-size: 0.82rem;
-      color: var(--color-warning);
+      font-size: 0.88rem;
+      color: var(--gold);
       font-weight: 600;
     }
 
     .speaker-content {
-      font-size: 0.92rem;
-      line-height: 1.55;
-      color: #cbd5e1;
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #e2e8f0;
     }
 
     .speaker-content strong {
-      color: #ffffff;
+      color: var(--white);
     }
   </style>
 </head>
@@ -376,7 +383,7 @@
             <div class="slide-1-subtitle">Autonomous Water Protection for the Pegnitz River</div>
             <ul class="clean-list">
               <li><span class="bullet-dot"></span> EuroTeQ Track 3 (Eindhoven / Nuremberg)</li>
-              <li><span class="bullet-dot"></span> Robotic surface profiling & real-time digital twin</li>
+              <li><span class="bullet-dot"></span> Robotic surface profiling and real-time digital twin</li>
               <li><span class="bullet-dot"></span> Detecting transient sewer overflows (CSOs)</li>
             </ul>
           </div>
@@ -393,7 +400,7 @@
             <div class="clean-card-title">Fuchslochwelle Surfers</div>
             <ul class="bullet-points">
               <li>Raw sewage spikes after rainfall</li>
-              <li>24–48h lab delay vs instant health risk</li>
+              <li>24-48h lab delay vs instant health risk</li>
             </ul>
           </div>
 
@@ -401,7 +408,7 @@
             <div class="clean-card-title">Sewer Overflows (CSOs)</div>
             <ul class="bullet-points">
               <li>1,500 km municipal network overloaded by storms</li>
-              <li>€1.5M–€5M+ cost per retention basin</li>
+              <li>1.5M - 5M+ EUR cost per retention basin</li>
             </ul>
           </div>
 
@@ -409,12 +416,12 @@
             <div class="clean-card-title">Knoblauchsland Agriculture</div>
             <ul class="bullet-points">
               <li>Nitrate leaching into drinking water aquifers</li>
-              <li>Strict EU limits & compliance pressure</li>
+              <li>Strict EU limits and compliance pressure</li>
             </ul>
           </div>
 
           <div class="clean-card">
-            <div class="clean-card-title">Summer Heat & Drought</div>
+            <div class="clean-card-title">Summer Heat and Drought</div>
             <ul class="bullet-points">
               <li>Low flow concentrates pollutants</li>
               <li>Dissolved oxygen drops &lt; 3 mg/L (fish kills)</li>
@@ -423,7 +430,7 @@
         </div>
 
         <div class="bottom-highlight">
-          <span>Core Bottleneck:</span> Monthly grab sampling misses short 2–4 hour overflow events.
+          <span>Core Bottleneck:</span> Monthly grab sampling misses short 2-4 hour overflow events.
         </div>
       </div>
     </section>
@@ -437,19 +444,19 @@
             <div class="box-header">What Municipalities Measure (SUN)</div>
             <ul class="bullet-points">
               <li>Temperature, pH, conductivity, turbidity</li>
-              <li>Dissolved oxygen & nutrients (Nitrate, Phosphate)</li>
-              <li><strong>Ammonium (NH₄⁺):</strong> primary raw sewage tracer</li>
-              <li>Laboratory processing requires 24–48 hours</li>
+              <li>Dissolved oxygen and nutrients (Nitrate, Phosphate)</li>
+              <li><strong>Ammonium (NH4+):</strong> primary raw sewage tracer</li>
+              <li>Laboratory processing requires 24-48 hours</li>
             </ul>
           </div>
 
           <div class="box-container">
             <div class="box-header">The Sampling Gap</div>
             <ul class="bullet-points">
-              <li>Manual grab sampling: 1× per month</li>
+              <li>Manual grab sampling: 1x per month</li>
               <li>Convective storm overflow: 2 to 4 hours</li>
-              <li>Plume arrives, causes harm, and washes away undetected</li>
-              <li>Chemistry is understood — timing and mobility are missing</li>
+              <li>Plume arrives, causes harm, and clears undetected</li>
+              <li>Chemistry is understood - timing and mobility are missing</li>
             </ul>
           </div>
         </div>
@@ -462,7 +469,7 @@
 
     <!-- SLIDE 4 -->
     <section class="slide" id="slide-4">
-      <h2 class="slide-title">Stakeholders & Autonomous Closed Loop</h2>
+      <h2 class="slide-title">Stakeholders and Autonomous Closed Loop</h2>
       <div class="slide-body">
         <div class="grid-2">
           <div class="box-container">
@@ -476,16 +483,16 @@
           </div>
 
           <div class="box-container">
-            <div class="box-header">Citizens & Surfers</div>
+            <div class="box-header">Citizens and Surfers</div>
             <ul class="bullet-points">
               <li>Eliminate complex chemical graphs</li>
               <li>Real-time traffic light mobile app</li>
               <li>Immediate guidance on water contact safety</li>
             </ul>
             <div class="status-row">
-              <div class="status-pill status-green">🟢 Safe</div>
-              <div class="status-pill status-yellow">🟡 Caution</div>
-              <div class="status-pill status-red">🔴 Alert</div>
+              <div class="status-pill status-safe">SAFE</div>
+              <div class="status-pill status-caution">CAUTION</div>
+              <div class="status-pill status-alert">ALERT</div>
             </div>
           </div>
         </div>
@@ -500,10 +507,10 @@
 
   <!-- Controls Bar -->
   <div class="controls-bar">
-    <div>Use Arrow Keys (← / →)</div>
+    <div>Use Arrow Keys (&larr; / &rarr;)</div>
     <div class="nav-buttons">
-      <button class="btn" id="prevBtn" onclick="changeSlide(-1)">◀ Previous</button>
-      <button class="btn" id="nextBtn" onclick="changeSlide(1)">Next ▶</button>
+      <button class="btn" id="prevBtn" onclick="changeSlide(-1)">&larr; Previous</button>
+      <button class="btn" id="nextBtn" onclick="changeSlide(1)">Next &rarr;</button>
       <button class="btn" id="notesBtn" onclick="toggleNotes()">Speaker Script (N)</button>
       <button class="btn" id="fsBtn" onclick="toggleFullscreen()">Fullscreen (F)</button>
     </div>
@@ -513,7 +520,7 @@
   <div class="speaker-drawer" id="speakerNotes">
     <div class="speaker-header">
       <div class="speaker-title" id="scriptSlideLabel">Slide 1</div>
-      <div class="speaker-time" id="scriptTime">~45 seconds</div>
+      <div class="speaker-time" id="scriptTime">45 seconds</div>
     </div>
     <div class="speaker-content" id="scriptBody"></div>
   </div>
@@ -525,41 +532,41 @@
 
     const scripts = {
       1: {
-        label: "Slide 1: Title & Overview",
-        time: "~45 seconds",
+        label: "Slide 1: Title and Overview",
+        time: "45 seconds",
         html: `<strong>Spoken Script:</strong><br>
-        "Good morning members of the jury and mentors. Today, we present <strong>PlumeTrace</strong>—an autonomous, closed-loop Digital Twin system designed to protect urban rivers.<br><br>
+        "Good morning members of the jury and mentors. Today, we present <strong>PlumeTrace</strong> - an autonomous, closed-loop Digital Twin system designed to protect urban rivers.<br><br>
         Across Europe, urban rivers are essential for recreation, drinking water, and ecology. Yet beneath the surface, they face sudden, unmonitored pollution events that traditional testing completely misses.<br><br>
         Using the Pegnitz River in Nuremberg as our testbed, we demonstrate how coupling an autonomous robotic agent with a real-time predictive Digital Twin transforms water quality monitoring from blind, infrequent sampling into actionable protection."`
       },
       2: {
         label: "Slide 2: Four Critical Pressures",
-        time: "~60 seconds",
+        time: "60 seconds",
         html: `<strong>Spoken Script:</strong><br>
         "Why the Pegnitz River? Because it represents four urgent pressures colliding in one urban corridor:<br><br>
-        First, <strong>Public Health</strong>: Surfers at the Fuchslochwelle wave face raw sewage contamination after storms—dubbed the 'Durchfall-Welle' in local media—while lab tests take up to 48 hours.<br>
-        Second, <strong>Urban Infrastructure</strong>: Nuremberg's 1,500 km sewer network overspills during heavy rains. Modernizing a single retention basin costs between 1.5 and 5 million euros—cities cannot afford to invest blindly.<br>
+        First, <strong>Public Health</strong>: Surfers at the Fuchslochwelle wave face raw sewage contamination after storms - dubbed the 'Durchfall-Welle' in local media - while lab tests take up to 48 hours.<br>
+        Second, <strong>Urban Infrastructure</strong>: Nuremberg's 1,500 km sewer network overspills during heavy rains. Modernizing a single retention basin costs between 1.5 and 5 million euros - cities cannot afford to invest blindly.<br>
         Third, <strong>Agriculture</strong>: Intensive vegetable farming in Knoblauchsland leaches nitrates into alluvial drinking water aquifers under strict EU penalties.<br>
         And fourth, <strong>Climate Drought</strong>: Summer heat reduces river discharge, collapsing oxygen levels below 3 mg/L and killing fish.<br><br>
         The core failure? Authorities take grab samples once a month. A storm overflow lasts only 2 to 4 hours. By the time technicians sample, the plume is gone."`
       },
       3: {
-        label: "Slide 3: Current Monitoring & The Sampling Gap",
-        time: "~50 seconds",
+        label: "Slide 3: Current Monitoring and The Sampling Gap",
+        time: "50 seconds",
         html: `<strong>Spoken Script:</strong><br>
         "To address this, we looked at what municipal authorities currently measure.<br><br>
         In Nuremberg, the drainage service SUN tracks eight standard parameters: temperature, pH, conductivity, turbidity, dissolved oxygen, and nutrients like ammonium, nitrate, and phosphate. Ammonium is the critical chemical fingerprint of raw sewage.<br><br>
-        The problem is not chemical ignorance—it is <strong>temporal and spatial rigidity</strong>.<br><br>
+        The problem is not chemical ignorance - it is <strong>temporal and spatial rigidity</strong>.<br><br>
         Manual grab sampling happens once a month. A storm spill lasts just 3 hours. That means between scheduled samples, there are weeks of complete blindness. Millions of liters of wastewater can pass through, infect recreators, and clear away before the next bottle is dipped."`
       },
       4: {
-        label: "Slide 4: Stakeholders & Closed-Loop Vision",
-        time: "~60 seconds",
+        label: "Slide 4: Stakeholders and Closed-Loop Vision",
+        time: "60 seconds",
         html: `<strong>Spoken Script:</strong><br>
         "PlumeTrace serves two main stakeholder groups with tailored intelligence:<br><br>
         For <strong>Water and City Authorities</strong>, our robot acts as a <strong>continuous spatial profiler</strong>. By cruising riverbanks over time, it catches chronic pipe leaks before failure and provides 3D pollution maps to guide multi-million euro infrastructure investments.<br><br>
-        For <strong>Citizens and Surfers</strong>, we replace complex chemistry with a simple <strong>Traffic Light app</strong>: Green means safe, Red means stay out of the water today.<br><br>
-        And how does it operate? Through an <strong>autonomous closed loop</strong>. The robot's path is not pre-scripted—our Digital Twin computes optimal waypoints in real-time based on live chemical gradients, weather radar, and data age."`
+        For <strong>Citizens and Surfers</strong>, we replace complex chemistry with a simple <strong>Traffic Light app</strong>: Safe, Caution, and Alert.<br><br>
+        And how does it operate? Through an <strong>autonomous closed loop</strong>. The robot's path is not pre-scripted - our Digital Twin computes optimal waypoints in real-time based on live chemical gradients, weather radar, and data age."`
       }
     };
 
