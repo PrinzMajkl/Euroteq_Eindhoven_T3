@@ -50,3 +50,24 @@ def test_command_to_registry_round_trip(ctx):
     ys = [p[1] for p in op['footprint']]
     assert op['mode'] == 'STOP' and op['id'] == 'obstacle-7'
     assert abs((min(xs) + max(xs)) / 2 - 1.0) < 1e-4 and abs(max(xs) - min(xs) - 0.25) < 1e-4
+
+
+def test_plume_true_event_hello_validate(ctx):
+    fr, v = ctx
+    grid = [[51.43, 5.48], [51.431, 5.481]]
+    pt = P.plume_points_msg('plume_true', 3.14159, grid, [0.04, 1.23456])
+    assert pt['type'] == 'plume_true' and pt['points'][1][2] == 1.2346
+    ev = P.event_msg(json.dumps(dict(type='sample', t=5.0, state='RUNNING', seq=2)), 5.5)
+    assert ev['kind'] == 'sample' and ev['data'] == dict(state='RUNNING', seq=2)
+    sc = dict(scenario='A', flow=dict(q_m3s=4.48), background=dict(nh3_n_mg_l=0.04, do_mg_l=9.1), time_factor=10.0,
+              active_outfall='B')
+    hello = dict(type='hello', reach='r', reach_id='i', time_factor=10.0, origin=dict(lat=0, lon=0, h=0),
+                 commands=list(P.COMMANDS), scenario=P.hello_scenario(sc))
+    assert 'active_outfall' not in hello['scenario'] and 'strength' not in json.dumps(hello)
+    for m in (pt, P.plume_points_msg('plume_points', 1.0, grid, [0.1, 0.2]), ev, hello):
+        assert not list(v.iter_errors(m)), m
+
+
+def test_event_msg_rejects_garbage():
+    for bad in ('not json', '[1, 2]', '{"t": 1}', '{"type": 5}', '', None):
+        assert P.event_msg(bad, 1.0) is None, bad

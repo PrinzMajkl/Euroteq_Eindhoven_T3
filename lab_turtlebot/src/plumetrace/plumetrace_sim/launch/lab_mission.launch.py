@@ -53,6 +53,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('scenario', default_value='A'),
+        DeclareLaunchArgument('show_true_plume', default_value='false',
+                              description='stream the true plume to the dashboard before the mission is done'),
         DeclareLaunchArgument('seed', default_value='1'),
         DeclareLaunchArgument('strategy', default_value='adaptive'),
         DeclareLaunchArgument('mission', default_value='true'),
@@ -92,6 +94,7 @@ def generate_launch_description():
         ExecuteProcess(cmd=['ros2', 'bag', 'record', '-o', PythonExpression(["'", run_dir, "' + '/bag'"])] + BAG_TOPICS,
                        output='log', condition=IfCondition(LaunchConfiguration('record'))),
         Node(package='plumetrace_gateway', executable='gateway', output='screen',
-             parameters=[wall, {'scenario': sc, 'host': LaunchConfiguration('gateway_host')}],
+             parameters=[wall, {'scenario': sc, 'host': LaunchConfiguration('gateway_host'),
+                                          'show_true_plume': LaunchConfiguration('show_true_plume')}],
              condition=IfCondition(LaunchConfiguration('gateway'))),
     ])

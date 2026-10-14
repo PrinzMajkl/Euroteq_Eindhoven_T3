@@ -1,7 +1,7 @@
 """plumetrace_gateway: WebSocket server (ws://localhost:8765) between the twin and the city view.
 
 Streams pose (10 Hz), plume_points (2 Hz, ~1000 water points from the twin's posterior),
-sample, posterior, alert (on change), obstacles (on change + 1 Hz), sync (2 Hz), mission (1 Hz).
+plume_true (2 Hz, synthetic truth on the same grid; only after `done` or with show_true_plume:=true), event (mission events), sample, posterior, alert (on change), obstacles (on change + 1 Hz), sync (2 Hz), mission (1 Hz).
 Accepts only the allow-listed commands (protocol.COMMANDS); abort / return_home go to
 /twin/command, no-go zones and virtual obstacles to the obstacle registry (/twin/registry_cmd).
 The browser never touches DDS. Later the server dials out to a cloud relay instead.
@@ -20,9 +20,8 @@ from std_msgs.msg import String
 from tf2_ros import Buffer, TransformListener
 
 from plumetrace_msgs.msg import MissionState, ObstacleArray, PlumeSample, Posterior, SyncStatus
-from plumetrace_twin.estimator import SourceEstimator
 from plumetrace_twin.reach import ReachFrame
-from plumetrace_twin.scenario import load_scenario
+from plumetrace_twin.scenario import load_scenario, make_estimator, make_plume
 from plumetrace_twin.simtools import quat_to_yaw
 
 from . import protocol as P
@@ -34,10 +33,16 @@ class Gateway(Node):
         self.declare_parameter('host', 'localhost')
         self.declare_parameter('port', 8765)
         self.declare_parameter('scenario', 'A')
+        # plume_true reveals the leaking outfall: hidden until the mission is done unless this is true
+        self.declare_parameter('show_true_plume', False)
         self.frame = ReachFrame.load()
         sc = load_scenario(self.get_parameter('scenario').value)
         self.time_factor = float(sc['time_factor'])
-        self.est = SourceEstimator(self.frame, q_m3s=float(sc['flow']['q_m3s']))
+        self.sc = sc
+        self.est = make_estimator(self.frame, sc)
+        self.plume = make_plume(self.frame, sc)
+        self.t0 = None
+        self.mission_done = False
         self._plume_grid()
         self.ws_clients = set()
         self.loop = None
@@ -55,6 +60,7 @@ class Gateway(Node):
         self.create_subscription(ObstacleArray, '/twin/obstacles', self.on_obstacles, 10)
         self.create_subscription(SyncStatus, '/twin/sync', lambda m: self.send(P.sync_msg(m)), 10)
         self.create_subscription(MissionState, '/mission/state', self.on_mission, 10)
+        self.create_subscription(String, '/mission/events', self.on_event, 50)
         self.create_timer(0.1, self.send_pose)
         self.create_timer(0.5, self.send_plume)
         self.create_timer(1.0, self.send_periodic)
@@ -69,6 +75,7 @@ class Gateway(Node):
         S, N = np.meshgrid(ss, nn)
         river = fr.from_sn(S.ravel(), N.ravel())
         lat, lon, _ = fr.river_to_geodetic(river)
+        self.grid_river = river
         self.grid_ll = np.stack([lat, lon], axis=1)
         self.grid_unit = self.est.unit_excess(river)  # (3, 992)
 
@@ -103,6 +110,12 @@ class Gateway(Node):
         self.mission = ms
         self.send(P.mission_msg(ms, self.time_factor, self.frame.name))
 
+    def on_event(self, m):
+        e = P.event_msg(m.data, self.now_s())
+        if e is not None:
+            self.mission_done |= e['kind'] == 'done'
+            self.send(e)
+
     def now_s(self):
         return self.get_clock().now().nanoseconds * 1e-9
 
@@ -116,11 +129,16 @@ class Gateway(Node):
         self.send(P.pose_msg(self.frame, self.now_s(), t.translation.x, t.translation.y, quat_to_yaw(t.rotation)))
 
     def send_plume(self):
+        now = self.now_s()
+        if self.t0 is None and now > 0.0:  # same clock start as emulated_sensor, even with no viewer yet
+            self.t0 = now
         if not self.ws_clients:
             return
         v = self.plume_values()
-        pts = [[P.r6(a), P.r6(b), round(float(c), 4)] for (a, b), c in zip(self.grid_ll, v)]
-        self.send(dict(type='plume_points', t=round(self.now_s(), 3), units='mg/L NH3-N', points=pts))
+        self.send(P.plume_points_msg('plume_points', now, self.grid_ll, v))
+        if self.t0 is not None and (self.mission_done or self.get_parameter('show_true_plume').value):
+            self.plume.advance_to(self.time_factor * (now - self.t0))
+            self.send(P.plume_points_msg('plume_true', now, self.grid_ll, self.plume.at_river_xy(self.grid_river)))
 
     def send_periodic(self):
         if self.obstacles is not None:
@@ -150,7 +168,7 @@ class Gateway(Node):
         fr = self.frame
         return dict(type='hello', reach=fr.name, reach_id=fr.reach_id, time_factor=self.time_factor,
                     origin=dict(lat=fr.lat0, lon=fr.lon0, h=fr.h0), scale=fr.scale,
-                    commands=list(P.COMMANDS), alert_mg_l=P.ALERT_MG_L)
+                    commands=list(P.COMMANDS), alert_mg_l=P.ALERT_MG_L, scenario=P.hello_scenario(self.sc))
 
     async def handler(self, ws):
         self.ws_clients.add(ws)

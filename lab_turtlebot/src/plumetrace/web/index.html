@@ -8,23 +8,26 @@
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.146/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 <script src="config.js"></script>
+<!-- incident response data (river facts, thresholds, escalation ladder); the page falls back to defaults when missing -->
+<script src="pegnitz_response.js" onerror="console.warn('pegnitz_response.js not loaded: using built-in defaults')"></script>
 <!-- optional, git-ignored: personal secrets such as the Cesium ion token (404 when absent is fine) -->
 <script src="config.local.js" onerror="void 0"></script>
 <style>
   :root {
     --bg: #f4f6f8; --panel: #ffffff; --ink: #1d2733; --muted: #5f6b78; --line: #d9dee4;
-    --accent: #1f6feb; --ok: #1a7f37; --warn: #b76e00; --bad: #c62828; --alert: #b71c1c;
+    --accent: #1f6feb; --ok: #1a7f37; --warn: #b76e00; --bad: #c62828; --alert: #b71c1c; --severe: #6a1b9a;
     --bar-a: #1f6feb; --bar-b: #8250df; --bar-c: #d97706;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #0f141a; --panel: #18202a; --ink: #e6edf3; --muted: #9aa7b4; --line: #2b3643;
-            --accent: #58a6ff; --ok: #3fb950; --warn: #d29922; --bad: #f85149; --alert: #da3633; }
+            --accent: #58a6ff; --ok: #3fb950; --warn: #d29922; --bad: #f85149; --alert: #da3633; --severe: #a371f7; }
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink);
                font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  a { color: var(--accent); }
   #app { display: grid; height: 100%;
-         grid-template-rows: auto auto 1fr auto; grid-template-columns: 260px 1fr 280px;
+         grid-template-rows: auto auto 1fr auto; grid-template-columns: 260px 1fr 300px;
          grid-template-areas: "top top top" "alert alert alert" "left map right" "time time time"; }
   header { grid-area: top; display: flex; gap: 16px; align-items: center; padding: 8px 14px;
            background: var(--panel); border-bottom: 1px solid var(--line); flex-wrap: wrap; }
@@ -32,27 +35,45 @@
   .pill { padding: 2px 9px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; color: var(--muted); }
   .pill b { color: var(--ink); }
   .SYNCED { color: var(--ok) !important; } .STALE { color: var(--warn) !important; } .LOST { color: var(--bad) !important; }
-  #alert { grid-area: alert; display: none; background: var(--alert); color: #fff; padding: 8px 14px; font-weight: 600; }
+  #alert { grid-area: alert; display: none; align-items: center; gap: 12px; flex-wrap: wrap;
+           background: var(--alert); color: #fff; padding: 8px 14px; font-weight: 600; }
+  #alert span { flex: 1; }
+  #alert button { width: auto; margin: 0; background: #fff; color: var(--alert); border: 0; font-weight: 700; text-align: center; }
   aside { background: var(--panel); padding: 12px; overflow: auto; border-right: 1px solid var(--line); }
   #right { grid-area: right; border-right: 0; border-left: 1px solid var(--line); }
   #left { grid-area: left; }
   aside h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 14px 0 6px; }
   aside h2:first-child { margin-top: 0; }
   dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0; }
-  dt { color: var(--muted); } dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  dt { color: var(--muted); } dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
   button { width: 100%; margin: 3px 0; padding: 7px 8px; border-radius: 6px; border: 1px solid var(--line);
            background: var(--bg); color: var(--ink); cursor: pointer; font: inherit; text-align: left; }
   button:hover { border-color: var(--accent); }
+  button:disabled { opacity: .5; cursor: default; }
   button.danger { color: var(--bad); }
   button.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .btnrow { display: flex; gap: 6px; flex-wrap: wrap; } .btnrow button { flex: 1; text-align: center; min-width: 120px; }
   #hint { color: var(--muted); font-size: 12px; min-height: 1.4em; }
+  .small { font-size: 12px; color: var(--muted); }
   #map { grid-area: map; position: relative; min-height: 300px; }
   #cesium { position: absolute; inset: 0; }
   .bars .row { display: grid; grid-template-columns: 22px 1fr 52px; align-items: center; gap: 6px; margin: 6px 0; }
   .bars .track { height: 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
   .bars .fill { height: 100%; width: 33%; transition: width .3s; }
-  #alerts { list-style: none; padding: 0; margin: 0; max-height: 220px; overflow: auto; font-size: 12px; }
+  #alerts, #events { list-style: none; padding: 0; margin: 0; max-height: 220px; overflow: auto; font-size: 12px; }
   #alerts li { border-left: 3px solid var(--alert); padding: 3px 6px; margin: 4px 0; background: var(--bg); }
+  #events li { border-left: 3px solid var(--accent); padding: 3px 6px; margin: 3px 0; background: var(--bg); }
+  #events li.done { border-left-color: var(--ok); font-weight: 600; } #events li.abort { border-left-color: var(--bad); }
+  #events .k { font-weight: 600; }
+  /* pollution panel */
+  .pollrow { display: grid; grid-template-columns: 48px 1fr auto; align-items: center; gap: 6px; margin: 4px 0; }
+  .big { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chip { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 700;
+          color: #fff; background: var(--muted); white-space: nowrap; }
+  .chip.ok { background: var(--ok); } .chip.elev { background: var(--warn); } .chip.alert { background: var(--bad); }
+  .chip.severe { background: var(--severe); box-shadow: 0 0 0 2px var(--bad); }
+  #spark { width: 100%; height: 56px; display: block; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); margin: 6px 0; }
+  #river-note { margin-top: 6px; }
   footer { grid-area: time; background: var(--panel); border-top: 1px solid var(--line); padding: 6px 14px; }
   #tl { position: relative; height: 34px; }
   #tl input { width: 100%; margin: 0; }
@@ -60,15 +81,56 @@
   .mk { position: absolute; width: 2px; height: 10px; }
   .mk.s { background: var(--accent); } .mk.e { background: var(--bad); width: 4px; }
   #legend { position: absolute; left: 10px; bottom: 30px; background: var(--panel); border: 1px solid var(--line);
-            border-radius: 6px; padding: 6px 9px; font-size: 12px; opacity: .93; }
-  #legend div { display: flex; align-items: center; gap: 6px; }
+            border-radius: 6px; padding: 6px 9px; font-size: 12px; opacity: .95; max-width: 230px; }
+  #legend > div, #legend label { display: flex; align-items: center; gap: 6px; }
+  #legend label { cursor: pointer; margin: 1px 0; }
+  #legend .lg-title { font-weight: 700; margin-top: 4px; }
+  #ramp { width: 200px; height: 12px; border: 1px solid var(--line); border-radius: 2px; display: block !important; }
+  #ticks { position: relative; width: 200px; height: 26px; display: block !important; }
+  #ticks span { position: absolute; top: 0; transform: translateX(-50%); font-size: 10px; text-align: center; white-space: nowrap; }
+  #ticks span::before { content: ''; display: block; width: 1px; height: 4px; background: var(--ink); margin: 0 auto 1px; }
+  #ticks span.al { color: var(--bad); font-weight: 700; }
   .sw { width: 18px; height: 10px; display: inline-block; }
   #placeholder { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); background: #ffd54f; color: #222;
                  padding: 3px 10px; font-weight: 700; border-radius: 4px; font-size: 12px; letter-spacing: .05em; }
+  /* incident modal */
+  #inc-modal { position: fixed; inset: 0; background: rgba(0, 0, 0, .55); display: none; z-index: 1000;
+               align-items: flex-start; justify-content: center; padding: 3vh 2vw; overflow: auto; }
+  #inc-box { background: var(--panel); color: var(--ink); width: min(980px, 96vw); border-radius: 10px;
+             border: 3px solid var(--alert); box-shadow: 0 10px 40px rgba(0, 0, 0, .5); }
+  #inc-head { background: var(--alert); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  #inc-head h2 { margin: 0; font-size: 20px; flex: 1; letter-spacing: .02em; }
+  #inc-head button { width: auto; margin: 0; background: rgba(255, 255, 255, .15); color: #fff; border: 1px solid rgba(255, 255, 255, .6); text-align: center; }
+  .confirmed { background: var(--ok); color: #fff; padding: 8px 12px; border-radius: 6px; font-weight: 700; margin: 10px 16px 0; }
+  .inc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 10px 16px; }
+  #inc-modal h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 12px 0 6px; }
+  .tier { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; margin: 5px 0; font-size: 12px; background: var(--bg); }
+  .tier .tn { font-weight: 700; font-size: 13px; }
+  .tier.done { border-left: 5px solid var(--ok); }
+  .tier.current { box-shadow: inset 0 0 0 2px var(--alert); }
+  .tier.next { border: 1px dashed var(--warn); border-left: 5px solid var(--warn); }
+  .tier .st { float: right; font-weight: 700; }
+  .verify { color: var(--warn); font-weight: 700; }
+  .note { font-size: 12px; color: var(--ink); background: var(--bg); border-left: 3px solid var(--warn); padding: 4px 8px; margin: 6px 0; }
+  .actions label { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; margin: 5px 0; cursor: pointer; }
+  .actions input { margin-top: 3px; }
+  .actions small { color: var(--ok); white-space: nowrap; }
+  .fld { display: block; font-size: 12px; color: var(--muted); margin: 6px 0; }
+  .fld input[type=text], textarea { display: block; width: 100%; margin-top: 2px; font: 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 6px; }
+  .fld input[type=range] { width: 100%; }
+  #w-area { margin: 4px 0; padding-left: 18px; }
+  .inc-foot { padding: 0 16px 14px; }
+  #inc-log { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow: auto; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+             border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+  #inc-log li { padding: 2px 8px; border-bottom: 1px solid var(--line); }
+  #inc-log .lk { display: inline-block; min-width: 82px; color: var(--muted); }
   @media (max-width: 900px) {
     #app { grid-template-columns: 1fr; grid-template-rows: auto auto 55vh auto auto auto;
            grid-template-areas: "top" "alert" "map" "left" "right" "time"; }
     aside { border: 0; border-top: 1px solid var(--line); }
+    .inc-grid { grid-template-columns: 1fr; }
+    #legend { max-width: 180px; } #ramp, #ticks { width: 160px; }
   }
 </style>
 </head>
@@ -92,6 +154,11 @@
       <dt>Scenario</dt><dd id="m-scn">—</dd>
       <dt>Battery</dt><dd id="m-batt">n/a (SIM)</dd>
     </dl>
+    <h2>Robot</h2>
+    <button id="b-find">Find robot</button>
+    <button id="b-follow">Follow robot: off</button>
+    <h2>Mission events</h2>
+    <ul id="events"><li class="small">no events yet</li></ul>
     <h2>Sync per stream</h2>
     <dl id="streams"></dl>
     <h2>Commands</h2>
@@ -107,13 +174,34 @@
     <div id="cesium"></div>
     <div id="placeholder">PLACEHOLDER REACH · synthetic data</div>
     <div id="legend">
-      <div><span class="sw" style="background:linear-gradient(90deg,#2c7bb6,#ffffbf,#d7191c)"></span>plume NH₃-N</div>
+      <div class="lg-title">Plume layer</div>
+      <label><input type="radio" name="plume-layer" value="est" checked> Estimated plume</label>
+      <label><input type="radio" name="plume-layer" value="true"> True plume (simulation)</label>
+      <label><input type="radio" name="plume-layer" value="off"> Off</label>
+      <label><input type="checkbox" id="cols"> 3D columns</label>
+      <div class="lg-title">NH₃-N (mg/L)</div>
+      <div id="ramp"></div>
+      <div id="ticks"></div>
+      <div id="plume-info" class="small">no plume data yet</div>
       <div><span class="sw" style="background:#555"></span>real obstacle</div>
       <div><span class="sw" style="border:2px dashed #ff9800"></span>virtual obstacle</div>
       <div><span class="sw" style="border:2px dotted #e53935"></span>no-go zone</div>
     </div>
   </div>
   <aside id="right">
+    <h2>Pollution (live)</h2>
+    <div class="pollrow"><span>NH₃-N</span><span class="big" id="p-nh3">—</span><span class="chip" id="p-nh3-chip">no data</span></div>
+    <div class="pollrow"><span>DO</span><span class="big" id="p-do">—</span><span class="chip" id="p-do-chip">no data</span></div>
+    <canvas id="spark" title="NH₃-N, last 60 samples; dashed line = alert threshold"></canvas>
+    <dl>
+      <dt>Background</dt><dd id="p-bg">—</dd>
+      <dt>Max seen</dt><dd id="p-max">—</dd>
+      <dt>Where</dt><dd id="p-where">—</dd>
+    </dl>
+    <button id="b-inc" hidden>Open incident</button>
+    <h2>River · gauge</h2>
+    <dl id="river"></dl>
+    <div id="river-note" class="small"></div>
     <h2>Which outfall?</h2>
     <div class="bars" id="bars"></div>
     <dl><dt>Strength</dt><dd id="q">—</dd></dl>
@@ -130,6 +218,54 @@
     <div id="tlinfo" style="font-size:12px;color:var(--muted)">timeline: live</div>
   </footer>
 </div>
+
+<div id="inc-modal" role="dialog" aria-modal="true" aria-labelledby="inc-title">
+  <div id="inc-box">
+    <div id="inc-head">
+      <h2 id="inc-title">POLLUTANT DETECTED — Pegnitz, Nürnberg</h2>
+      <span class="chip" id="inc-sev">ALERT</span>
+      <button id="inc-min" title="Minimise to the red incident bar (Esc)">Minimise</button>
+    </div>
+    <div id="inc-confirmed" class="confirmed" hidden></div>
+    <div class="inc-grid">
+      <div>
+        <h3>Incident</h3>
+        <dl id="inc-sum"></dl>
+        <h3>Recommended actions</h3>
+        <div class="actions" id="inc-actions"></div>
+        <h3>Report details (Meldebogen)</h3>
+        <label class="fld">Observation (colour, odour, foam, dead fish)<input type="text" id="inc-obs"></label>
+        <label class="fld">Estimated quantity<input type="text" id="inc-qty" placeholder="unknown"></label>
+        <label class="fld">Reporter<input type="text" id="inc-rep"></label>
+      </div>
+      <div>
+        <h3>Escalation ladder</h3>
+        <div class="note"><b>Simulated — no message is sent.</b> Contact each authority by phone yourself; the button only records that you did.</div>
+        <div id="inc-tiers"></div>
+        <button id="inc-esc" class="danger">Escalate to next level</button>
+        <h3>Public warning</h3>
+        <button id="inc-warn">Request public warning</button>
+        <div id="inc-warnbox" hidden>
+          <div class="small">Addressed to: <span id="w-issuer"></span></div>
+          <label class="fld">Warning radius: <b id="w-rlab">500 m</b><input type="range" id="w-r" min="100" max="2000" step="50" value="500"></label>
+          <div class="small"><b>Affected area</b><ul id="w-area"></ul></div>
+          <textarea id="w-text" rows="14" spellcheck="false"></textarea>
+          <button id="w-copy">Copy draft to clipboard</button>
+          <div class="note" id="w-disc"></div>
+        </div>
+      </div>
+    </div>
+    <div class="inc-foot">
+      <h3>Incident log</h3>
+      <ul id="inc-log"></ul>
+      <div class="btnrow" style="margin-top:6px">
+        <button id="inc-json">Export log (JSON)</button>
+        <button id="inc-csv">Report (CSV)</button>
+        <button id="inc-txt">Report (text)</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script>
 'use strict';
 const CFG = Object.assign({}, window.PLUMETRACE_CONFIG || {}, window.PLUMETRACE_CONFIG_LOCAL || {});
@@ -137,6 +273,62 @@ const $ = (id) => document.getElementById(id);
 const COLORS = { A: getComputedStyle(document.documentElement).getPropertyValue('--bar-a'),
                  B: getComputedStyle(document.documentElement).getPropertyValue('--bar-b'),
                  C: getComputedStyle(document.documentElement).getPropertyValue('--bar-c') };
+
+// ---------- incident response data (pegnitz_response.js) with fallbacks ----------
+const PR_DEFAULT = {
+  river: { name: 'Pegnitz', gauge: null, downstream_km_to_regnitz: null, bathing: '', sources: [] },
+  thresholds: { nh3_n_elevated: 0.3, nh3_n_alert: 0.6, nh3_n_severe: 2.0, do_low: 6.0, do_critical: 4.0 },
+  escalation: [],
+  actions: [],
+  public_warning: { issuers: 'the responsible authority (Integrierte Leitstelle, 112)', default_radius_m: 500,
+    disclaimer: 'This tool cannot send a public warning. It drafts a request for the issuing authority.', sources: [] },
+  report_fields: ['time', 'location (lat, lon)', 'water body', 'observation (colour, odour, foam, dead fish)',
+    'NH3-N mg/L', 'DO mg/L', 'suspected source', 'estimated quantity', 'reporter', 'notified tiers'],
+};
+const PR_LOADED = !!window.PEGNITZ_RESPONSE;
+const PR = Object.assign({}, PR_DEFAULT, window.PEGNITZ_RESPONSE || {});
+const TH = Object.assign({}, PR_DEFAULT.thresholds, PR.thresholds || {});
+const PW = Object.assign({}, PR_DEFAULT.public_warning, PR.public_warning || {});
+const LADDER = Array.isArray(PR.escalation) ? PR.escalation : [];
+const ACTIONS = Array.isArray(PR.actions) ? PR.actions : [];
+// named places in the city from the action list that have no coordinates in data/
+const EXTRA_PLACES = 'Kettensteg and Hallertor bridges and banks downstream in the city (not in the reach data, check on site)';
+
+// ---------- small helpers ----------
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+const isNum = (v) => v !== null && v !== '' && Number.isFinite(+v);
+const num = (v, d) => isNum(v) ? (+v).toFixed(d) : '—';
+const nowIso = () => new Date().toISOString();
+const clock = (iso) => new Date(iso).toLocaleTimeString([], { hour12: false });
+const fmtLL = (lat, lon) => isNum(lat) && isNum(lon) ? `${(+lat).toFixed(5)}, ${(+lon).toFixed(5)}` : '—';
+const fmtHM = (s) => { const m = Math.round(s / 60); return `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')} min`; };
+function distM(lat1, lon1, lat2, lon2) {
+  const R = 6371000, r = Math.PI / 180, dl = (lat2 - lat1) * r, dn = (lon2 - lon1) * r;
+  const a = Math.sin(dl / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dn / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+function download(name, text, mime) {
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function nh3Class(c) {
+  if (!isNum(c)) return { key: '', label: 'no data' };
+  if (c >= TH.nh3_n_severe) return { key: 'severe', label: 'SEVERE' };
+  if (c >= TH.nh3_n_alert) return { key: 'alert', label: 'ALERT' };
+  if (c >= TH.nh3_n_elevated) return { key: 'elev', label: 'Elevated' };
+  return { key: 'ok', label: 'Normal' };
+}
+function doClass(d) {
+  if (!isNum(d)) return { key: '', label: 'no data' };
+  if (d < TH.do_critical) return { key: 'severe', label: 'DO CRITICAL' };
+  if (d < TH.do_low) return { key: 'elev', label: 'DO low' };
+  return { key: 'ok', label: 'OK' };
+}
+const setChip = (el, cls) => { el.className = 'chip ' + cls.key; el.textContent = cls.label; };
+
+// live state shared by the panels
+const STATE = { scenario: null, bg: 0.05, q: null, width: 22.61, depth: 1.0, outfalls: {}, stations: [], ring: [],
+                max: null, lastSample: null, confirmed: null };
 
 Cesium.Ion.defaultAccessToken = CFG.ionToken || '';
 const viewer = new Cesium.Viewer('cesium', {
@@ -169,6 +361,9 @@ async function loadReach() {
   const wp = wj.features[0].properties, ring = wj.features[0].geometry.coordinates[0];
   const mid = ring.reduce((a, p) => [a[0] + p[0] / ring.length, a[1] + p[1] / ring.length], [0, 0]);
   const synthetic = /PLACEHOLDER/.test(wp.reach_id);
+  if (isNum(wp.width_m)) STATE.width = +wp.width_m;
+  if (isNum(wp.depth_m)) STATE.depth = +wp.depth_m;
+  STATE.ring = ring;
   if (CFG.ionToken) {
     try {
       const tp = await Cesium.createWorldTerrainAsync();
@@ -183,6 +378,7 @@ async function loadReach() {
   const outf = await (await fetch('data/outfalls.geojson')).json();
   for (const f of outf.features) {
     const [lon, lat] = f.geometry.coordinates;
+    STATE.outfalls[f.properties.id] = { lat, lon, bank: f.properties.bank };
     ents.add({ id: 'outfall-' + f.properties.id, name: 'Outfall ' + f.properties.id,
       position: at(lon, lat, 1),
       point: { pixelSize: 11, color: Cesium.Color.fromCssColorString(COLORS[f.properties.id] || '#888'), outlineColor: Cesium.Color.WHITE, outlineWidth: 2 },
@@ -192,23 +388,49 @@ async function loadReach() {
   const st = await (await fetch('data/stations.geojson')).json();
   for (const f of st.features) {
     const [lon, lat] = f.geometry.coordinates;
+    STATE.stations.push(Object.assign({ lat, lon }, f.properties));
     ents.add({ name: f.properties.id, position: at(lon, lat, 1),
       point: { pixelSize: 8, color: Cesium.Color.DARKSLATEGRAY, outlineColor: Cesium.Color.WHITE, outlineWidth: 1 },
       label: { text: f.properties.kind === 'wq' ? 'WQ' : 'Gauge', font: '12px sans-serif', pixelOffset: new Cesium.Cartesian2(0, 14), fillColor: Cesium.Color.BLACK, showBackground: true, backgroundColor: Cesium.Color.WHITE.withAlpha(0.7) } });
   }
-  const c = water.entities.values[0];
   document.getElementById('reach').textContent = wp.name || wp.reach_id;
   document.getElementById('placeholder').textContent = synthetic ? 'PLACEHOLDER REACH · synthetic data' : (wp.name || wp.reach_id) + ' · synthetic plume and outfalls';
   ents.add({ position: at(mid[0], mid[1], 5), label: { text: wp.name || wp.reach_id, font: '700 15px sans-serif', fillColor: Cesium.Color.YELLOW, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE } });
   viewer.flyTo(water, { duration: 0 });
+  renderRiver();
 }
 loadReach().catch((e) => console.error(e));
 
+// ---------- animation phases (shared so semi-major == semi-minor in every frame) ----------
+let ringR = 8, ringA = 0.5, pulseR = 10, pulseA = 0.5, warnR = PW.default_radius_m;
+viewer.scene.preRender.addEventListener(() => {
+  const ph = (performance.now() % 1600) / 1600;
+  ringR = 5 + 6 * ph; ringA = 0.75 * (1 - ph);
+  const pq = (performance.now() % 2200) / 2200;
+  pulseR = 6 + 26 * pq; pulseA = 0.7 * (1 - pq);
+});
+
 // ---------- live layers ----------
 const plume = viewer.scene.primitives.add(new Cesium.PointPrimitiveCollection());
-const robot = ents.add({ id: 'robot', name: 'TurtleBot3 (×100 symbol)', position: Cesium.Cartesian3.fromDegrees(0, 0, 2),
-  billboard: { image: robotIcon(), width: 30, height: 30, rotation: 0, alignedAxis: Cesium.Cartesian3.ZERO },
-  label: { text: 'robot', font: '12px sans-serif', pixelOffset: new Cesium.Cartesian2(0, 22), fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 3, style: Cesium.LabelStyle.FILL_AND_OUTLINE } });
+const plumePool = [];
+const columns = viewer.scene.primitives.add(new Cesium.PolylineCollection());
+const colPool = [];
+const COL_MAX = 300;
+const PLUME = { est: null, tru: null, layer: 'est', cols: false };
+
+const robot = ents.add({ id: 'robot', name: 'TurtleBot3 (×100 symbol)', show: false, position: Cesium.Cartesian3.fromDegrees(0, 0, 2),
+  billboard: { image: robotIcon(), width: 56, height: 56, rotation: 0, alignedAxis: Cesium.Cartesian3.ZERO,
+    // 56 px close up, never below ~40 px (0.72 × 56) far away; never hidden by terrain or buildings
+    scaleByDistance: new Cesium.NearFarScalar(150, 1.0, 2500, 0.72), disableDepthTestDistance: Number.POSITIVE_INFINITY },
+  label: { text: 'TurtleBot3', font: '700 14px sans-serif', pixelOffset: new Cesium.Cartesian2(0, 38), fillColor: Cesium.Color.WHITE,
+    outlineColor: Cesium.Color.BLACK, outlineWidth: 4, style: Cesium.LabelStyle.FILL_AND_OUTLINE, showBackground: true,
+    backgroundColor: Cesium.Color.BLACK.withAlpha(0.55), disableDepthTestDistance: Number.POSITIVE_INFINITY },
+  viewFrom: new Cesium.Cartesian3(0, -180, 140),
+  description: 'TurtleBot3 Burger in the 1:100 lab model, drawn at river scale on the Pegnitz.' });
+const robotRing = ents.add({ id: 'robot-ring', show: false, position: Cesium.Cartesian3.fromDegrees(0, 0, 0),
+  ellipse: { semiMajorAxis: new Cesium.CallbackProperty(() => ringR, false), semiMinorAxis: new Cesium.CallbackProperty(() => ringR, false),
+    height: new Cesium.CallbackProperty(() => H0 + 0.6, false),
+    material: new Cesium.ColorMaterialProperty(new Cesium.CallbackProperty(() => Cesium.Color.YELLOW.withAlpha(ringA), false)) } });
 const track = [];
 ents.add({ polyline: { positions: new Cesium.CallbackProperty(() => track, false), width: 2, material: Cesium.Color.WHITE.withAlpha(0.7) } });
 const samples = [];
@@ -216,43 +438,488 @@ const obsEnts = new Map();
 let posterior = null;
 
 function robotIcon() {
-  const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
-  g.fillStyle = '#111'; g.strokeStyle = '#fff'; g.lineWidth = 5;
-  g.beginPath(); g.arc(32, 32, 22, 0, 2 * Math.PI); g.fill(); g.stroke();
-  g.fillStyle = '#4caf50'; g.beginPath(); g.moveTo(32, 8); g.lineTo(44, 30); g.lineTo(20, 30); g.closePath(); g.fill();
+  const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d');
+  g.fillStyle = 'rgba(255, 214, 0, 0.35)'; g.beginPath(); g.arc(64, 64, 62, 0, 2 * Math.PI); g.fill();
+  g.fillStyle = '#111'; g.strokeStyle = '#ffd600'; g.lineWidth = 10;
+  g.beginPath(); g.arc(64, 64, 40, 0, 2 * Math.PI); g.fill(); g.stroke();
+  g.strokeStyle = '#000'; g.lineWidth = 3; g.fillStyle = '#00e676';
+  g.beginPath(); g.moveTo(64, 10); g.lineTo(88, 60); g.lineTo(40, 60); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 74, 9, 0, 2 * Math.PI); g.fill();
   return c.toDataURL();
 }
+// 0.05 mg/L -> 0, 3 mg/L -> 1 (log scale); the legend ticks use the same mapping
+const plumeT = (c) => Math.max(0, Math.min(1, Math.log10(Math.max(c, 0.05) / 0.05) / Math.log10(60)));
 function plumeColor(c) {
-  const t = Math.max(0, Math.min(1, Math.log10(Math.max(c, 0.05) / 0.05) / Math.log10(60)));
+  const t = plumeT(c);
   const stops = [[44, 123, 182], [171, 217, 233], [255, 255, 191], [253, 174, 97], [215, 25, 28]];
   const x = t * (stops.length - 1), i = Math.min(stops.length - 2, Math.floor(x)), f = x - i;
   const m = stops[i].map((v, k) => v + (stops[i + 1][k] - v) * f);
   return new Cesium.Color(m[0] / 255, m[1] / 255, m[2] / 255, 0.25 + 0.65 * t);
 }
+function buildLegend() {
+  const stops = [];
+  for (let i = 0; i <= 10; i++) { const t = i / 10; stops.push(plumeColor(0.05 * Math.pow(60, t)).withAlpha(1).toCssColorString() + ' ' + (t * 100) + '%'); }
+  $('ramp').style.background = `linear-gradient(90deg, ${stops.join(', ')})`;
+  $('ticks').innerHTML = [0.05, 0.3, 0.6, 2, 3].map((c) =>
+    `<span class="${c === TH.nh3_n_alert ? 'al' : ''}" style="left:${(plumeT(c) * 100).toFixed(1)}%">${c}${c === TH.nh3_n_alert ? '<br>alert' : ''}</span>`).join('');
+}
+buildLegend();
+
+function renderPlume() {
+  const m = PLUME.layer === 'est' ? PLUME.est : PLUME.layer === 'true' ? PLUME.tru : null;
+  const pts = m && Array.isArray(m.points) ? m.points : [];
+  const cut = STATE.bg + 0.02, colCut = Math.max(cut, 0.1);
+  let n = 0, cmax = 0; const above = [];
+  for (const p of pts) {
+    const lat = +p[0], lon = +p[1], c = +p[2];
+    if (!(c >= cut) || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+    let pp = plumePool[n];
+    if (!pp) { pp = plume.add({ position: at(lon, lat, 0.5) }); plumePool.push(pp); }
+    pp.show = true; pp.position = at(lon, lat, 0.5); pp.pixelSize = 7 + 9 * plumeT(c); pp.color = plumeColor(c);
+    n++; if (c > cmax) cmax = c;
+    if (PLUME.cols && c >= colCut) above.push([lat, lon, c]);
+  }
+  for (let i = n; i < plumePool.length; i++) plumePool[i].show = false;
+  let k = 0;
+  if (PLUME.cols) {
+    above.sort((a, b) => b[2] - a[2]);
+    for (const [lat, lon, c] of above.slice(0, COL_MAX)) {
+      const top = 0.5 + 3 + 45 * plumeT(c);
+      let pl = colPool[k];
+      if (!pl) { pl = columns.add({ width: 9, positions: [at(lon, lat, 0.5), at(lon, lat, top)], material: Cesium.Material.fromType('Color', { color: Cesium.Color.WHITE }) }); colPool.push(pl); }
+      pl.show = true; pl.positions = [at(lon, lat, 0.5), at(lon, lat, top)];
+      pl.material.uniforms.color = plumeColor(c).withAlpha(0.9);
+      k++;
+    }
+  }
+  for (let i = k; i < colPool.length; i++) colPool[i].show = false;
+  const info = $('plume-info');
+  if (PLUME.layer === 'off') info.textContent = 'plume hidden';
+  else if (!m) info.textContent = PLUME.layer === 'true' ? 'no true plume received yet' : 'no estimate received yet';
+  else info.textContent = `${n} cells > ${cut.toFixed(2)} mg/L · max ${cmax.toFixed(2)}${PLUME.cols ? ` · ${k} columns` : ''}`;
+}
+document.querySelectorAll('input[name=plume-layer]').forEach((r) => r.onchange = () => { PLUME.layer = r.value; renderPlume(); });
+$('cols').onchange = (e) => { PLUME.cols = e.target.checked; renderPlume(); };
+
+// ---------- robot: find / follow ----------
+let follow = false;
+function setFollow(on) {
+  follow = on;
+  const b = $('b-follow'); b.classList.toggle('active', on); b.textContent = on ? 'Follow robot: ON' : 'Follow robot: off';
+  viewer.trackedEntity = on && robot.show ? robot : undefined;
+}
+$('b-follow').onclick = () => setFollow(!follow);
+viewer.trackedEntityChanged.addEventListener((e) => { if (!e && follow && robot.show) setFollow(false); });
+$('b-find').onclick = () => {
+  if (!robot.show) { $('hint').textContent = 'No robot pose received yet.'; return; }
+  if (follow) setFollow(false);
+  const p = robot.position.getValue(viewer.clock.currentTime);
+  viewer.camera.flyToBoundingSphere(new Cesium.BoundingSphere(p, 20),
+    { offset: new Cesium.HeadingPitchRange(viewer.camera.heading, Cesium.Math.toRadians(-50), 260), duration: 1.2 });
+};
+
+// ---------- panels ----------
+function nearest(lat, lon) {
+  let best = null;
+  for (const [id, o] of Object.entries(STATE.outfalls)) { const d = distM(lat, lon, o.lat, o.lon); if (!best || d < best.d) best = { name: 'outfall ' + id, d }; }
+  for (const s of STATE.stations) { const d = distM(lat, lon, s.lat, s.lon); if (!best || d < best.d) best = { name: (s.kind === 'gauge' ? 'gauge ' : 'WQ station ') + s.name, d }; }
+  return best;
+}
+function locationText(lat, lon) {
+  const n = isNum(lat) && isNum(lon) ? nearest(+lat, +lon) : null;
+  return fmtLL(lat, lon) + (n ? ` (${Math.round(n.d)} m from ${n.name})` : '');
+}
+function velocity() {
+  const G = (PR.river || {}).gauge;
+  if (isNum(STATE.q)) return { v: STATE.q / (STATE.width * STATE.depth), basis: 'scenario Q' };
+  if (G && isNum(G.mq_m3s)) return { v: G.mq_m3s / (STATE.width * STATE.depth), basis: 'MQ (no scenario flow)' };
+  return null;
+}
+function etaText() {
+  const km = (PR.river || {}).downstream_km_to_regnitz, v = velocity();
+  return v && isNum(km) && v.v > 0 ? `${fmtHM(km * 1000 / v.v)} (${km} km at ${v.v.toFixed(2)} m/s, ${v.basis})` : '—';
+}
+function renderRiver() {
+  const R = PR.river || {}, G = R.gauge, rows = [];
+  if (G) {
+    rows.push(['Gauge', `<a href="${esc(G.url)}" target="_blank" rel="noopener">${esc(G.id)} ${esc(G.name)}</a>`]);
+    rows.push(['MQ / MNQ / NQ', `${esc(G.mq_m3s)} / ${esc(G.mnq_m3s)} / ${esc(G.nq_m3s)} m³/s`]);
+    rows.push(['MHQ', `${esc(G.mhq_m3s)} m³/s`]);
+    if (Array.isArray(G.warning_levels_cm)) rows.push(['Warning levels 1–4', `${G.warning_levels_cm.map(esc).join(' / ')} cm`]);
+    rows.push(['River km', esc(G.river_km)]);
+  } else rows.push(['Gauge', 'pegnitz_response.js not loaded']);
+  rows.push(['Scenario flow Q', isNum(STATE.q) ? `${num(STATE.q, 2)} m³/s` : '— (no scenario in hello)']);
+  rows.push(['Cross-section', `${num(STATE.width, 2)} m × ${num(STATE.depth, 1)} m`]);
+  const v = velocity();
+  rows.push(['Mean velocity', v ? `${v.v.toFixed(2)} m/s` : '—']);
+  rows.push(['ETA to Regnitz', etaText()]);
+  $('river').innerHTML = rows.map(([k, val]) => `<dt>${k}</dt><dd>${val}</dd>`).join('');
+  const src = (R.sources || []).map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">[${i + 1}]</a>`).join(' ');
+  $('river-note').innerHTML = (R.bathing ? `<b>Bathing:</b> ${esc(R.bathing)}<br>` : '') +
+    `Velocity = Q / (width × depth); ETA = distance to the Regnitz confluence / velocity.` + (src ? `<br>Sources: ${src}` : '');
+}
+function renderPollution() {
+  const s = STATE.lastSample;
+  $('p-bg').textContent = `${STATE.bg.toFixed(3)} mg/L NH₃-N` + (STATE.scenario && isNum(STATE.scenario.background_do_mg_l) ? ` · DO ${num(STATE.scenario.background_do_mg_l, 1)}` : '');
+  if (s) {
+    $('p-nh3').textContent = num(s.nh3_n_mg_l, 3) + ' mg/L'; setChip($('p-nh3-chip'), nh3Class(+s.nh3_n_mg_l));
+    $('p-do').textContent = num(s.do_mg_l, 2) + ' mg/L'; setChip($('p-do-chip'), doClass(+s.do_mg_l));
+  }
+  if (STATE.max) {
+    $('p-max').textContent = `${STATE.max.c.toFixed(3)} mg/L (#${STATE.max.seq})`;
+    $('p-where').textContent = locationText(STATE.max.lat, STATE.max.lon);
+  }
+  drawSpark();
+}
+function drawSpark() {
+  const cv = $('spark'), dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth || 256, h = cv.clientHeight || 56;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+  const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const css = getComputedStyle(document.documentElement), col = (n) => css.getPropertyValue(n).trim();
+  const vals = samples.slice(-60).map((s) => +s.nh3_n_mg_l).filter(Number.isFinite);
+  const ymax = Math.max(TH.nh3_n_alert * 1.3, ...vals) * 1.08;
+  const y = (v) => h - 3 - (h - 6) * Math.min(v, ymax) / ymax;
+  g.setLineDash([4, 3]); g.strokeStyle = col('--bad'); g.lineWidth = 1;
+  g.beginPath(); g.moveTo(0, y(TH.nh3_n_alert)); g.lineTo(w, y(TH.nh3_n_alert)); g.stroke(); g.setLineDash([]);
+  g.fillStyle = col('--bad'); g.font = '10px sans-serif'; g.fillText(`alert ${TH.nh3_n_alert}`, 3, y(TH.nh3_n_alert) - 2);
+  if (!vals.length) { g.fillStyle = col('--muted'); g.fillText('no samples yet', w / 2 - 30, h / 2 + 10); return; }
+  const dx = vals.length > 1 ? (w - 8) / (vals.length - 1) : 0;
+  g.strokeStyle = col('--accent'); g.lineWidth = 1.6; g.beginPath();
+  vals.forEach((v, i) => (i ? g.lineTo(4 + i * dx, y(v)) : g.moveTo(4 + i * dx, y(v)))); g.stroke();
+  const last = vals[vals.length - 1], k = nh3Class(last).key;
+  g.fillStyle = col(k === 'ok' ? '--ok' : k === 'elev' ? '--warn' : k === 'alert' ? '--bad' : '--severe');
+  g.beginPath(); g.arc(4 + (vals.length - 1) * dx, y(last), 3.5, 0, 2 * Math.PI); g.fill();
+}
+window.addEventListener('resize', drawSpark);
+
+// ---------- mission events ----------
+const EVENTS = [];
+function summarize(data) {
+  if (!data || typeof data !== 'object') return data == null ? '' : String(data);
+  return Object.entries(data).filter(([, v]) => v == null || typeof v !== 'object')
+    .slice(0, 4).map(([k, v]) => `${k}=${typeof v === 'number' ? +v.toFixed(3) : v}`).join(' ');
+}
+function probFor(d, label) {
+  const p = d && d.probabilities;
+  if (Array.isArray(p)) { const labels = d.labels || (posterior && posterior.labels) || ['A', 'B', 'C']; const i = labels.indexOf(label); return i >= 0 ? +p[i] : null; }
+  if (p && typeof p === 'object') return isNum(p[label]) ? +p[label] : null;
+  return null;
+}
+function eventText(m) {
+  if (m.kind === 'done') {
+    const d = m.data || {}, p = probFor(d, d.map_label);
+    return `source: outfall ${d.map_label ?? '?'}${isNum(p) ? ` (${(p * 100).toFixed(0)} %)` : ''}${isLocalised(d) ? '' : ` (best guess, ${esc(d.final ?? 'not final')})`}`;
+  }
+  return summarize(m.data);
+}
+function renderEvents() {
+  $('events').innerHTML = EVENTS.map((m) =>
+    `<li class="${esc(m.kind)}"><span class="k">${esc(m.kind)}</span>${isNum(m.t) ? ` · t ${(+m.t).toFixed(1)} s` : ''}<br>${esc(eventText(m))}</li>`).join('');
+}
+const confirmPulse = { ent: null };
+const LOCALISED_P = 0.95;  // estimator.py: localised at p >= 0.95
+function isLocalised(d) { const p = probFor(d, d.map_label); return d.final === 'DONE' && isNum(p) && p >= LOCALISED_P; }
+function sourceConfirmed(m) {
+  const d = m.data || {}, label = d.map_label;
+  if (label == null) return;
+  const p = probFor(d, label);
+  if (!isLocalised(d)) { logInc('mission', `Mission ended (${d.final ?? '?'}) without localising; best guess outfall ${label}${isNum(p) ? ` (p ${(p * 100).toFixed(1)} %)` : ''}`, d); return; }
+  for (const id of Object.keys(STATE.outfalls)) { const e = ents.getById('outfall-' + id); if (e && e.point) e.point.pixelSize = 11; }
+  STATE.confirmed = { label: String(label), p, t: m.t, final: d.final, time: nowIso() };
+  const o = STATE.outfalls[label];
+  if (o) {
+    if (confirmPulse.ent) ents.remove(confirmPulse.ent);
+    confirmPulse.ent = ents.add({ id: 'confirmed-source', name: `Source confirmed: outfall ${label}`, position: at(o.lon, o.lat, 2),
+      ellipse: { semiMajorAxis: new Cesium.CallbackProperty(() => pulseR, false), semiMinorAxis: new Cesium.CallbackProperty(() => pulseR, false),
+        height: new Cesium.CallbackProperty(() => H0 + 0.7, false),
+        material: new Cesium.ColorMaterialProperty(new Cesium.CallbackProperty(() => Cesium.Color.LIME.withAlpha(pulseA), false)) },
+      label: { text: `SOURCE CONFIRMED: ${label}`, font: '700 14px sans-serif', pixelOffset: new Cesium.Cartesian2(0, -40), fillColor: Cesium.Color.LIME,
+        outlineColor: Cesium.Color.BLACK, outlineWidth: 4, style: Cesium.LabelStyle.FILL_AND_OUTLINE, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      description: `Mission ended: outfall ${esc(label)}${isNum(p) ? `, probability ${(p * 100).toFixed(1)} %` : ''}.` });
+    const oe = ents.getById('outfall-' + label);
+    if (oe && oe.point) { oe.point.pixelSize = 18; oe.point.disableDepthTestDistance = Number.POSITIVE_INFINITY; }
+  }
+  logInc('source', `Source confirmed by mission: outfall ${label}${isNum(p) ? ` (p ${(p * 100).toFixed(1)} %)` : ''}`, d);
+  if (INC) { INC.confirmed = STATE.confirmed; INC.likely = String(label); if (isNum(p)) INC.prob = p; renderIncident(); }
+}
+
+// ---------- incident workflow ----------
+let INC = null;
+const LOG = [];
+function logInc(kind, text, data) {
+  const e = { time: nowIso(), kind, text }; if (data !== undefined) e.data = data;
+  LOG.push(e); if (LOG.length > 500) LOG.shift(); renderLog();
+}
+function renderLog() {
+  $('inc-log').innerHTML = LOG.slice().reverse().map((e) =>
+    `<li><span class="lk">${esc(clock(e.time))}</span> <b>${esc(e.kind)}</b> ${esc(e.text)}</li>`).join('');
+}
+function posteriorLikely() {
+  if (!posterior || !Array.isArray(posterior.probabilities)) return { label: null, p: null };
+  let i = 0; posterior.probabilities.forEach((p, k) => { if (p > posterior.probabilities[i]) i = k; });
+  return { label: posterior.labels[i], p: posterior.probabilities[i] };
+}
+function openIncident(src) {
+  const d = new Date(), pl = posteriorLikely();
+  INC = { id: 'PT-' + d.toISOString().replace(/[-:]/g, '').slice(0, 15).replace('T', '-'), start: d.toISOString(), river_t: src.t,
+          via: src.via, lat: src.lat, lon: src.lon, max_c: +src.c, max_at: { lat: src.lat, lon: src.lon, seq: src.seq, t: src.t },
+          min_do: isNum(src.do) ? +src.do : null, likely: src.likely ?? pl.label, prob: isNum(src.prob) ? +src.prob : pl.p,
+          severity: +src.c >= TH.nh3_n_severe || (isNum(src.do) && +src.do < TH.do_critical) ? 'SEVERE' : 'ALERT',
+          notified: [], actions: {}, warning: null, confirmed: STATE.confirmed, observation: '', quantity: '', reporter: '', last_message: src.message || '' };
+  logInc('incident', `Incident ${INC.id} opened (${src.via}): NH₃-N ${num(src.c, 3)} mg/L at ${locationText(src.lat, src.lon)}; severity ${INC.severity}`);
+  $('inc-actions').innerHTML = ACTIONS.length ? ACTIONS.map((a, i) =>
+    `<label><input type="checkbox" data-act="${i}"><span>${esc(a)} <small id="act-t-${i}"></small></span></label>`).join('')
+    : '<div class="small">pegnitz_response.js not loaded: report to Police 110 / Fire 112.</div>';
+  $('inc-actions').querySelectorAll('input[data-act]').forEach((cb) => cb.onchange = () => {
+    const i = +cb.dataset.act, t = nowIso();
+    INC.actions[i] = cb.checked ? t : null;
+    $('act-t-' + i).textContent = cb.checked ? '✓ ' + clock(t) : '';
+    logInc('action', `${cb.checked ? 'Done' : 'Unticked'}: ${ACTIONS[i]}`);
+  });
+  $('w-issuer').textContent = PW.issuers; $('w-disc').textContent = PW.disclaimer;
+  $('w-r').value = PW.default_radius_m; $('b-inc').hidden = false;
+  renderIncident(); showModal(true);
+}
+function upgradeSeverity(reason) {
+  if (!INC || INC.severity === 'SEVERE') return;
+  INC.severity = 'SEVERE'; logInc('severity', `Severity upgraded to SEVERE: ${reason}`);
+}
+function incidentFromSample(m) {
+  const c = +m.nh3_n_mg_l, dO = +m.do_mg_l;
+  if (!INC) {
+    if (c >= TH.nh3_n_alert) openIncident({ via: `sample #${m.seq} crossed ${TH.nh3_n_alert} mg/L`, t: m.t, c, do: dO, lat: m.lat, lon: m.lon, seq: m.seq });
+    return;
+  }
+  if (c > INC.max_c) { INC.max_c = c; INC.max_at = { lat: m.lat, lon: m.lon, seq: m.seq, t: m.t }; }
+  if (Number.isFinite(dO) && (INC.min_do == null || dO < INC.min_do)) INC.min_do = dO;
+  if (c >= TH.nh3_n_severe) upgradeSeverity(`NH₃-N ${c.toFixed(2)} mg/L ≥ ${TH.nh3_n_severe} (sample #${m.seq})`);
+  if (Number.isFinite(dO) && dO < TH.do_critical) upgradeSeverity(`DO ${dO.toFixed(2)} mg/L < ${TH.do_critical} (sample #${m.seq})`);
+  renderIncident();
+}
+function showModal(on) { $('inc-modal').style.display = on ? 'flex' : 'none'; if (!on) updateBar(); }
+$('inc-min').onclick = () => showModal(false);
+$('b-inc').onclick = () => showModal(true);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('inc-modal').style.display === 'flex') showModal(false); });
+function updateBar() {
+  if (!INC) return;
+  const a = $('alert'); a.style.display = 'flex';
+  a.innerHTML = `<span>INCIDENT ${esc(INC.id)} · ${esc(INC.severity)} · NH₃-N max ${num(INC.max_c, 2)} mg/L · likely outfall ${esc(INC.likely ?? '?')}` +
+    ` · ${INC.notified.length}/${LADDER.length} tiers notified${INC.confirmed ? ` · SOURCE CONFIRMED: outfall ${esc(INC.confirmed.label)}` : ''}` +
+    `${INC.last_message ? ' · ' + esc(INC.last_message) : ''}</span><button id="bar-open">Open incident</button>`;
+  $('bar-open').onclick = () => showModal(true);
+}
+function renderIncident() {
+  if (!INC) return;
+  const sev = $('inc-sev'); sev.textContent = INC.severity; sev.className = 'chip ' + (INC.severity === 'SEVERE' ? 'severe' : 'alert');
+  const rows = [
+    ['Incident', esc(INC.id)],
+    ['Opened', `${esc(new Date(INC.start).toLocaleString())}${isNum(INC.river_t) ? ` (river t ${(+INC.river_t).toFixed(1)} s)` : ''}`],
+    ['Trigger', esc(INC.via)],
+    ['Location', esc(locationText(INC.lat, INC.lon))],
+    ['Max NH₃-N', `<b>${num(INC.max_c, 3)} mg/L</b> (sample #${esc(INC.max_at.seq ?? '?')}, ${esc(fmtLL(INC.max_at.lat, INC.max_at.lon))})`],
+    ['Min DO', INC.min_do == null ? '—' : `${num(INC.min_do, 2)} mg/L (${esc(doClass(INC.min_do).label)})`],
+    ['Likely outfall', `${esc(INC.likely ?? '?')}${isNum(INC.prob) ? ` · ${(INC.prob * 100).toFixed(0)} %` : ''}${INC.confirmed ? ' · confirmed' : ' · posterior'}`],
+    ['ETA to Regnitz', esc(etaText())],
+  ];
+  $('inc-sum').innerHTML = rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+  const cf = $('inc-confirmed');
+  cf.hidden = !INC.confirmed;
+  if (INC.confirmed) cf.textContent = `Source confirmed: outfall ${INC.confirmed.label}` + (isNum(INC.confirmed.p) ? ` (probability ${(INC.confirmed.p * 100).toFixed(1)} %)` : '') + ' — marked on the map.';
+  renderTiers(); renderWarning(false); updateBar();
+}
+function renderTiers() {
+  const done = INC ? INC.notified.length : 0;
+  $('inc-tiers').innerHTML = LADDER.length ? LADDER.map((t, i) => {
+    const n = INC && INC.notified[i];
+    const cls = ['tier', n ? 'done' : '', i === done - 1 ? 'current' : '', i === done ? 'next' : ''].join(' ');
+    return `<div class="${cls}"><span class="st">${n ? 'notified ' + esc(clock(n.time)) : i === done ? 'next' : 'pending'}</span>` +
+      `<div class="tn">Tier ${esc(t.tier)} · ${esc(t.name)}</div>` +
+      `<div>Phone: <b>${esc(t.phone)}</b>${t.verified === false ? ' <span class="verify">verify number</span>' : ''}</div>` +
+      `<div>${esc(t.role)}</div><div class="small">When: ${esc(t.when)}</div></div>`;
+  }).join('') : '<div class="small">Escalation data (pegnitz_response.js) not loaded. Call Police 110 / Fire 112.</div>';
+  const next = LADDER[done], b = $('inc-esc');
+  b.disabled = !INC || !next;
+  b.textContent = next ? `Escalate to next level → tier ${next.tier}: ${next.name}` : LADDER.length ? 'All tiers notified' : 'Escalate to next level';
+}
+$('inc-esc').onclick = () => {
+  if (!INC) return;
+  const t = LADDER[INC.notified.length]; if (!t) return;
+  INC.notified.push({ tier: t.tier, name: t.name, phone: t.phone, role: t.role, verified: t.verified, time: nowIso() });
+  logInc('escalation', `Tier ${t.tier} marked notified (simulated, no message sent; contact by phone): ${t.name} · ${t.phone}${t.verified === false ? ' (verify number)' : ''}`);
+  renderTiers(); updateBar();
+};
+
+// public warning draft
+let warnEnt = null;
+function affectedArea(lat, lon, r) {
+  const out = [];
+  for (const s of STATE.stations) {
+    const d = distM(lat, lon, s.lat, s.lon);
+    if (d <= r) out.push(`${s.kind === 'gauge' ? `${s.name} footbridge (gauge ${s.id})` : `${s.name} (WQ station ${s.id})`}, ${Math.round(d)} m`);
+  }
+  for (const [id, o] of Object.entries(STATE.outfalls)) {
+    const d = distM(lat, lon, o.lat, o.lon);
+    if (d <= r) out.push(`outfall ${id} (${o.bank || '?'} bank), ${Math.round(d)} m`);
+  }
+  let bank = 0; const rg = STATE.ring;
+  for (let i = 1; i < rg.length; i++) {
+    const [lo1, la1] = rg[i - 1], [lo2, la2] = rg[i];
+    if (distM(lat, lon, (la1 + la2) / 2, (lo1 + lo2) / 2) <= r) bank += distM(la1, lo1, la2, lo2);
+  }
+  if (bank > 0) out.push(`≈ ${Math.round(bank)} m of river bank (both banks) in the modelled reach`);
+  out.push(EXTRA_PLACES);
+  out.push('Pegnitz downstream to the Regnitz confluence (Fürth)');
+  return out;
+}
+function warningText() {
+  const w = INC.warning, r = w.radius_m, c = num(INC.max_c, 2), loc = locationText(INC.lat, INC.lon);
+  const area = affectedArea(+INC.lat, +INC.lon, r);
+  const src = INC.likely != null ? `${INC.likely}${isNum(INC.prob) ? ` (${(INC.prob * 100).toFixed(0)} %)` : ''}${INC.confirmed ? ', confirmed' : ''}` : '?';
+  const tDe = new Date(INC.start).toLocaleString('de-DE'), tEn = new Date(INC.start).toLocaleString('en-GB');
+  return [
+    `An / To: ${PW.issuers}`,
+    `Von / From: PlumeTrace operator${INC.reporter ? ' (' + INC.reporter + ')' : ''}, incident ${INC.id}`,
+    '',
+    'BITTE UM WARNUNG DER BEVÖLKERUNG (Entwurf, nicht versendet)',
+    'Gewässerverunreinigung Pegnitz – Kontakt mit dem Wasser vermeiden.',
+    `Seit ${tDe} wird in der Pegnitz in Nürnberg (${loc}) eine erhöhte Ammonium-Konzentration gemessen (NH₃-N bis ${c} mg/L).`,
+    `Im Umkreis von ${r} m und flussabwärts bis zur Mündung in die Regnitz (Fürth): Kontakt mit dem Wasser vermeiden, Hunde nicht ins Wasser lassen, keine Fische entnehmen. Tote oder auffällige Fische bitte der Polizei (110) melden.`,
+    `Betroffener Bereich: ${area.join('; ')}.`,
+    `Vermutete Quelle: Einleitung ${src}. Geschätzte Fließzeit bis zur Regnitz: ${etaText()}.`,
+    '',
+    'REQUEST FOR A PUBLIC WARNING (draft, not sent)',
+    'Water pollution in the Pegnitz – avoid contact with the water.',
+    `Since ${tEn}, elevated ammonium has been measured in the Pegnitz in Nürnberg (${loc}), NH₃-N up to ${c} mg/L.`,
+    `Within ${r} m and downstream to the Regnitz confluence (Fürth): avoid contact with the water, keep dogs out of the water, do not take fish. Report dead or distressed fish to the police (110).`,
+    `Affected area: ${area.join('; ')}.`,
+    `Suspected source: outfall ${src}. Estimated travel time to the Regnitz: ${etaText()}.`,
+    '',
+    PW.disclaimer,
+  ].join('\n');
+}
+function renderWarning(regen) {
+  if (!INC || !INC.warning) return;
+  const w = INC.warning;
+  warnR = w.radius_m; $('w-rlab').textContent = w.radius_m + ' m';
+  $('w-area').innerHTML = affectedArea(+INC.lat, +INC.lon, w.radius_m).map((s) => `<li>${esc(s)}</li>`).join('');
+  if (!w.edited) $('w-text').value = warningText();
+  w.text = $('w-text').value;
+}
+$('inc-warn').onclick = () => {
+  if (!INC) return;
+  if (!INC.warning) {
+    INC.warning = { radius_m: +PW.default_radius_m || 500, drafted: nowIso(), edited: false };
+    logInc('warning', `Public warning request drafted for: ${PW.issuers} (radius ${INC.warning.radius_m} m). Not sent.`);
+  }
+  if (!warnEnt && isNum(INC.lat) && isNum(INC.lon)) {
+    warnEnt = ents.add({ id: 'warning-radius', name: 'Public warning radius (draft)', position: at(+INC.lon, +INC.lat, 0),
+      ellipse: { semiMajorAxis: new Cesium.CallbackProperty(() => warnR, false), semiMinorAxis: new Cesium.CallbackProperty(() => warnR, false),
+        height: new Cesium.CallbackProperty(() => H0 + 0.4, false), material: Cesium.Color.RED.withAlpha(0.13),
+        outline: true, outlineColor: Cesium.Color.RED, outlineWidth: 2 },
+      label: { text: new Cesium.CallbackProperty(() => `warning radius ${warnR} m (draft)`, false), font: '600 13px sans-serif',
+        pixelOffset: new Cesium.Cartesian2(0, -60), fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.RED, outlineWidth: 4,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE, disableDepthTestDistance: Number.POSITIVE_INFINITY } });
+  }
+  $('inc-warnbox').hidden = false; $('w-r').value = INC.warning.radius_m;
+  renderWarning(true);
+};
+$('w-r').oninput = (e) => { if (!INC || !INC.warning) return; INC.warning.radius_m = +e.target.value; renderWarning(true); };
+$('w-r').onchange = (e) => { if (INC && INC.warning) logInc('warning', `Warning radius set to ${e.target.value} m`); };
+$('w-text').oninput = () => { if (INC && INC.warning) { INC.warning.edited = true; INC.warning.text = $('w-text').value; } };
+$('w-copy').onclick = async () => {
+  const t = $('w-text').value;
+  try { await navigator.clipboard.writeText(t); }
+  catch (e) { $('w-text').select(); document.execCommand('copy'); }
+  $('w-copy').textContent = 'Copied: paste into your e-mail / fax to the authority';
+  setTimeout(() => { $('w-copy').textContent = 'Copy draft to clipboard'; }, 2500);
+  logInc('warning', 'Warning draft copied to clipboard (not sent by this tool)');
+};
+for (const [id, key, label] of [['inc-obs', 'observation', 'Observation'], ['inc-qty', 'quantity', 'Estimated quantity'], ['inc-rep', 'reporter', 'Reporter']]) {
+  $(id).onchange = (e) => { if (!INC) return; INC[key] = e.target.value; logInc('report', `${label}: ${e.target.value}`); renderWarning(false); };
+}
+
+// reports
+function reportValue(field) {
+  const f = String(field).toLowerCase(), G = (PR.river || {}).gauge;
+  if (f.startsWith('time')) return `${INC.start} (${new Date(INC.start).toLocaleString()})`;
+  if (f.startsWith('location')) return locationText(INC.lat, INC.lon);
+  if (f.startsWith('water body')) return `Pegnitz, Nürnberg${G ? ` (gauge ${G.id} ${G.name}, river km ${G.river_km})` : ''}`;
+  if (f.startsWith('observation')) return INC.observation || 'not recorded';
+  if (f.startsWith('nh3')) return `max ${num(INC.max_c, 3)} mg/L (sample #${INC.max_at.seq ?? '?'} at ${fmtLL(INC.max_at.lat, INC.max_at.lon)}); severity ${INC.severity}`;
+  if (f.startsWith('do')) return INC.min_do == null ? 'not measured' : `min ${num(INC.min_do, 2)} mg/L`;
+  if (f.startsWith('suspected source')) return INC.likely == null ? 'unknown' : `outfall ${INC.likely}${isNum(INC.prob) ? ` (${(INC.prob * 100).toFixed(0)} %)` : ''}${INC.confirmed ? ', confirmed by mission' : ', model posterior'}`;
+  if (f.startsWith('estimated quantity')) return INC.quantity || 'unknown';
+  if (f.startsWith('reporter')) return INC.reporter || 'not recorded';
+  if (f.startsWith('notified')) return INC.notified.length ? INC.notified.map((n) => `tier ${n.tier} ${n.name} (${n.phone}) at ${n.time}`).join('; ') : 'none recorded';
+  return '';
+}
+function reportRows() {
+  return [['incident id', INC.id], ['severity', INC.severity]].concat((PR.report_fields || PR_DEFAULT.report_fields).map((f) => [f, reportValue(f)]))
+    .concat([['ETA to Regnitz', etaText()], ['public warning', INC.warning ? `request drafted ${INC.warning.drafted}, radius ${INC.warning.radius_m} m (not sent)` : 'not requested']]);
+}
+const needIncident = () => { if (!INC) { $('hint').textContent = 'No incident open.'; return false; } return true; };
+$('inc-json').onclick = () => {
+  if (!needIncident()) return;
+  download(`${INC.id}_log.json`, JSON.stringify({ generated: nowIso(), incident: INC, report: Object.fromEntries(reportRows()), log: LOG,
+    samples_received: samples.length, disclaimer: PW.disclaimer, note: 'Simulated incident record. No message was sent by this tool.' }, null, 2), 'application/json');
+  logInc('export', 'Incident log exported (JSON)');
+};
+$('inc-csv').onclick = () => {
+  if (!needIncident()) return;
+  const q = (s) => '"' + String(s).replace(/"/g, '""') + '"';
+  const rows = ['field,value'].concat(reportRows().map(([k, v]) => q(k) + ',' + q(v)));
+  rows.push('', 'time,kind,text'); for (const e of LOG) rows.push([e.time, e.kind, e.text].map(q).join(','));
+  download(`${INC.id}_meldebogen.csv`, rows.join('\n'), 'text/csv');
+  logInc('export', 'Meldebogen report exported (CSV)');
+};
+$('inc-txt').onclick = () => {
+  if (!needIncident()) return;
+  const lines = ['MELDEBOGEN GEWÄSSERVERUNREINIGUNG / WATER POLLUTION INCIDENT REPORT', `generated ${nowIso()} by PlumeTrace (simulation)`, ''];
+  for (const [k, v] of reportRows()) lines.push(`${k.padEnd(46, '.')} ${v}`);
+  lines.push('', 'LOG');
+  for (const e of LOG) lines.push(`${e.time}  ${e.kind.padEnd(10)} ${e.text}`);
+  lines.push('', PW.disclaimer);
+  download(`${INC.id}_meldebogen.txt`, lines.join('\n'), 'text/plain');
+  logInc('export', 'Meldebogen report exported (text)');
+};
 
 const handlers = {
-  hello(m) { $('reach').textContent = m.reach; $('tf').textContent = m.time_factor; },
+  hello(m) {
+    $('reach').textContent = m.reach; $('tf').textContent = m.time_factor;
+    if (!PR_LOADED && isNum(m.alert_mg_l)) { TH.nh3_n_alert = +m.alert_mg_l; buildLegend(); }
+    if (m.scenario && typeof m.scenario === 'object') {
+      STATE.scenario = m.scenario;
+      STATE.bg = isNum(m.scenario.background_nh3_n_mg_l) ? +m.scenario.background_nh3_n_mg_l : 0.05;
+      STATE.q = isNum(m.scenario.q_m3s) ? +m.scenario.q_m3s : null;
+    }
+    renderRiver(); renderPollution(); renderPlume();
+  },
   pose(m) {
     const p = at(m.lon, m.lat, 2);
-    robot.position = p;
+    robot.position = p; robotRing.position = at(m.lon, m.lat, 0);
     robot.billboard.rotation = -Cesium.Math.toRadians(m.heading_deg);
+    if (!robot.show) { robot.show = true; robotRing.show = true; }
+    if (follow && viewer.trackedEntity !== robot) viewer.trackedEntity = robot;
     if (!track.length || Cesium.Cartesian3.distance(track[track.length - 1], p) > 0.5) { track.push(p); if (track.length > 3000) track.shift(); }
   },
-  plume_points(m) {
-    plume.removeAll();
-    for (const [lat, lon, c] of m.points) {
-      if (c < 0.06) continue;
-      plume.add({ position: at(lon, lat, 0.5), pixelSize: 7, color: plumeColor(c) });
-    }
-  },
+  plume_points(m) { PLUME.est = m; if (PLUME.layer === 'est') renderPlume(); },
+  plume_true(m) { PLUME.tru = m; if (PLUME.layer === 'true') renderPlume(); },
   sample(m) {
     if (samples.some((s) => s.seq === m.seq)) return;
     samples.push(m);
-    ents.add({ id: 'sample-' + m.seq, name: `Sample ${m.seq}`, position: at(m.lon, m.lat, 1),
-      point: { pixelSize: 9, color: plumeColor(m.nh3_n_mg_l).withAlpha(1), outlineColor: Cesium.Color.BLACK, outlineWidth: 1 },
-      description: `NH₃-N ${m.nh3_n_mg_l.toFixed(3)} mg/L<br>DO ${m.do_mg_l.toFixed(2)} mg/L<br>qc ${m.qc_flags}${m.is_replay ? ' (replayed)' : ''}` });
+    const c = +m.nh3_n_mg_l, nc = nh3Class(c), dc = doClass(+m.do_mg_l);
+    ents.add({ id: 'sample-' + m.seq, name: `Sample ${m.seq} · ${nc.label}`, position: at(m.lon, m.lat, 1),
+      point: { pixelSize: 12, color: plumeColor(c).withAlpha(1), outlineColor: nc.key === 'ok' ? Cesium.Color.BLACK : Cesium.Color.RED,
+        outlineWidth: nc.key === 'ok' ? 1 : 3, disableDepthTestDistance: Number.POSITIVE_INFINITY },
+      description: `NH₃-N ${num(c, 3)} mg/L — <b>${esc(nc.label)}</b><br>DO ${num(m.do_mg_l, 2)} mg/L — <b>${esc(dc.label)}</b><br>` +
+        `qc ${esc(m.qc_flags)}${m.is_replay ? ' (replayed)' : ''}<br>${esc(locationText(m.lat, m.lon))}` });
     $('n-samples').textContent = samples.length;
-    $('last').textContent = m.nh3_n_mg_l.toFixed(3) + ' mg/L';
+    $('last').textContent = num(c, 3) + ' mg/L';
+    STATE.lastSample = m;
+    if (Number.isFinite(c) && (!STATE.max || c > STATE.max.c)) STATE.max = { c, lat: m.lat, lon: m.lon, seq: m.seq };
+    renderPollution();
+    incidentFromSample(m);
     drawTimeline();
   },
   posterior(m) {
@@ -260,13 +927,30 @@ const handlers = {
     const bars = $('bars'); bars.innerHTML = '';
     m.labels.forEach((l, i) => {
       const p = m.probabilities[i];
-      bars.insertAdjacentHTML('beforeend', `<div class="row"><b>${l}</b><div class="track"><div class="fill" style="width:${(p * 100).toFixed(1)}%;background:${COLORS[l]}"></div></div><span>${(p * 100).toFixed(1)} %</span></div>`);
+      bars.insertAdjacentHTML('beforeend', `<div class="row"><b>${esc(l)}</b><div class="track"><div class="fill" style="width:${(p * 100).toFixed(1)}%;background:${COLORS[l] || 'var(--accent)'}"></div></div><span>${(p * 100).toFixed(1)} %</span></div>`);
     });
     $('q').textContent = m.map_strength.toFixed(2) + '× default';
+    if (INC && !INC.confirmed) { const pl = posteriorLikely(); INC.likely = pl.label; INC.prob = pl.p; renderIncident(); }
   },
   alert(m) {
-    const a = $('alert'); a.style.display = 'block'; a.textContent = m.message;
-    $('alerts').insertAdjacentHTML('afterbegin', `<li>#${m.seq} · ${m.nh3_n_mg_l.toFixed(2)} mg/L${m.likely_outfall ? ' · ' + m.likely_outfall + ' ' + (m.probability * 100).toFixed(0) + ' %' : ''}</li>`);
+    $('alerts').insertAdjacentHTML('afterbegin', `<li>#${esc(m.seq)} · ${num(m.nh3_n_mg_l, 2)} mg/L${m.likely_outfall ? ' · ' + esc(m.likely_outfall) + (isNum(m.probability) ? ' ' + (m.probability * 100).toFixed(0) + ' %' : '') : ''}<br>${esc(m.message)}</li>`);
+    if (!INC) {
+      openIncident({ via: 'gateway alert' + (m.seq != null ? ` #${m.seq}` : ''), t: m.t, c: +m.nh3_n_mg_l, lat: m.lat, lon: m.lon, seq: m.seq,
+                     likely: m.likely_outfall, prob: m.probability, message: m.message });
+    } else {
+      INC.last_message = m.message || '';
+      if (+m.nh3_n_mg_l > INC.max_c) { INC.max_c = +m.nh3_n_mg_l; INC.max_at = { lat: m.lat, lon: m.lon, seq: m.seq, t: m.t }; }
+      if (+m.nh3_n_mg_l >= TH.nh3_n_severe) upgradeSeverity(`gateway alert ${num(m.nh3_n_mg_l, 2)} mg/L ≥ ${TH.nh3_n_severe}`);
+      if (m.likely_outfall && !INC.confirmed) { INC.likely = m.likely_outfall; if (isNum(m.probability)) INC.prob = +m.probability; }
+      logInc('alert', `Gateway alert${m.seq != null ? ' #' + m.seq : ''}: ${num(m.nh3_n_mg_l, 3)} mg/L · ${m.message || ''}`);
+      renderIncident();
+    }
+  },
+  event(m) {
+    EVENTS.unshift(m); if (EVENTS.length > 10) EVENTS.length = 10;
+    renderEvents();
+    if (m.kind === 'done') sourceConfirmed(m);
+    else logInc('event', `Mission ${m.kind}${isNum(m.t) ? ` (t ${(+m.t).toFixed(1)} s)` : ''} ${summarize(m.data)}`);
   },
   obstacles(m) {
     const seen = new Set();
@@ -295,7 +979,7 @@ const handlers = {
     const dl = $('streams'); dl.innerHTML = '';
     let worst = 'SYNCED';
     for (const s of m.streams) {
-      dl.insertAdjacentHTML('beforeend', `<dt>${s.name}</dt><dd class="${s.state}">${s.state}${s.staleness_s != null ? ' · ' + s.staleness_s.toFixed(1) + ' s' : ''}</dd>`);
+      dl.insertAdjacentHTML('beforeend', `<dt>${esc(s.name)}</dt><dd class="${esc(s.state)}">${esc(s.state)}${s.staleness_s != null ? ' · ' + num(s.staleness_s, 1) + ' s' : ''}</dd>`);
       if (s.state === 'LOST' || (s.state === 'STALE' && worst === 'SYNCED')) worst = s.state;
     }
     const el = $('syncall'); el.textContent = worst; el.className = worst;
@@ -308,6 +992,7 @@ const handlers = {
   },
   ack(m) { $('hint').textContent = m.ok ? `✓ ${m.command} ${m.detail || ''}` : `✗ rejected: ${m.detail}`; },
 };
+renderRiver(); renderPollution();
 
 // ---------- WebSocket ----------
 let ws;
@@ -319,7 +1004,11 @@ function connect() {
   ws = new WebSocket(url);
   ws.onopen = () => { $('ws').textContent = 'connected'; $('ws').className = 'SYNCED'; };
   ws.onclose = () => { $('ws').textContent = 'reconnecting'; $('ws').className = 'LOST'; setTimeout(connect, 1500); };
-  ws.onmessage = (ev) => { const m = JSON.parse(ev.data); (handlers[m.type] || (() => {}))(m); };
+  ws.onmessage = (ev) => {
+    let m; try { m = JSON.parse(ev.data); } catch (e) { console.warn('bad message', e); return; }
+    const fn = handlers[m && m.type];
+    if (fn) { try { fn(m); } catch (e) { console.error('handler ' + m.type + ' failed', e); } }
+  };
 }
 connect();
 function send(cmd) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(Object.assign({ type: 'command' }, cmd))); }
@@ -332,7 +1021,7 @@ document.querySelectorAll('button[data-cmd]').forEach((b) => b.onclick = () => {
 let tool = null, draft = [], draftEnt = null;
 function setTool(t, btn) {
   tool = t; draft = []; if (draftEnt) { ents.remove(draftEnt); draftEnt = null; }
-  document.querySelectorAll('aside button').forEach((x) => x.classList.remove('active'));
+  document.querySelectorAll('#b-nogo, #b-rr, #b-stop').forEach((x) => x.classList.remove('active'));
   if (btn && t) btn.classList.add('active');
   $('hint').textContent = t === 'nogo' ? 'Click points on the map; double-click to finish.' : t ? 'Click the map to place a 25 m obstacle.' : '';
 }
@@ -372,16 +1061,15 @@ h.setInputAction(() => {
 // ---------- export, timeline, replay ----------
 $('b-export').onclick = () => {
   const rows = ['seq,t,lat,lon,nh3_n_mg_l,do_mg_l,qc_flags,is_replay'].concat(samples.map((s) => [s.seq, s.t, s.lat, s.lon, s.nh3_n_mg_l, s.do_mg_l, s.qc_flags, s.is_replay].join(',')));
-  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([rows.join('\n')], { type: 'text/csv' }));
-  a.download = 'plumetrace_samples.csv'; a.click();
+  download('plumetrace_samples.csv', rows.join('\n'), 'text/csv');
 };
 function drawTimeline() {
   const mk = $('tlmarks'); mk.innerHTML = '';
   if (!samples.length) return;
   const t0 = samples[0].t, t1 = Math.max(samples[samples.length - 1].t, t0 + 1);
   const sc = $('scrub'); sc.min = 0; sc.max = samples.length; if (live) sc.value = samples.length;
-  for (const s of samples) mk.insertAdjacentHTML('beforeend', `<span class="mk s" style="left:${((s.t - t0) / (t1 - t0) * 100).toFixed(2)}%" title="#${s.seq}"></span>`);
-  for (const e of CFG.overflowEvents || []) if (e.start_s <= 0) mk.insertAdjacentHTML('beforeend', `<span class="mk e" style="left:0" title="overflow ${e.id} (on before start)"></span>`);
+  for (const s of samples) mk.insertAdjacentHTML('beforeend', `<span class="mk s" style="left:${((s.t - t0) / (t1 - t0) * 100).toFixed(2)}%" title="#${esc(s.seq)}"></span>`);
+  for (const e of CFG.overflowEvents || []) if (e.start_s <= 0) mk.insertAdjacentHTML('beforeend', `<span class="mk e" style="left:0" title="overflow ${esc(e.id)} (on before start)"></span>`);
 }
 let live = true;
 $('scrub').oninput = (e) => {

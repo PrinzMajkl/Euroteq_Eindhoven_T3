@@ -1,10 +1,12 @@
 """PlumeTrace gateway protocol: JSON messages to the city view and allow-listed commands from it.
 
-Server -> client types: hello, pose, sample, posterior, plume_points, obstacles, sync, alert, mission, ack.
+Server -> client types: hello, pose, sample, posterior, plume_points, plume_true, event, obstacles,
+sync, alert, mission, ack.
 Client -> server: {"type": "command", "command": <name>, ...} with name in COMMANDS; anything else is
 rejected with an ack {ok: false}. Positions are WGS84 (lat, lon); obstacle heights are scaled x100
 (arena -> river) for Cesium. Schema: web/schema.json.
 """
+import json
 import math
 
 import numpy as np
@@ -82,6 +84,31 @@ def sync_msg(s):
 def mission_msg(ms, time_factor, reach_name):
     return dict(type='mission', mode=ms.mode, state=ms.state, samples_taken=int(ms.samples_taken),
                 scenario=ms.scenario, time_factor=float(time_factor), reach=reach_name)
+
+
+def plume_points_msg(kind, t, grid_ll, values):
+    """kind: 'plume_points' (estimator field) or 'plume_true' (synthetic truth), same grid and order."""
+    pts = [[r6(a), r6(b), round(float(c), 4)] for (a, b), c in zip(grid_ll, values)]
+    return dict(type=kind, t=round(t, 3), units='mg/L NH3-N', points=pts)
+
+
+def event_msg(raw, t):
+    """/mission/events JSON string -> event message; None when malformed."""
+    try:
+        d = json.loads(raw)
+    except (TypeError, ValueError):
+        return None
+    if not isinstance(d, dict) or not isinstance(d.get('type'), str):
+        return None
+    return dict(type='event', t=round(t, 3), kind=d['type'], data={k: v for k, v in d.items() if k not in ('type', 't')})
+
+
+def hello_scenario(sc):
+    bg = sc.get('background') or {}
+    # no scenario id: scenario files are named after their leaking outfall
+    return dict(q_m3s=float(sc['flow']['q_m3s']),
+                background_nh3_n_mg_l=bg.get('nh3_n_mg_l'), background_do_mg_l=bg.get('do_mg_l'),
+                time_factor=float(sc['time_factor']))
 
 
 def validate_command(msg):

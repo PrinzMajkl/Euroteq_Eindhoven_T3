@@ -38,6 +38,32 @@
         },
         "alert_mg_l": {
           "type": "number"
+        },
+        "scenario": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "q_m3s": {
+              "type": "number"
+            },
+            "background_nh3_n_mg_l": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "background_do_mg_l": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "time_factor": {
+              "type": "number"
+            }
+          }
         }
       },
       "required": [
@@ -518,6 +544,60 @@
         "type",
         "command"
       ]
+    },
+    "plume_true": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "plume_true"
+        },
+        "t": {
+          "type": "number"
+        },
+        "units": {
+          "type": "string"
+        },
+        "points": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 3,
+            "maxItems": 3
+          }
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "points"
+      ]
+    },
+    "event": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "event"
+        },
+        "t": {
+          "type": "number"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "data": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "type",
+        "t",
+        "kind",
+        "data"
+      ]
     }
   },
   "oneOf": [
@@ -535,6 +615,12 @@
     },
     {
       "$ref": "#/definitions/plume_points"
+    },
+    {
+      "$ref": "#/definitions/plume_true"
+    },
+    {
+      "$ref": "#/definitions/event"
     },
     {
       "$ref": "#/definitions/obstacles"
