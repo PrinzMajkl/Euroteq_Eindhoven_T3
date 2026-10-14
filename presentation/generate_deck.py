@@ -1,74 +1,120 @@
 import os
 from pptx import Presentation
 from pptx.util import Inches, Pt
-from pptx.enum.text import PP_ALIGN
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 from pptx.dml.color import RGBColor
 
 # Output file path
-OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "plumetrace_section_1_and_2.pptx")
+OUTPUT_PATH = os.path.join(os.path.dirname(__file__), "plumetrace_presentation.pptx")
 LOGO_PATH = os.path.join(os.path.dirname(__file__), "assets", "logo.jpeg")
 
-# Initialize presentation
 prs = Presentation()
 prs.slide_width = Inches(13.333)
 prs.slide_height = Inches(7.5)
-blank_slide_layout = prs.slide_layouts[6] # Blank slide layout
+blank_layout = prs.slide_layouts[6]
 
-# Color definitions
-NAVY = RGBColor(2, 48, 71)       # #023047
-CYAN = RGBColor(33, 158, 188)     # #219ebc
-SKY = RGBColor(142, 202, 230)     # #8ecae6
-GOLD = RGBColor(255, 183, 3)      # #ffb703
-ORANGE = RGBColor(251, 133, 0)    # #fb8500
-WHITE = RGBColor(255, 255, 255)   # #ffffff
-CARD_BG = RGBColor(244, 249, 252) # Soft tint
+# Brand Palette
+NAVY = RGBColor(2, 48, 71)        # #023047
+CYAN = RGBColor(33, 158, 188)      # #219ebc
+SKY = RGBColor(142, 202, 230)      # #8ecae6
+GOLD = RGBColor(255, 183, 3)       # #ffb703
+ORANGE = RGBColor(251, 133, 0)     # #fb8500
+WHITE = RGBColor(255, 255, 255)    # #ffffff
+CARD_BG = RGBColor(244, 249, 252)  # #f4f9fc soft tint
 
 FONT_NAME = "Calibri"
 
-def set_slide_background(slide):
-    background = slide.background
-    fill = background.fill
+def set_background(slide):
+    bg = slide.background
+    fill = bg.fill
     fill.solid()
     fill.fore_color.rgb = WHITE
 
-def add_header_title(slide, title_text):
-    txBox = slide.shapes.add_textbox(Inches(0.8), Inches(0.6), Inches(11.7), Inches(0.9))
-    tf = txBox.text_frame
+def add_slide_header(slide, title_text):
+    tb = slide.shapes.add_textbox(Inches(0.8), Inches(0.55), Inches(11.733), Inches(0.85))
+    tf = tb.text_frame
     tf.word_wrap = True
+    tf.vertical_anchor = MSO_ANCHOR.TOP
     tf.margin_left = tf.margin_top = tf.margin_right = tf.margin_bottom = 0
     p = tf.paragraphs[0]
     p.text = title_text
     p.font.name = FONT_NAME
-    p.font.size = Pt(38)
+    p.font.size = Pt(36)
     p.font.bold = True
     p.font.color.rgb = NAVY
 
-def add_speaker_note(slide, note_text):
-    notes_slide = slide.notes_slide
-    tf = notes_slide.notes_text_frame
-    tf.text = note_text
+def add_card(slide, left, top, width, height, title, bullets, subtitle=None, title_color=NAVY):
+    shape = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, left, top, width, height)
+    shape.fill.solid()
+    shape.fill.fore_color.rgb = CARD_BG
+    shape.line.color.rgb = SKY
+    shape.line.width = Pt(1.5)
+    
+    tf = shape.text_frame
+    tf.word_wrap = True
+    tf.vertical_anchor = MSO_ANCHOR.TOP
+    tf.margin_left = Inches(0.28)
+    tf.margin_right = Inches(0.28)
+    tf.margin_top = Inches(0.22)
+    tf.margin_bottom = Inches(0.18)
+    
+    # Title
+    p = tf.paragraphs[0]
+    p.text = title
+    p.font.name = FONT_NAME
+    p.font.size = Pt(19)
+    p.font.bold = True
+    p.font.color.rgb = title_color
+    p.space_after = Pt(4 if subtitle else 10)
+    p.space_before = Pt(0)
+    
+    # Subtitle if provided
+    if subtitle:
+        p_sub = tf.add_paragraph()
+        p_sub.text = subtitle
+        p_sub.font.name = FONT_NAME
+        p_sub.font.size = Pt(13)
+        p_sub.font.bold = True
+        p_sub.font.color.rgb = CYAN
+        p_sub.space_after = Pt(10)
+        p_sub.space_before = Pt(0)
+        
+    # Bullets
+    for i, b in enumerate(bullets):
+        bp = tf.add_paragraph()
+        bp.text = f"-  {b}"
+        bp.font.name = FONT_NAME
+        bp.font.size = Pt(14)
+        bp.font.color.rgb = NAVY
+        bp.space_after = Pt(6)
+        bp.space_before = Pt(0)
+        
+    return shape
+
+def add_notes(slide, text):
+    slide.notes_slide.notes_text_frame.text = text
+
 
 # ==========================================================
 # SLIDE 1: Title Slide
 # ==========================================================
-s1 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s1)
+s1 = prs.slides.add_slide(blank_layout)
+set_background(s1)
 
-# Add Logo if exists
 if os.path.exists(LOGO_PATH):
-    s1.shapes.add_picture(LOGO_PATH, Inches(1.2), Inches(2.2), width=Inches(3.2), height=Inches(3.2))
+    s1.shapes.add_picture(LOGO_PATH, Inches(1.4), Inches(2.1), width=Inches(3.3), height=Inches(3.3))
 
-# Title & Subtitle text frame
-s1_box = s1.shapes.add_textbox(Inches(4.9), Inches(2.3), Inches(7.5), Inches(3.0))
-tf1 = s1_box.text_frame
+s1_tb = s1.shapes.add_textbox(Inches(5.1), Inches(2.25), Inches(7.4), Inches(3.0))
+tf1 = s1_tb.text_frame
 tf1.word_wrap = True
+tf1.vertical_anchor = MSO_ANCHOR.MIDDLE
 tf1.margin_left = tf1.margin_top = tf1.margin_right = tf1.margin_bottom = 0
 
 p1 = tf1.paragraphs[0]
 p1.text = "PlumeTrace"
 p1.font.name = FONT_NAME
-p1.font.size = Pt(60)
+p1.font.size = Pt(56)
 p1.font.bold = True
 p1.font.color.rgb = CYAN
 p1.space_after = Pt(14)
@@ -76,11 +122,11 @@ p1.space_after = Pt(14)
 p2 = tf1.add_paragraph()
 p2.text = "Autonomous Water Protection for the Pegnitz River"
 p2.font.name = FONT_NAME
-p2.font.size = Pt(26)
+p2.font.size = Pt(24)
 p2.font.bold = True
 p2.font.color.rgb = NAVY
 
-add_speaker_note(s1, 
+add_notes(s1,
     "Good morning members of the jury and mentors. Today, we present PlumeTrace - an autonomous, "
     "closed-loop Digital Twin system designed to protect urban rivers.\n\n"
     "Across Europe, urban rivers are essential for recreation, drinking water, and ecology. "
@@ -90,82 +136,42 @@ add_speaker_note(s1,
     "blind, infrequent sampling into actionable protection."
 )
 
+
 # ==========================================================
 # SLIDE 2: Why Pegnitz
 # ==========================================================
-s2 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s2)
-add_header_title(s2, "Why Pegnitz")
+s2 = prs.slides.add_slide(blank_layout)
+set_background(s2)
+add_slide_header(s2, "Why Pegnitz")
 
-cards_data_s2 = [
-    {
-        "title": "Public Health",
-        "bullets": [
-            "Raw sewage spikes after rainfall",
-            "Instant health risk for surfers, waders, and park visitors"
-        ],
-        "left": Inches(0.8), "top": Inches(1.8)
-    },
-    {
-        "title": "Sewer Overflows (CSOs)",
-        "bullets": [
-            "1,500 km municipal network overloaded by storms",
-            "1.5M - 5M+ EUR cost per retention basin"
-        ],
-        "left": Inches(6.8), "top": Inches(1.8)
-    },
-    {
-        "title": "Knoblauchsland Agriculture",
-        "bullets": [
-            "Nitrate leaching into drinking water aquifers",
-            "Strict EU limits and compliance pressure"
-        ],
-        "left": Inches(0.8), "top": Inches(4.4)
-    },
-    {
-        "title": "Summer Heat and Drought",
-        "bullets": [
-            "Low flow concentrates pollutants",
-            "Dissolved oxygen drops < 3 mg/L (fish kills)"
-        ],
-        "left": Inches(6.8), "top": Inches(4.4)
-    }
-]
+s2_w = Inches(5.666)
+s2_h = Inches(2.4)
+s2_top1 = Inches(1.7)
+s2_top2 = Inches(4.45)
+s2_left1 = Inches(0.8)
+s2_left2 = Inches(6.866)
 
-card_w = Inches(5.7)
-card_h = Inches(2.2)
+add_card(s2, s2_left1, s2_top1, s2_w, s2_h, "Public Health", [
+    "Raw sewage spikes after rainfall",
+    "Instant health risk for surfers, waders, and park visitors"
+])
 
-for c in cards_data_s2:
-    shape = s2.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, c["left"], c["top"], card_w, card_h)
-    shape.fill.solid()
-    shape.fill.fore_color.rgb = CARD_BG
-    shape.line.color.rgb = SKY
-    shape.line.width = Pt(1.5)
-    
-    tf = shape.text_frame
-    tf.word_wrap = True
-    tf.margin_left = Inches(0.3)
-    tf.margin_right = Inches(0.3)
-    tf.margin_top = Inches(0.22)
-    tf.margin_bottom = Inches(0.2)
-    
-    p = tf.paragraphs[0]
-    p.text = c["title"]
-    p.font.name = FONT_NAME
-    p.font.size = Pt(22)
-    p.font.bold = True
-    p.font.color.rgb = NAVY
-    p.space_after = Pt(10)
-    
-    for b in c["bullets"]:
-        bp = tf.add_paragraph()
-        bp.text = f"-  {b}"
-        bp.font.name = FONT_NAME
-        bp.font.size = Pt(16)
-        bp.font.color.rgb = NAVY
-        bp.space_after = Pt(4)
+add_card(s2, s2_left2, s2_top1, s2_w, s2_h, "Sewer Overflows (CSOs)", [
+    "1,500 km municipal network overloaded by storms",
+    "1.5M - 5M+ EUR cost per retention basin"
+])
 
-add_speaker_note(s2,
+add_card(s2, s2_left1, s2_top2, s2_w, s2_h, "Knoblauchsland Agriculture", [
+    "Nitrate leaching into drinking water aquifers",
+    "Strict EU limits and compliance pressure"
+])
+
+add_card(s2, s2_left2, s2_top2, s2_w, s2_h, "Summer Heat and Drought", [
+    "Low flow concentrates pollutants",
+    "Dissolved oxygen drops < 3 mg/L (fish kills)"
+])
+
+add_notes(s2,
     "Why the Pegnitz River? Because it represents four urgent pressures colliding in one urban corridor:\n\n"
     "First, Public Health: Surfers at the Fuchslochwelle wave and waders face raw sewage contamination after storms, "
     "creating immediate health risks.\n"
@@ -175,117 +181,58 @@ add_speaker_note(s2,
     "And fourth, Climate Drought: Summer heat reduces river discharge, collapsing oxygen levels below 3 mg/L and killing fish."
 )
 
+
 # ==========================================================
 # SLIDE 3: Current Monitoring
 # ==========================================================
-s3 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s3)
-add_header_title(s3, "Current Monitoring")
+s3 = prs.slides.add_slide(blank_layout)
+set_background(s3)
+add_slide_header(s3, "Current Monitoring")
 
-col_w = Inches(5.7)
-col_h = Inches(4.1)
+col_w = Inches(5.666)
+col_h = Inches(4.2)
+top_pos = Inches(1.65)
 
-# Left Column: Municipal Authorities
-left_shape = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.8), col_w, col_h)
-left_shape.fill.solid()
-left_shape.fill.fore_color.rgb = CARD_BG
-left_shape.line.color.rgb = SKY
-left_shape.line.width = Pt(1.5)
-
-tf_left = left_shape.text_frame
-tf_left.word_wrap = True
-tf_left.margin_left = tf_left.margin_right = Inches(0.35)
-tf_left.margin_top = Inches(0.25)
-
-p_lh = tf_left.paragraphs[0]
-p_lh.text = "Municipal Authorities"
-p_lh.font.name = FONT_NAME
-p_lh.font.size = Pt(22)
-p_lh.font.bold = True
-p_lh.font.color.rgb = NAVY
-p_lh.space_after = Pt(4)
-
-p_sub = tf_left.add_paragraph()
-p_sub.text = "Stadtentwässerung Nürnberg (SUN) & Wasserwirtschaftsamt (WWA)"
-p_sub.font.name = FONT_NAME
-p_sub.font.size = Pt(13)
-p_sub.font.bold = True
-p_sub.font.color.rgb = CYAN
-p_sub.space_after = Pt(12)
-
-left_bullets = [
+add_card(s3, Inches(0.8), top_pos, col_w, col_h, "Municipal Authorities", [
     "Temperature, pH, conductivity, turbidity",
     "Dissolved oxygen and nutrients (Nitrate, Phosphate)",
     "Ammonium (NH4+): primary raw sewage tracer"
-]
-for b in left_bullets:
-    bp = tf_left.add_paragraph()
-    bp.text = f"-  {b}"
-    bp.font.name = FONT_NAME
-    bp.font.size = Pt(16)
-    bp.font.color.rgb = NAVY
-    bp.space_after = Pt(8)
+], subtitle="Stadtentwässerung Nürnberg (SUN) & Wasserwirtschaftsamt (WWA)")
 
-# Right Column: The Sampling Gap
-right_shape = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.8), Inches(1.8), col_w, col_h)
-right_shape.fill.solid()
-right_shape.fill.fore_color.rgb = CARD_BG
-right_shape.line.color.rgb = SKY
-right_shape.line.width = Pt(1.5)
-
-tf_right = right_shape.text_frame
-tf_right.word_wrap = True
-tf_right.margin_left = tf_right.margin_right = Inches(0.35)
-tf_right.margin_top = Inches(0.25)
-
-p_rh = tf_right.paragraphs[0]
-p_rh.text = "The Sampling Gap"
-p_rh.font.name = FONT_NAME
-p_rh.font.size = Pt(22)
-p_rh.font.bold = True
-p_rh.font.color.rgb = NAVY
-p_rh.space_after = Pt(16)
-
-right_bullets = [
+add_card(s3, Inches(6.866), top_pos, col_w, col_h, "The Sampling Gap", [
     "Automatic sensors: continuous, but confined to few fixed locations",
     "Manual grab sampling: often only 1x per month (24-48h lab delay)",
     "Convective storm overflows: last only 2 to 4 hours"
-]
-for b in right_bullets:
-    bp = tf_right.add_paragraph()
-    bp.text = f"-  {b}"
-    bp.font.name = FONT_NAME
-    bp.font.size = Pt(16)
-    bp.font.color.rgb = NAVY
-    bp.space_after = Pt(12)
+])
 
-# Bottom Highlight: The Result
-res_shape = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(6.15), Inches(11.7), Inches(0.8))
-res_shape.fill.solid()
-res_shape.fill.fore_color.rgb = CARD_BG
-res_shape.line.color.rgb = CYAN
-res_shape.line.width = Pt(1.5)
+# Bottom Highlight: The Result (ONLY ON SLIDE 3!)
+res_box = s3.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(6.15), Inches(11.733), Inches(0.75))
+res_box.fill.solid()
+res_box.fill.fore_color.rgb = CARD_BG
+res_box.line.color.rgb = CYAN
+res_box.line.width = Pt(1.5)
 
-tf_res = res_shape.text_frame
+tf_res = res_box.text_frame
 tf_res.word_wrap = True
+tf_res.vertical_anchor = MSO_ANCHOR.MIDDLE
 tf_res.margin_left = Inches(0.3)
-tf_res.margin_top = Inches(0.18)
+tf_res.margin_top = Inches(0.1)
 
 p_res = tf_res.paragraphs[0]
 p_res.text = "The Result:  "
 p_res.font.name = FONT_NAME
-p_res.font.size = Pt(17)
+p_res.font.size = Pt(16)
 p_res.font.bold = True
 p_res.font.color.rgb = ORANGE
 
 run_res = p_res.add_run()
 run_res.text = "Plume arrives, causes harm, and clears undetected."
 run_res.font.name = FONT_NAME
-run_res.font.size = Pt(17)
+run_res.font.size = Pt(16)
 run_res.font.bold = True
 run_res.font.color.rgb = NAVY
 
-add_speaker_note(s3,
+add_notes(s3,
     "To address this, we looked at what municipal authorities currently measure.\n\n"
     "In Nuremberg, the drainage service SUN tracks eight standard parameters: temperature, pH, conductivity, turbidity, "
     "dissolved oxygen, and nutrients like ammonium, nitrate, and phosphate. Ammonium is the critical chemical fingerprint of raw sewage.\n\n"
@@ -293,82 +240,30 @@ add_speaker_note(s3,
     "The result: acute plumes arrive, cause damage, and clear completely undetected."
 )
 
+
 # ==========================================================
 # SLIDE 4: Key Stakeholders
 # ==========================================================
-s4 = prs.slides.add_slide(blank_slide_layout)
-set_slide_background(s4)
-add_header_title(s4, "Key Stakeholders")
+s4 = prs.slides.add_slide(blank_layout)
+set_background(s4)
+add_slide_header(s4, "Key Stakeholders")
 
-# Left Column: Water Authorities
-s4_left = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.8), col_w, Inches(4.9))
-s4_left.fill.solid()
-s4_left.fill.fore_color.rgb = CARD_BG
-s4_left.line.color.rgb = SKY
-s4_left.line.width = Pt(1.5)
-
-tf4_l = s4_left.text_frame
-tf4_l.word_wrap = True
-tf4_l.margin_left = tf4_l.margin_right = Inches(0.35)
-tf4_l.margin_top = Inches(0.3)
-
-p4_lh = tf4_l.paragraphs[0]
-p4_lh.text = "Water Authorities (WWA, SUN)"
-p4_lh.font.name = FONT_NAME
-p4_lh.font.size = Pt(22)
-p4_lh.font.bold = True
-p4_lh.font.color.rgb = NAVY
-p4_lh.space_after = Pt(16)
-
-s4_left_bullets = [
+s4_h = Inches(5.1)
+add_card(s4, Inches(0.8), Inches(1.65), col_w, s4_h, "Water Authorities (WWA, SUN)", [
     "Cannot locate pollution origin (fixed stations lack spatial tracking)",
     "Blind infrastructure spending (1.5M - 5M+ EUR per basin without plume data)",
     "Chronic pipe seepage undetected until structural failure",
     "Lab results arrive 24-48 hours too late for emergency action"
-]
-for b in s4_left_bullets:
-    bp = tf4_l.add_paragraph()
-    bp.text = f"-  {b}"
-    bp.font.name = FONT_NAME
-    bp.font.size = Pt(16)
-    bp.font.color.rgb = NAVY
-    bp.space_after = Pt(12)
+])
 
-# Right Column: Citizens and Surfers
-s4_right = s4.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(6.8), Inches(1.8), col_w, Inches(4.9))
-s4_right.fill.solid()
-s4_right.fill.fore_color.rgb = CARD_BG
-s4_right.line.color.rgb = SKY
-s4_right.line.width = Pt(1.5)
-
-tf4_r = s4_right.text_frame
-tf4_r.word_wrap = True
-tf4_r.margin_left = tf4_r.margin_right = Inches(0.35)
-tf4_r.margin_top = Inches(0.3)
-
-p4_rh = tf4_r.paragraphs[0]
-p4_rh.text = "Citizens and Surfers"
-p4_rh.font.name = FONT_NAME
-p4_rh.font.size = Pt(22)
-p4_rh.font.bold = True
-p4_rh.font.color.rgb = NAVY
-p4_rh.space_after = Pt(16)
-
-s4_right_bullets = [
+add_card(s4, Inches(6.866), Inches(1.65), col_w, s4_h, "Citizens and Surfers", [
     "Zero real-time visibility into water safety",
     "Unknowingly enter water during toxic overflow events",
     "High risk of gastrointestinal and skin infections",
     "Delayed municipal reports provide no immediate guidance"
-]
-for b in s4_right_bullets:
-    bp = tf4_r.add_paragraph()
-    bp.text = f"-  {b}"
-    bp.font.name = FONT_NAME
-    bp.font.size = Pt(16)
-    bp.font.color.rgb = NAVY
-    bp.space_after = Pt(12)
+])
 
-add_speaker_note(s4,
+add_notes(s4,
     "This monitoring failure creates acute problems for our two key stakeholder groups today:\n\n"
     "First, Water Authorities like SUN and WWA: They must invest millions of euros into retention basins, "
     "but without spatial plume tracking, they are forced to invest blindly without knowing which overflow pipes cause the greatest damage. "
@@ -377,6 +272,112 @@ add_speaker_note(s4,
     "They unknowingly expose themselves to acute bacterial contamination because municipal data is either delayed by days or buried in complex chemical reports."
 )
 
-# Save presentation
+
+# ==========================================================
+# SLIDE 5: System Architecture (Technical Solution 1/3)
+# ==========================================================
+s5 = prs.slides.add_slide(blank_layout)
+set_background(s5)
+add_slide_header(s5, "System Architecture")
+
+col3_w = Inches(3.644)
+col3_gap = Inches(0.4)
+s5_h = Inches(5.1)
+
+add_card(s5, Inches(0.8), Inches(1.65), col3_w, s5_h, "Physical Platform", [
+    "TurtleBot3 surface robotics testbed",
+    "ROS 2 Jazzy onboard computing",
+    "LDS-02 LiDAR and overhead tracking",
+    "Emulated chemical sensor payload"
+])
+
+add_card(s5, Inches(0.8) + col3_w + col3_gap, Inches(1.65), col3_w, s5_h, "Simulation Mirror", [
+    "Gazebo Harmonic physics engine",
+    "Bi-directional ROS-Gazebo bridge",
+    "Ghost follower pose tracking",
+    "Dynamic obstacle injection"
+])
+
+add_card(s5, Inches(0.8) + (col3_w + col3_gap) * 2, Inches(1.65), col3_w, s5_h, "3D Digital Twin", [
+    "CesiumJS with Bavarian LOD2 3D data",
+    "Real-time WebSocket telemetry stream",
+    "Geo-referenced pipe outfall health",
+    "Interactive urban risk heatmaps"
+])
+
+add_notes(s5,
+    "To solve this, we designed the PlumeTrace System Architecture across three tightly synchronized tiers:\n\n"
+    "On the water, our Physical Platform is a robotic surface vessel equipped with ROS 2 Jazzy, 360-degree LiDAR, tracking cameras, and emulated real-time chemical payloads.\n"
+    "In the cloud, a Simulation Mirror running Gazebo Harmonic tracks physics and obstacles in real time, validating robot health and sensor sanity.\n"
+    "At the command level, our 3D Digital Twin in CesiumJS visualizes Bavarian LOD2 building and river geometry, streaming live WebSocket telemetry to generate actionable heatmaps and asset health scores for city managers."
+)
+
+
+# ==========================================================
+# SLIDE 6: Autonomous Closed Loop (Technical Solution 2/3)
+# ==========================================================
+s6 = prs.slides.add_slide(blank_layout)
+set_background(s6)
+add_slide_header(s6, "Autonomous Closed Loop")
+
+add_card(s6, Inches(0.8), Inches(1.65), col_w, s4_h, "4D Adaptive Retasking", [
+    "Dynamically recomputes waypoints in real time",
+    "Chemical Gradient: homes upstream to leaking pipe",
+    "Rain Radar: pre-positions robot before storm runoff",
+    "Data Freshness: prioritizes unvisited river reaches"
+])
+
+add_card(s6, Inches(6.866), Inches(1.65), col_w, s4_h, "Safety and Resilience", [
+    "Dual obstacle cloud: reroute navigation vs collision stop",
+    "Edge buffer: zero data loss during network dropouts",
+    "Tri-fold sync: odometry, AMCL, and Gazebo alignment",
+    "Dynamic Nav2 goal updates in under 35 seconds"
+])
+
+add_notes(s6,
+    "The core innovation of PlumeTrace is its Autonomous Closed Loop.\n\n"
+    "Instead of driving a static patrol line, our system continuously recomputes waypoints based on a 4D objective function: "
+    "tracking chemical gradients upstream, anticipating rain runoff via live weather radar, and ensuring older areas are revisited.\n\n"
+    "Crucially, we build in industrial resilience: a dual obstacle cloud separates smooth rerouting from emergency collision stops, "
+    "while onboard edge buffers guarantee zero telemetry loss even when wireless links drop."
+)
+
+
+# ==========================================================
+# SLIDE 7: Why Mobile Robotics? (Technical Solution 3/3)
+# ==========================================================
+s7 = prs.slides.add_slide(blank_layout)
+set_background(s7)
+add_slide_header(s7, "Why Mobile Robotics?")
+
+add_card(s7, s2_left1, s2_top1, s2_w, s2_h, "Gradient Tracing", [
+    "Tracks concentration gradients upstream",
+    "Locates exact leaking pipe instead of diluted mix"
+])
+
+add_card(s7, s2_left2, s2_top1, s2_w, s2_h, "Asset Intelligence", [
+    "Links water chemistry to specific municipal outfall IDs",
+    "Direct evidence for multi-million EUR basin upgrades"
+])
+
+add_card(s7, s2_left1, s2_top2, s2_w, s2_h, "River Corridor Mapping", [
+    "LiDAR detects riverbank erosion and sediment build-up",
+    "Supports EU renaturation compliance"
+])
+
+add_card(s7, s2_left2, s2_top2, s2_w, s2_h, "Operational Economics", [
+    "One self-cleaning mobile robot replaces 50+ fixed probes",
+    "Eliminates biofouling and flood destruction"
+])
+
+add_notes(s7,
+    "Why does mobile robotics decisively outperform traditional fixed monitoring networks?\n\n"
+    "First, Gradient Tracing: A static sensor only tells you pollution passed by. A mobile robot follows the plume upstream directly to the faulty outfall pipe.\n"
+    "Second, Asset Intelligence: We give water authorities concrete evidence to prioritize multi-million euro infrastructure budgets.\n"
+    "Third, Corridor Mapping: LiDAR scans detect physical bank erosion and siltation for EU river renaturation programs.\n"
+    "And fourth, Economics: Instead of maintaining hundreds of submerged probes prone to biofouling and flood destruction, one mobile platform delivers continuous, protected spatial coverage."
+)
+
+# Save
 prs.save(OUTPUT_PATH)
 print(f"Successfully generated PowerPoint presentation at: {OUTPUT_PATH}")
