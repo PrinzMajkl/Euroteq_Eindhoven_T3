@@ -39,58 +39,60 @@ This document contains the complete, section-by-section slide outline, detailed 
 ## 2. Context and Challenge (Max 3 Slides)
 *Target Audience: Stakeholders (Municipal Authorities, Environmental Regulators, Recreators)*
 
-### Slide 2: Context & Pressures on the Pegnitz (Real Numbers, Media & Chemical Evidence)
-*SDG 6.3 Ambient Water Quality & Real-World Urban Pressures*
-- **Four Urgent Pressures Colliding in One Urban Corridor**:
-  1. **Direct Public Health Threat ("Durchfall-Welle" in German Media)**:
-     - The **Fuchslochwelle** river-surfing wave in western Nuremberg made German media headlines (*t-online*, *inFranken*) as the **"Durchfall-Welle" (Diarrhea Wave)**.
-     - While surfing is legally permitted, *swimming is strictly prohibited* due to severe bacterial contamination after rain. Surfers and waders face acute gastrointestinal infections, noroviruses, otitis, and skin rashes.
-  2. **Urban Sewer Bottlenecks & Multi-Million EUR Infrastructure Stakes**:
-     - Modernizing a single storm overflow retention basin (*Regenüberlaufbecken - RÜB*) costs **€1.5M to €5.0M+** for just 1,000–3,000 $m^3$ of capacity.
-     - With ~1,500 km of municipal sewer network in Nuremberg, blind capital investment without empirical spatial data risks spending millions on the wrong outfalls.
-  3. **Agricultural Infiltration & EU Infringement Penalties**:
-     - Intensive vegetable farming in Knoblauchsland causes nitrate ($\text{NO}_3^-$) and chemical pesticide leaching into alluvial drinking water aquifers.
-     - Risks statutory "Red Zone" designation and EU Court fines reaching **up to €850,000 per day** for systemic Water Framework Directive violations.
-  4. **Summer Climate Heat & Ecological Hypoxia**:
-     - August heatwaves reduce Pegnitz river discharge, concentrating urban effluent and causing dissolved oxygen to collapse below **$3.0\ \text{mg/L}$** (mass fish die-offs requiring municipal emergency collection).
-- **The Toxic Chemical & Micro-Pollutant Cocktail in the Pegnitz Catchment**:
-  - **Ammonia Nitrogen ($\text{NH}_3\text{-N}$)**: Highly toxic compound for aquatic life (especially fish) that rapidly depletes dissolved oxygen; primary chemical tracer of raw sewage, urine, and agricultural runoff.
-  - **Micro-Pollutants (*Mikroschadstoffe*)**: Steady municipal discharge of synthetic organic trace substances, including human and veterinary pharmaceuticals (such as the painkiller **Diclofenac**), hormones, cosmetics, household chemicals, and X-ray contrast media.
-  - **PFAS ("Forever Chemicals")**: Highly persistent, mobile per- and polyfluoroalkyl substances found in regional water networks; potentially carcinogenic and non-degradable (precedent of €6.5M Rastatt liability under WHG § 89).
-  - **Agricultural Runoff**: Heavy nitrate and chemical pesticide leaching from intensive Knoblauchsland farming.
-  - **Industrial Legacy Pollutants**: Heavy metals (mercury), polycyclic aromatic hydrocarbons (PAHs), and chlorinated hydrocarbons from historical industrial sites along the river.
+### Slide 2: The Financial Imperative: What is at Stake?
+*Macro-Economic Liabilities, Direct Monitoring Costs, and Asymmetrical Savings*
+- **What Kind of Money Are We Talking About? (The Scale of the Problem)**:
+  1. **Municipal Infrastructure Stakes (€1.5M – €5.0M+ per basin)**:
+     - Modernizing a single storm overflow retention basin (*Regenüberlaufbecken - RÜB*) costs between **€1.5M and €5.0M+** for just 1,000–3,000 $m^3$ of capacity; regional interconnects reach **€12M**, and Nuremberg's Klärwerk 1 is undergoing a 35-year continuous overhaul.
+     - With ~1,500 km of municipal sewer network, allocating capital based on theoretical hydraulic models (KOSIM) risks wasting multi-million-euro budgets on benign outfalls while toxic pipes remain unaddressed.
+  2. **Severe Legal Liability & Statutory Fines (€6.5M+ Precedents & €850k/day)**:
+     - Under **§ 89 WHG (Wasserhaushaltsgesetz)**, any entity introducing substances that alter water quality faces strict liability independent of fault (Gefährdungshaftung). Precedent: **€6.5 million damages** awarded against operators in Rastatt for water contamination.
+     - Systemic non-compliance with the EU Water Framework Directive and Nitrates Directive carries European Court of Justice fines reaching **up to €850,000 per day**.
+  3. **Depreciation of Capitalized Recreational Assets (€3.0M Fuchslochwelle)**:
+     - The Fuchslochwelle river-surfing wave was built at a capital cost of **~€3.0 million** (heavily subsidized by municipal and Bavarian public funds). Because water quality collapses after rain, swimming is strictly prohibited and the €3M asset is nullified by sewage spills ("Durchfall-Welle").
+  4. **The Cost of Manual Status Quo (€439 – €828 per grab sample event)**:
+     - Manual grab sampling costs **€439 to €828 per event** (TVöD VKA E8/E9a technician labor at ~€30/hr employer burden + BayRKG vehicle transit + €150–€400 laboratory diagnostics). Municipalities pay premium fees merely to get a delayed historical autopsy days after the plume has passed.
+- **What Can We Save If We Monitor Water Quality Properly?**:
+  - **Surgical CapEx Allocation**: Concrete in-river spatial proof ensures €5M retention basin investments are deployed *exclusively* where they yield the highest statutory and ecological return, avoiding multi-million-euro misallocations.
+  - **Litigation & Fine Immunity**: Geo-referenced audit reports generated in **$< 60\ \text{seconds}$** provide regulatory proof protecting the city from strict liability lawsuits and daily EU infringement fines.
+  - **Recreational Asset Recovery**: Restores the full economic and social value of the €3M Fuchslochwelle by predicting safe recreation windows.
+  - **Preventing Underground Catastrophes**: Continuous robotic spatial profiling detects chronic low-level pipe seepage before catastrophic underground road collapses and emergency street excavations occur.
+  - **The Asymmetrical Investment Ratio**:
+    - The entire autonomous robotic platform + sensor payload costs **under €10,000 (~€8,200 premium build)** with **~€5–€6 / month cloud VPS** (Hetzner, German GDPR-compliant data center).
+    - An €8k autonomous asset protects **tens of millions in municipal capital** (< 0.2% the cost of a single retention basin!).
 - **Presenter Spoken Script (Target: 1:15 min)**:
-  > *"Why the Pegnitz River? Because it represents four urgent pressures colliding in one urban corridor:*
-  > *First, Public Health: Surfers at the Fuchslochwelle wave and waders face raw sewage contamination after storms, creating immediate infection risks that made German headlines as the 'Diarrhea Wave'.*
-  > *Second, Urban Infrastructure: Nuremberg's 1,500 km sewer network overspills during heavy rains. Modernizing a single retention basin costs between 1.5 and 5 million euros – cities cannot afford to invest blindly.*
-  > *Third, Agriculture: Intensive farming in Knoblauchsland leaches nitrates and pesticides into alluvial drinking aquifers under strict EU penalties.*
-  > *And fourth, Climate Drought: Summer heat reduces river discharge, concentrating a toxic cocktail of ammonia, pharmaceutical residues like Diclofenac, and PFAS forever chemicals, collapsing oxygen levels below 3 mg/L and killing fish."*
+  > *"Before we look at the river, let us examine the numbers: What kind of money are we actually talking about, and what can we save with autonomous monitoring?*
+  > *In Nuremberg, modernizing just one sewer retention basin costs between 1.5 and 5 million euros. With 1,500 km of sewers, investing based on theoretical models risks misallocating millions on the wrong outfalls. On top of that, municipalities face strict environmental liability under § 89 WHG – with legal precedents reaching 6.5 million euros – plus European Court fines up to 850,000 euros per day. Even the city's 3 million euro investment into the Fuchslochwelle surf wave is compromised.*
+  > *Meanwhile, traditional manual sampling costs up to 800 euros per sample event, only to confirm contamination days after it has washed away.*
+  > *By deploying an autonomous robotic system costing under 10,000 euros, we provide surgical data to prioritize 5-million-euro CapEx budgets, mitigate strict legal liabilities, and protect public health. That is a massive, asymmetrical return on investment."*
 
-### Slide 3: Current Monitoring Baseline & The Fatal Flaw
-*The Mismatch Between Measurement Parameters and Temporal Reality*
-- **What Authorities Measure: The 8 Standard Parameters (SUN & WWA Nürnberg)**:
-  - *Physico-Chemical Baseline*: Temperature (°C), pH, Electrical Conductivity (µS/cm), Turbidity (NTU).
-  - *Ecological & Nutrient Tracers*: Dissolved Oxygen (DO, mg/L), **Ammonium ($\text{NH}_4^+$ / $\text{NH}_3\text{-N}$)** – the *primary chemical fingerprint of raw domestic sewage*, Nitrate ($\text{NO}_3^-$), and Phosphate ($\text{PO}_4^{3-}$).
+### Slide 3: Environmental Pressures & The Toxic Cocktail on the Pegnitz
+*Chemical Hazards, Biological Pathogens, and the Fatal Sampling Gap*
+- **The Acute Toxic Cocktail in the Pegnitz Catchment**:
+  - **Ammonia Nitrogen ($\text{NH}_3\text{-N}$)**: Highly toxic to aquatic life, rapidly depletes dissolved oxygen; primary raw sewage and agricultural tracer.
+  - **Micro-Pollutants (*Mikroschadstoffe*)**: Steady municipal discharge of pharmaceuticals (painkiller **Diclofenac**), hormones, and X-ray contrast media.
+  - **PFAS ("Forever Chemicals")**: Highly mobile, persistent, carcinogenic compounds accumulating in regional water bodies.
+  - **Agricultural Runoff & Knoblauchsland**: Nitrate ($\text{NO}_3^-$) and pesticide leaching into alluvial drinking water aquifers under strict EU limits.
+  - **Summer Heat & Hypoxia**: Discharge plummets during heatwaves; dissolved oxygen drops below **$3.0\ \text{mg/L}$** (mass fish die-offs).
 - **The Fatal Flaw: The Sampling Gap**:
-  - *Automatic Fixed Probes*: Continuous, but confined to a few sparse monitoring stations. Blind to localized discharges occurring between stations.
-  - *Manual Grab Sampling (Schöpfproben)*: Taken only **once a month (or bi-weekly)**; high municipal labor and diagnostic cost (**€439 to €828 per sample event**); microbiological laboratory cultures require **24 to 48 hours** incubation.
-  - *The Reality of Storm Overflows (CSOs)*: Acute convective storm runoff plumes are **transient events lasting only 2 to 4 hours**.
+  - *Automated Fixed Sensors*: Confined to sparse monitoring stations; blind to discharges occurring between stations.
+  - *Manual Grab Sampling*: Taken only 1x per month (or bi-weekly); laboratory incubation delays of **24 to 48 hours**.
+  - *Convective Storm Overflows (CSOs)*: Acute runoff plumes are **transient events lasting only 2 to 4 hours**.
 - **Bottom Core Takeaway**:
-  - **The Result**: *Plume arrives, causes harm, and clears undetected.* By the time lab results confirm contamination days later, the toxic plume has long dispersed downstream.
+  - **The Result**: *Plume arrives, causes harm, and clears undetected.* By the time lab results arrive, the toxic plume has long dispersed downstream.
 - **Presenter Spoken Script (Target: 1:15 min)**:
-  > *"To address this, we looked at what municipal authorities currently measure.*
-  > *In Nuremberg, the drainage service SUN tracks eight standard parameters: temperature, pH, conductivity, turbidity, dissolved oxygen, and nutrients like ammonium, nitrate, and phosphate. Ammonium is the critical chemical fingerprint of raw sewage.*
-  > *The sampling gap is two-fold: automated sensors are confined to a few fixed points, while manual sampling happens as rarely as once a month with days of lab delay.*
-  > *The result: acute plumes arrive, cause damage, and clear completely undetected."*
+  > *"Beneath the economic stakes lies an acute chemical and biological threat.*
+  > *The Pegnitz receives a toxic cocktail of ammonia, pharmaceutical residues like Diclofenac, agricultural pesticides, and persistent PFAS forever chemicals. During summer heatwaves, dissolved oxygen collapses below 3 mg/L, causing mass fish die-offs.*
+  > *Why does current monitoring fail? Because storm overflows are transient events lasting just 2 to 4 hours. Automated sensors are stuck at a few fixed points, while manual grab testing takes days for lab results.*
+  > *The result: acute plumes arrive, cause ecological and public health damage, and clear completely undetected."*
 
 ### Slide 4: Key Stakeholders & Challenge Definition
-*Framing Concrete Human Health Suffering, Municipal Liabilities, and the Formal DTAS Question*
-- **Primary Stakeholders: Local Authorities (WWA Nürnberg & SUN)**:
-  - *Spatial Blindness*: Fixed river stations cannot distinguish which of dozens of municipal outfall pipes caused a chemical spike.
-  - *Blind Infrastructure Investments*: Forced to allocate €1.5M–€5M+ per retention basin based on theoretical pipe models rather than empirical in-river impact.
-  - *Chronic Pipe Seepage*: Low-level cracked sewer pipes remain undetected until physical structural collapse.
-  - *Strict Legal Liability*: Under **§ 89 WHG (Wasserhaushaltsgesetz)**, any entity discharging substances that alter water quality faces strict liability independent of fault (Gefährdungshaftung).
-  - *Regulatory Delay*: Lab culture results arrive 24–48 hours too late for emergency public health action.
+*Concrete Human Health Suffering, Municipal Liabilities, and the Formal DTAS Question*
+- **Primary Stakeholders: Water Authorities (SUN & WWA Nürnberg)**:
+  - *Spatial Blindness*: Cannot identify which specific outfall pipe is discharging raw sewage during storms.
+  - *Blind Infrastructure Spending*: Forced to allocate €1.5M–€5M+ CapEx per basin without empirical in-river plume verification.
+  - *Chronic Seepage Undetected*: Low-level pipe cracks remain invisible until ground subsidence or collapse occurs.
+  - *Regulatory Exposure*: Exposed to § 89 WHG strict liability and WFD directive non-compliance.
 - **Secondary Stakeholders: Citizens & Recreators (Surfers, Bathers, Families, Dogs)**:
   - *The Documented Health Hazards on the Pegnitz*:
     1. **Gastrointestinal Infections ("Durchfall-Welle")**: Swallowing contaminated river water during or after storms leads to acute stomach and intestinal illness.
