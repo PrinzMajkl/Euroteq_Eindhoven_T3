@@ -91,12 +91,33 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ---------- Layout ---------- */
 .layout { flex: 1; display: grid; grid-template-columns: 1fr var(--rail); min-height: 0; }
-.map-wrap { position: relative; min-width: 0; }
+.map-wrap { position: relative; min-width: 0; isolation: isolate; }
 #map { position: absolute; inset: 0; }
+.map-holder { position: absolute; inset: 0; }
 .cesium-viewer-bottom { left: auto !important; right: 8px; }
 
+/* Leaflet map */
+.leaflet-container { font-family: var(--font); background: #dfe9ee; }
+.leaflet-container.picking, .leaflet-container.picking .leaflet-interactive { cursor: crosshair !important; }
+.leaflet-top.leaflet-right { top: 56px; }
+.leaflet-control-layers { border: 1px solid var(--border) !important; border-radius: 6px !important; box-shadow: none !important; font-size: 13px; }
+.leaflet-bar { border: 1px solid var(--border) !important; box-shadow: none !important; }
+.pin { background: none; border: 0; }
+.leaflet-tooltip.lbl {
+  background: rgba(255,255,255,0.94); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--navy); font: 700 13px/1.25 var(--font); padding: 2px 7px; box-shadow: none;
+}
+.leaflet-tooltip.lbl::before { display: none; }
+.leaflet-tooltip.lbl-hot { color: var(--deep); border-color: var(--tangerine); }
+.leaflet-tooltip.lbl-info { font-weight: 400; }
+.labels-off .leaflet-tooltip.lbl-perm, .labels-off .leaflet-tooltip.lbl-hot { display: none; }
+.ctx-popup .leaflet-popup-content { margin: 10px 12px; font: 14px/1.35 var(--font); }
+.ctx p { margin: 0 0 8px; font-weight: 700; color: var(--navy); }
+.ctx .btn { display: block; width: 100%; margin-top: 6px; }
+
 /* ---------- Map overlays ---------- */
-.map-tools { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+.map-tools { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; z-index: 600; }
+.chip-3d { margin-left: 6px; }
 .chip {
   background: rgba(255,255,255,0.95); border: 1px solid var(--border); border-radius: 999px;
   padding: 6px 14px; cursor: pointer; font-size: 14px; color: var(--navy);
@@ -104,7 +125,7 @@ button, input, select { font: inherit; color: inherit; }
 .chip[aria-pressed="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
 
 .requests {
-  position: absolute; top: 12px; left: 12px; width: 300px; max-height: calc(100% - 24px);
+  position: absolute; top: 12px; left: 12px; width: 300px; max-height: calc(100% - 24px); z-index: 600;
   overflow: auto; background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 14px; box-shadow: 0 6px 24px rgba(2,48,71,0.12);
 }
@@ -146,7 +167,7 @@ button, input, select { font: inherit; color: inherit; }
 .q-status[data-s="practice"] { background: #fff6dc; color: #7a5800; }
 
 .legend {
-  position: absolute; right: 12px; bottom: 36px; background: rgba(255,255,255,0.95);
+  position: absolute; right: 12px; bottom: 30px; z-index: 500; background: rgba(255,255,255,0.95);
   border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; font-size: 13px;
 }
 .legend-title { font-weight: 700; margin-bottom: 4px; }
@@ -160,7 +181,7 @@ button, input, select { font: inherit; color: inherit; }
 .sym-hot { border-radius: 50%; border: 3px solid var(--tangerine); }
 
 .replay {
-  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+  position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 600;
   display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.97);
   border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px 6px 6px;
   box-shadow: 0 4px 16px rgba(2,48,71,0.12);
@@ -173,7 +194,7 @@ button, input, select { font: inherit; color: inherit; }
 .rp-file { cursor: pointer; }
 
 .toast {
-  position: absolute; top: 56px; left: 50%; transform: translateX(-50%);
+  position: absolute; top: 56px; left: 50%; transform: translateX(-50%); z-index: 700;
   background: var(--navy); color: #fff; padding: 8px 14px; border-radius: 6px; font-size: 14px;
   max-width: 80%; text-align: center;
 }
@@ -230,7 +251,7 @@ button, input, select { font: inherit; color: inherit; }
 .alert-list li[data-level="done"] .a-text { border-color: var(--navy); font-weight: 700; }
 
 /* ---------- Report ---------- */
-.report-overlay { position: fixed; inset: 0; background: rgba(2,48,71,0.45); display: flex; justify-content: center; overflow: auto; padding: 32px 16px; z-index: 50; }
+.report-overlay { position: fixed; inset: 0; background: rgba(2,48,71,0.45); display: flex; justify-content: center; overflow: auto; padding: 32px 16px; z-index: 2000; }
 .report-overlay[hidden] { display: none; }
 .report-sheet { background: #fff; width: min(820px, 100%); border-radius: var(--radius); padding: 28px 36px 36px; height: max-content; }
 .report-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 12px; }

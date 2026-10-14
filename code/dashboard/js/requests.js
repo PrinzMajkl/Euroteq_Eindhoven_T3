@@ -115,7 +115,7 @@ function submit(toast) {
     spot = null;
     hidePickMarker();
     $('pick-spot').textContent = 'Choose on the map';
-    $('pick-hint').textContent = 'Click a point on the river.';
+    $('pick-hint').textContent = 'Click a point inside the dashed outline on the river.';
     $('pick-hint').classList.remove('picked');
   }
   toast(type === 'stop' ? 'Stop request sent.' : `Request ${req.id} created.`);

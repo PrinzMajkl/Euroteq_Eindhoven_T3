@@ -56,7 +56,15 @@ Every live run is recorded to `dashboard/runs/run_<time>.jsonl`. To replay it la
 - `SCALE_ALONG`, `SCALE_ACROSS`: metres of river per metre of arena, chosen so the wooden walls line up with the banks.
 - `ARENA`: wall positions in odom metres. The robot's start point is (0, 0).
 - `OUTFALLS`: put A, B and C where your markers stand in the lab, in odom metres.
-- `CESIUM_ION_TOKEN`: leave it empty for a flat OpenStreetMap map. With a free token from ion.cesium.com you get 3D terrain and buildings. Upload Bavarian DGM1 terrain or LoD2 buildings to ion and set `TERRAIN_ASSET_ID` / `BUILDINGS_ASSET_ID`.
+- `CESIUM_ION_TOKEN`: only needed for the **3D view** button. With a free token from ion.cesium.com you get aerial imagery, 3D terrain and buildings. Upload Bavarian DGM1 terrain or LoD2 buildings to ion and set `TERRAIN_ASSET_ID` / `BUILDINGS_ASSET_ID`. The repo is public, so keep your token out of commits (or restrict it to `localhost` in ion).
+
+## Map
+
+- **2D map** (default, Leaflet + OpenStreetMap). Switch between **Street map** and **Satellite** at the top right. Pan, zoom, click a sample for its values, click an outfall for details.
+- **Choose an inspection spot:** Request an inspection → A spot → Choose on the map → click inside the dashed outline.
+- **Move the monitored stretch:** right-click anywhere on the river → Move stretch here. The setting is remembered in the browser; right-click again to go back to Wöhrder Wiese.
+- **Shift+click** shows the latitude and longitude of a point.
+- **3D view** button: the same mission on a CesiumJS globe.
 
 ## Files
 
@@ -64,7 +72,7 @@ Every live run is recorded to `dashboard/runs/run_<time>.jsonl`. To replay it la
 - `js/app.js`: wiring
 - `js/data.js`: live WebSocket and replay
 - `js/store.js`: mission state and alerts
-- `js/map.js`: Cesium map
+- `js/map.js`: switches between `js/map2d.js` (Leaflet) and `js/map3d.js` (CesiumJS)
 - `js/panels.js`: status, tiles, charts, findings
 - `js/requests.js`: request panel
 - `js/report.js`: incident report and CSV

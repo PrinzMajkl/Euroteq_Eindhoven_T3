@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PlumeTrace Authority Dashboard</title>
   <link rel="icon" href="assets/logo.jpeg">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cesium@1.122.0/Build/Cesium/Widgets/widgets.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/cesium@1.122.0/Build/Cesium/Cesium.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.js"></script>
 </head>
 <body>
@@ -45,6 +45,7 @@
         <button type="button" class="chip" data-view="overview">Whole stretch</button>
         <button type="button" class="chip" data-view="follow" aria-pressed="false">Follow robot</button>
         <button type="button" class="chip" data-view="hotspot">Highest reading</button>
+        <button type="button" class="chip chip-3d" id="btn-3d" aria-pressed="false">3D view</button>
       </div>
 
       <!-- Requests -->
@@ -64,7 +65,7 @@
             <div class="field" data-for="inspect">
               <span class="field-label">Where</span>
               <button type="button" class="btn btn-block" id="pick-spot">Choose on the map</button>
-              <p class="hint" id="pick-hint">Click a point on the river.</p>
+              <p class="hint" id="pick-hint">Click a point inside the dashed outline on the river.</p>
             </div>
 
             <label class="field" data-for="outfall">

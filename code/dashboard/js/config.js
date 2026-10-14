@@ -1,9 +1,10 @@
 // PlumeTrace dashboard settings. Edit this file, not the code.
 
 export const CONFIG = {
-  // Cesium ion access token (free account at https://ion.cesium.com).
-  // Empty = flat map with OpenStreetMap imagery (works without an account).
-  // With a token: 3D terrain + 3D buildings. Set TERRAIN_ASSET_ID to your own
+  // Cesium ion access token for the "3D view" button (ion.cesium.com ->
+  // Access Tokens -> Default token). The normal 2D map does not need it.
+  // Empty = 3D globe with street map only. With a token: aerial imagery,
+  // 3D terrain and 3D buildings. Set TERRAIN_ASSET_ID to your own
   // uploaded Bavarian DGM1 terrain later; 1 = Cesium World Terrain.
   CESIUM_ION_TOKEN: '',
   TERRAIN_ASSET_ID: 1,

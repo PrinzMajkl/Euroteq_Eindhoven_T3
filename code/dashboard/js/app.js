@@ -2,7 +2,7 @@
 import { CONFIG } from './config.js';
 import { state, onChange } from './store.js';
 import { source, replay, onSource, useSource, setPlaying, seek, loadReplayUrl, loadReplayText } from './data.js';
-import { initMap, updateMap, view, setToast, clearRequestMarkers } from './map.js';
+import { initMap, updateMap, view, setToast, clearRequestMarkers, useMode } from './map.js';
 import { render, renderSource } from './panels.js';
 import { initRequests, renderRequests } from './requests.js';
 import { initReport } from './report.js';
@@ -24,7 +24,7 @@ async function main() {
     await initMap($('map'));
   } catch (e) {
     console.error(e);
-    toast('The 3D map could not start. Check the internet connection and the Cesium token in config.js.');
+    toast('The map could not start. Check the internet connection.');
   }
 
   onChange((s) => {
@@ -53,6 +53,23 @@ async function main() {
       view(following ? 'follow' : kind === 'follow' ? 'none' : kind, false, state);
     });
   }
+
+  // 2D map <-> Cesium 3D view
+  $('btn-3d').addEventListener('click', async () => {
+    const btn = $('btn-3d');
+    const want = btn.getAttribute('aria-pressed') === 'true' ? '2d' : '3d';
+    btn.disabled = true;
+    if (want === '3d') {
+      toast(CONFIG.CESIUM_ION_TOKEN ? 'Loading the 3D view…'
+        : 'Loading the 3D view. Add your Cesium ion token in config.js for terrain and 3D buildings.');
+    }
+    const got = await useMode(want);
+    btn.setAttribute('aria-pressed', String(got === '3d'));
+    btn.textContent = got === '3d' ? '2D map' : '3D view';
+    document.querySelector('[data-view="follow"]').setAttribute('aria-pressed', 'false');
+    view('overview', false, state);
+    btn.disabled = false;
+  });
 
   // Replay controls
   $('rp-play').addEventListener('click', () => setPlaying(!replay.playing));
