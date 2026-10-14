@@ -14,7 +14,7 @@ from std_msgs.msg import String
 class DigitalTwin(Node):
     def __init__(self):
         super().__init__('pollution_digital_twin')
-
+        #https://www.gesetze-im-internet.de/ogewv_2016/anlage_7.html
         for key,val in {'alert_nh3_mg_l':0.6,'low_do_mg_l':7.0,
                         'min_alarm_samples':2,'state_period_sec':5.0,'telemetry_timeout_sec':3.0,
                         'sensor_timeout_sec':6.0,'waypoint_timeout_sec':120.0,
