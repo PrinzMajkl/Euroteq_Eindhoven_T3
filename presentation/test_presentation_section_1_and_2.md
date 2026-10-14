@@ -25,14 +25,14 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
 
 ---
 
-## Slide 2: The Pegnitz: Four Critical Pressures
+## Slide 2: Why Pegnitz
 
 ### Slide Visual Content
-- Slide Title: The Pegnitz: Four Critical Pressures
+- Slide Title: Why Pegnitz
 - Four Clean Focus Areas:
-  - Fuchslochwelle Surfers
+  - Public Health
     - Raw sewage spikes after rainfall
-    - 24-48h lab delay vs instant health risk
+    - Instant health risk for surfers, waders, and park visitors
   - Sewer Overflows (CSOs)
     - 1,500 km municipal network overloaded by storms
     - 1.5M - 5M+ EUR cost per retention basin
@@ -42,41 +42,36 @@ Minimalist, human-designed slide deck copy and presenter scripts for Slide 1 (Ti
   - Summer Heat and Drought
     - Low flow concentrates pollutants
     - Dissolved oxygen drops < 3 mg/L (fish kills)
-- Bottom Highlight:
-  - Core Bottleneck: Monthly grab sampling misses short 2-4 hour overflow events.
 
 ### Presenter Script (~60 seconds)
 > "Why the Pegnitz River? Because it represents four urgent pressures colliding in one urban corridor:  
-> First, Public Health: Surfers at the Fuchslochwelle wave face raw sewage contamination after storms - dubbed the 'Durchfall-Welle' in local media - while lab tests take up to 48 hours.  
+> First, Public Health: Surfers at the Fuchslochwelle wave and waders face raw sewage contamination after storms, creating immediate health risks.  
 > Second, Urban Infrastructure: Nuremberg's 1,500 km sewer network overspills during heavy rains. Modernizing a single retention basin costs between 1.5 and 5 million euros - cities cannot afford to invest blindly.  
 > Third, Agriculture: Intensive vegetable farming in Knoblauchsland leaches nitrates into alluvial drinking water aquifers under strict EU penalties.  
-> And fourth, Climate Drought: Summer heat reduces river discharge, collapsing oxygen levels below 3 mg/L and killing fish.  
-> The core failure? Authorities take grab samples once a month. A storm overflow lasts only 2 to 4 hours. By the time technicians sample, the plume is gone."
+> And fourth, Climate Drought: Summer heat reduces river discharge, collapsing oxygen levels below 3 mg/L and killing fish."
 
 ---
 
-## Slide 3: Current Monitoring: The Temporal Blind Spot
+## Slide 3: Current Monitoring
 
 ### Slide Visual Content
-- Slide Title: Current Monitoring: The Temporal Blind Spot
-- Left Column: What Municipalities Measure (SUN)
+- Slide Title: Current Monitoring
+- Left Column: Municipal Authorities: SUN & WWA Nürnberg
+  - Stadtentwässerung Nürnberg (SUN) and Wasserwirtschaftsamt (WWA)
   - Temperature, pH, conductivity, turbidity
   - Dissolved oxygen and nutrients (Nitrate, Phosphate)
   - Ammonium (NH4+): primary raw sewage tracer
-  - Laboratory processing requires 24-48 hours
 - Right Column: The Sampling Gap
-  - Manual grab sampling: 1x per month
-  - Convective storm overflow: 2 to 4 hours
-  - Plume arrives, causes harm, and clears undetected
-  - Chemistry is understood - timing and mobility are missing
+  - Main problem: Plume arrives, causes harm, and clears undetected
+  - Convective storm overflow lasts only 2 to 4 hours
+  - Laboratory processing requires 24-48 hours
 - Bottom Highlight:
   - The Result: Statutory violations and toxic spills pass completely unrecorded.
 
 ### Presenter Script (~50 seconds)
 > "To address this, we looked at what municipal authorities currently measure.  
 > In Nuremberg, the drainage service SUN tracks eight standard parameters: temperature, pH, conductivity, turbidity, dissolved oxygen, and nutrients like ammonium, nitrate, and phosphate. Ammonium is the critical chemical fingerprint of raw sewage.  
-> The problem is not chemical ignorance - it is temporal and spatial rigidity.  
-> Manual grab sampling happens once a month. A storm spill lasts just 3 hours. That means between scheduled samples, there are weeks of complete blindness. Millions of liters of wastewater can pass through, infect recreators, and clear away before the next bottle is dipped."
+> The main problem is that plumes arrive, cause harm, and clear undetected. Storm overflows last only 2 to 4 hours, but laboratory processing takes 24 to 48 hours."
 
 ---
 
