@@ -5,18 +5,23 @@ This document contains the slide-by-slide outline, talking points, and brainstor
 > [!NOTE]
 > Detailed defence rubric, criteria, and audience guidance are documented in [presentation_requirements.md](../general_information/presentation_requirements.md).
 > Comprehensive technical specs are in [technical_specifications.md](../general_information/technical_specifications.md) and [project_overview.md](../general_information/project_overview.md).
+> Visual identity, color palette, and typography standards are in [brand_style_guide.md](brand_style_guide.md).
 
 ---
 
 ## 1. Title Slide (Max 1 Slide)
 *Target Audience: General*
 
-### Slide 1: Project Title & Team
-- **Project Title**: Autonomous Closed-Loop Digital Twin for River Pollution Tracking
-- **Subtitle**: Detecting and Localizing Transient Combined Sewer Overflows (CSOs) in the Pegnitz River
+### Slide 1: Project Title, Brand & Team
+- **Project Title**: **PlumeTrace – Autonomous Digital Twin for River Water Protection**
+- **Subtitle**: Detecting, Tracking, and Localizing Transient Combined Sewer Overflows (CSOs) in the Pegnitz River
+- **Brand Identity & Logo**:
+  - Official Project Logo: [**`assets/logo.jpeg`**](assets/logo.jpeg)
+  - Visual Theme: Minimalist, Pure White Background (`#FFFFFF`), Modern Sans-Serif Typography (*Inter / Plus Jakarta Sans* – No Monospace).
+  - Palette: Midnight Navy (`#023047`), River Cyan (`#219ebc`), Sky Breeze (`#8ecae6`), Amber Gold (`#ffb703`), Tangerine Alert (`#fb8500`).
 - **Team Name**: EuroTeQ Eindhoven - Track 3 (T3)
 - **Contributing Members**: [Member Names & Affiliations]
-- **Key Visuals**: Split render showing the physical TurtleBot3 platform alongside the Cesium/3DCityDB digital twin overlay of the Pegnitz riverbank.
+- **Key Visuals**: Official PlumeTrace circular emblem paired with split render showing the physical TurtleBot3 platform alongside the Cesium 3D LOD2 digital twin overlay of the Pegnitz riverbank in Nuremberg.
 
 ---
 
