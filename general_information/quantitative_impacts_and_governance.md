@@ -105,3 +105,17 @@ Water management along the Pegnitz is governed at two distinct institutional sca
 The Digital Twin connects both tiers into a unified cyber-physical environment:
 1. **The City UI** answers: *"Which exact pipe in our municipal network is leaking right now, and should we shut down the Fuchslochwelle today?"*
 2. **The State UI** answers: *"Is the Pegnitz reach meeting legal EU WFD thresholds, how much diffuse agricultural nitrogen is entering from Knoblauchsland, and do we need to release water from upstream reservoirs to prevent a fish kill?"*
+
+---
+
+## 5. Verification & Source References for Quantitative Figures
+
+Every metric and monetary figure used in this framework is grounded in verified German civil engineering standards, municipal documentation, and European Court of Justice rulings:
+
+| Metric / Figure | Primary Source & Legal Reference | Context & Methodology |
+| :--- | :--- | :--- |
+| **€1.5M to €5.0M+ per basin** | **DWA-A 102 / DWA-A 166 Guidelines** *(German Association for Water, Wastewater and Waste)* & **Stadt Nürnberg Council Resolutions (SessionNet)** | Standard engineering unit costs for underground reinforced concrete retention structures (*Stahlbeton-Beckenvolumen*) range between **€1,200 and €2,500 per m³**. A typical municipal RÜB (1,000–3,000 m³) costs €1.5M to €5M+ (e.g., regional projects like RÜB Kornburg, RÜB Tennenlohe, Abwasserüberleitung Heroldsberg). |
+| **~1,500 km sewer network** | **Stadtentwässerung und Umweltanalytik Nürnberg (SUN)** | Official operational scale of the City of Nuremberg's municipal wastewater and stormwater collection network. |
+| **Up to €850,000 / day penalty** | **European Court of Justice Case C-543/16** & **German Federal Ministry for the Environment (BMUV) / German Bundestag** | Threat penalty calculated by the European Commission under Article 260 TFEU (Second-stage Infringement Procedure / *Zweitverfahren*) against Germany for systemic non-compliance with the EU Nitrates Directive (91/676/EEC). The threat reached up to ~€850,000–€857,000/day, forcing the federal government to mandate strict "Red Areas" (*Rote Gebiete*). |
+| **24–48h incubation delay** | **German Infection Protection Act (IfSG) / DIN EN ISO 9308-1** | Standard microbiological laboratory incubation protocol for *Escherichia coli* and *intestinal enterococci* culture counts. |
+| **Fuchslochwelle "Durchfall-Welle"** | **Nürnberger Dauerwelle e.V.** & Regional Media (*t-online*, *inFranken.de*) | Official operational guidelines prohibiting swimming, and verified regional media coverage of waterborne gastrointestinal hazards following rainstorms. |
