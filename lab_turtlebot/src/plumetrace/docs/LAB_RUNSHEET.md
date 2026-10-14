@@ -1,8 +1,9 @@
 # Lab run sheet: PlumeTrace on the real TurtleBot3 (ROS 2 Jazzy)
 
 Everything of ours runs on the lablaptop. The robot only runs the stock bringup.
-**Status (2026-10-14): the whole chain ran in simulation on Jazzy (scenarios A, B, C each ended with the
-right outfall, see `docs/SIMULATION.md`). Nothing below has run on the lablaptop or on the real robot yet.**
+**Status (2026-10-14):** the whole chain ran in simulation on Jazzy (scenarios A, B, C each ended with the right
+outfall, see `docs/SIMULATION.md`), and the repo has brought up and driven the real robot from the lablaptop.
+`tools/start_demo.sh` and `tools/run_abc.py` (section 5b) are new and have not run on the lablaptop yet.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
@@ -11,22 +12,52 @@ Every terminal on the lablaptop, after step 0:
 cd ~/euroteq/lab_turtlebot/src/plumetrace && source config/env.sh
 ```
 
+## Quick reference
+
+| Task | Command (lablaptop, in the folder above, unless noted) |
+| --- | --- |
+| Update code | `cd ~/euroteq && git pull && cd lab_turtlebot/src/plumetrace && tools/lab_setup.sh` |
+| Robot bringup (robot) | `ssh turtlebot@192.168.8.32`, then `export ROS_DOMAIN_ID=32 TURTLEBOT3_MODEL=burger LDS_MODEL=LDS-02 && ros2 launch turtlebot3_bringup robot.launch.py` |
+| Check link and clocks | `tools/lab_check.sh` |
+| Tape guide | `python3 tools/lab_tape_guide.py 0.25` |
+| Map the arena | `ros2 launch plumetrace_sim lab_map.launch.py` + `ros2 run turtlebot3_teleop teleop_keyboard` + `tools/lab_save_map.sh` |
+| Navigation only | `ros2 launch plumetrace_sim lab_nav.launch.py rviz:=true` then `python3 tools/wait_ready.py 90` |
+| One mission | `ros2 launch plumetrace_sim lab_mission.launch.py scenario:=B seed:=1` + relay + start (section 5) |
+| **Full demo, 5 terminals** | **`tools/start_demo.sh`** (section 5b) |
+| Missions A, B, C only | `python3 tools/run_abc.py --confirm` (needs bringup running; section 5b) |
+| Dashboard | `PLUMETRACE_RELAY_KEY=<secret> python3 tools/relay.py`, open `http://localhost:8090/?key=<secret>` |
+| Public link | `cloudflared tunnel --url http://localhost:8090` |
+| RViz alone | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
+| Patrol loop | `python3 tools/wait_ready.py 90 && python3 tools/patrol_abc.py` (with `lab_nav` running) |
+| Replay a run | `python3 tools/export_czml.py ~/plumetrace_runs/<time>` then load the `.czml` in the dashboard (Samples · export · replay) |
+| Stop everything | `tools/start_demo.sh stop` or `tools/lab_stop.sh` |
+| Tests | `python3 -m pytest -q tests` (34 pass) |
+
 ## 0. Once per lablaptop (5 min)
 
 ```bash
-cd ~ && git clone -b lab-turtlebot https://github.com/PrinzMajkl/Euroteq_Eindhoven_T3.git euroteq
+cd ~ && git clone https://github.com/PrinzMajkl/Euroteq_Eindhoven_T3.git euroteq
 cd ~/euroteq/lab_turtlebot/src/plumetrace
 tools/lab_setup.sh --pip
 source config/env.sh
 echo $ROS_DOMAIN_ID
 ```
 
-`lab_setup.sh --pip` installs shapely, pymap3d, websockets and jsonschema for this user (no sudo) and builds
-the workspace in `~/euroteq/lab_turtlebot` on top of `~/turtlebot3_ws` (the repo root is not the workspace:
-`lab_turtlebot/` is a folder inside it, and the code lives only on the `lab-turtlebot` branch). `ROS_DOMAIN_ID` must print 32 (from `~/.bashrc`).
-Check the tests: `python3 -m pytest -q tests` (31 pass in simulation).
+The code is on `main` (there is no `lab-turtlebot` branch on GitHub). `lab_setup.sh --pip` installs shapely,
+pymap3d, websockets and jsonschema for this user (no sudo) and builds the workspace in `~/euroteq/lab_turtlebot`
+on top of `~/turtlebot3_ws` (the repo root is not the workspace: `lab_turtlebot/` is a folder inside it).
+`ROS_DOMAIN_ID` must print 32 (from `~/.bashrc`). Check the tests: `python3 -m pytest -q tests` (34 pass).
 
-Later sessions: `git pull` in `~/euroteq`, then `tools/lab_setup.sh` again.
+Optional, for the public dashboard link (no sudo):
+
+```bash
+mkdir -p ~/.local/bin && curl -L -o ~/.local/bin/cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && chmod +x ~/.local/bin/cloudflared
+```
+
+City view with terrain and buildings: create `web/config.local.js` by hand with
+`window.PLUMETRACE_CONFIG_LOCAL = { ionToken: '<your token>' };` (git-ignored, never commit it).
+
+Later sessions: `git pull` in `~/euroteq`, then `tools/lab_setup.sh` again (rebuilds the gateway and twin).
 
 ## 1. Robot up, check the link (5 min)
 
@@ -35,7 +66,13 @@ bringup starts, and the SLAM map in step 3 starts at the odometry origin (slam_t
 in mapping mode; it only uses it when it loads a saved pose graph). If the robot was moved or driven since the
 bringup started, stop the bringup, put the robot on the start mark and start the bringup again before step 3.
 
-Robot terminal (ssh): `export TURTLEBOT3_MODEL=burger && ros2 launch turtlebot3_bringup robot.launch.py`
+Robot terminal:
+
+```bash
+ssh turtlebot@192.168.8.32
+export ROS_DOMAIN_ID=32 TURTLEBOT3_MODEL=burger LDS_MODEL=LDS-02
+ros2 launch turtlebot3_bringup robot.launch.py
+```
 
 Lablaptop:
 
@@ -45,7 +82,14 @@ tools/lab_check.sh
 
 It prints whether `/cmd_vel` is TwistStamped (expected; else add `stamped:=false` to every launch below) and
 the clock offset between robot and laptop (above 0.3 s Nav2 rejects transforms: sync the clocks first).
-Commit the report in `lab/reports/`.
+Commit the report in `lab/reports/`. Exactly one node may publish `/cmd_vel` at a time:
+
+```bash
+ros2 topic info /cmd_vel -v
+```
+
+Do not run `code/safe_navigation_pollution_v5.py` (the no-Nav2 script) together with `lab_nav`, `lab_mission`
+or the demo: both publish `/cmd_vel` and the robot moves stop-go.
 
 ## 2. Tape the river (15 min)
 
@@ -105,36 +149,47 @@ the water:
 ros2 action send_goal /navigate_to_pose nav2_msgs/action/NavigateToPose "{pose: {header: {frame_id: map}, pose: {position: {x: 1.565, y: -1.53}, orientation: {z: -0.039, w: 0.999}}}}"
 ```
 
-## 5. Mission (5 to 15 min per run)
+## 5. One mission by hand (5 to 15 min per run)
 
-Robot on the start mark.
+Robot on the start mark, bringup running.
 
 ```bash
 ros2 launch plumetrace_sim lab_mission.launch.py scenario:=B seed:=1
-python3 tools/relay.py
+PLUMETRACE_RELAY_KEY=<secret> python3 tools/relay.py
 python3 tools/wait_ready.py 90 && ros2 topic pub --once /mission/start std_msgs/msg/Empty "{}"
 python3 tools/wait_done.py B 900
 ```
 
-Terminal A: the launch. Terminal B: the relay; open http://localhost:8090/ on the lablaptop. Terminal C:
-start the mission. Terminal D: `wait_done.py` prints every event and ends with `RESULT PASS` when the done
-event names outfall B. Logs and the rosbag are in `~/plumetrace_runs/<time>/`; copy the folder into the repo
-or a drive before leaving. Repeat with `scenario:=A` and `scenario:=C` (put the robot back on the start mark,
-stop terminal A with Ctrl-C and run `tools/lab_stop.sh` between runs).
+Terminal A: the launch. Terminal B: the relay; open `http://localhost:8090/?key=<secret>` on the lablaptop
+(without `?key=` the page is view-only). Terminal C: start the mission. Terminal D: `wait_done.py` prints every
+event and ends with `RESULT PASS` when the done event names outfall B. Logs and the rosbag are in
+`~/plumetrace_runs/<time>/`; copy the folder into the repo or a drive before leaving. Repeat with `scenario:=A`
+and `scenario:=C` (put the robot back on the start mark, stop terminal A with Ctrl-C and run `tools/lab_stop.sh`
+between runs), or use `tools/run_abc.py` (5b), which does this for you.
 
-Commands from the dashboard (abort, return home, no-go zones) need the relay key: start the relay with
-`PLUMETRACE_RELAY_KEY=<secret> python3 tools/relay.py` and open `http://localhost:8090/?key=<secret>`.
-Without the key the page is view-only. To let others watch from outside the lab, point your HTTPS tunnel or
-reverse proxy at port 8090 (your step; anyone with the address sees the page and the ion token in it).
-
-City view with terrain: create `web/config.local.js` on the laptop by hand with
-`window.PLUMETRACE_CONFIG_LOCAL = { ionToken: '<your token>' };` (never commit it).
-
-## 5b. One-command demo: missions A, B, C with the live dashboard
-
-Robot on the start mark, map done (step 3), river taped (step 2). On the lablaptop:
+Useful extras:
 
 ```bash
+ros2 topic pub --once /twin/command std_msgs/msg/String "{data: '{\"type\": \"return_home\"}'}"
+ros2 topic pub --once /twin/command std_msgs/msg/String "{data: '{\"type\": \"abort\"}'}"
+ros2 topic echo /mission/events
+ros2 launch plumetrace_sim lab_mission.launch.py scenario:=B show_true_plume:=true
+```
+
+`show_true_plume:=true` shows the simulated true plume on the dashboard from the start. Default `false`: it
+appears only after the mission's `done` event, because it gives away the leaking outfall.
+
+To let others watch from outside the lab: `cloudflared tunnel --url http://localhost:8090` (or
+`~/.local/bin/cloudflared ...`) prints a `https://*.trycloudflare.com` link. Viewers are view-only; anyone with
+the link sees the page and the Cesium ion token in it, so use a restricted token.
+
+## 5b. Full demo in one command: missions A, B, C with the live dashboard
+
+Robot on the start mark, map done (step 3), river taped (step 2). Do not start the bringup by hand: terminal 3
+does it. On the lablaptop:
+
+```bash
+cd ~/euroteq/lab_turtlebot/src/plumetrace
 tools/start_demo.sh
 ```
 
@@ -144,22 +199,64 @@ It checks the build, `websockets`, `cloudflared` and that the robot answers ping
 | # | Terminal | What runs |
 | --- | --- | --- |
 | 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
-| 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (quick tunnel, public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the no-sudo install command |
-| 3 | robot | `ssh -t turtlebot@192.168.8.32`, `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
-| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: lab_mission A → done → robot drives home → B → C; press Enter before each run after checking the robot sits on the start mark. Ends with a PASS/FAIL table and `~/plumetrace_runs/<time>-abc/summary.json` |
-| 5 | rviz | `rviz2` with `plumetrace_sim/rviz/plumetrace.rviz` |
+| 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the install command from step 0 |
+| 3 | robot | `ssh -t turtlebot@192.168.8.32` with `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: lab_mission A → done → robot drives home → B → C. Press Enter before each run after checking the robot sits on the start mark. Ends with a PASS/FAIL table |
+| 5 | rviz | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
 
-The dashboard keeps one page open over all three runs: each run is archived in the Runs panel (samples,
-max NH₃-N, result, incident) and the next starts clean. Gazebo is not started: a simulated robot on domain 32
-would publish the same topics as the real one.
+Open the operator link from terminal 1 in a browser. Gazebo is not started: a simulated robot on domain 32 would
+publish the same topics as the real one (for the simulation see `docs/SIMULATION.md`).
 
-Options: `PLUMETRACE_ROBOT=user@host`, `ROS_DOMAIN_ID`, `PLUMETRACE_RELAY_KEY`, and
-`RUN_ABC_ARGS="--confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15"` (arguments after `--` go to every
-lab_mission launch). Stop everything: `tools/start_demo.sh stop` (also runs `tools/lab_stop.sh`).
+Variants:
+
+```bash
+tools/start_demo.sh --tmux
+tmux attach -t plumetrace
+PLUMETRACE_ROBOT=ubuntu@192.168.8.40 tools/start_demo.sh
+PLUMETRACE_RELAY_KEY=mysecret tools/start_demo.sh
+RUN_ABC_ARGS="--confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15" tools/start_demo.sh
+tools/start_demo.sh stop
+```
+
+(`--tmux`: no gnome-terminal windows, switch windows with Ctrl-b 1..5. `PLUMETRACE_ROBOT`: other robot login.
+`RUN_ABC_ARGS`: options for `run_abc.py`; arguments after `--` go to every lab_mission launch. `stop`: stops relay,
+tunnel and all ROS nodes on the lablaptop via `tools/lab_stop.sh`; the bringup on the robot stops when its ssh
+terminal closes or with Ctrl-C there.)
+
+`run_abc.py` on its own (bringup already running, relay in another terminal):
+
+```bash
+python3 tools/run_abc.py --confirm
+python3 tools/run_abc.py --scenarios B --confirm
+python3 tools/run_abc.py --scenarios CAB --seed 2 --pause 20
+python3 tools/run_abc.py --confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15
+```
+
+Per run it starts `lab_mission` (RViz off; terminal 5 has it), waits for Nav2 (restarts the launch once if it is
+not ready), starts the mission, waits for `done` (`--timeout`, default 900 s), sends the robot home
+(`--home-timeout`, default 200 s), stops the launch and pauses (`--pause`, default 10 s). If the robot does not
+confirm it is home, put it on the start mark by hand before pressing Enter. Ctrl-C aborts the mission and stops
+the launch. Logs: `~/plumetrace_runs/<time>-abc/launch_<S>.log` and `summary.json`; each mission also writes its
+own run folder (CSV + rosbag).
+
+What the dashboard shows during the demo:
+
+- Always visible: map with the robot (large icon, ring; Find / Follow buttons), mission card (run, scenario,
+  elapsed time, what the robot is doing, battery), pollution status (NH₃-N, DO, Normal / Elevated / ALERT /
+  SEVERE) and the "Which outfall?" bars.
+- Map legend: plume layer Estimated / True (simulation) / Off and 3D columns.
+- Closed sections: mission events, commands (abort, return home, no-go zones, virtual obstacles; need the key),
+  sync per stream, runs table (one row per scenario with result), alerts, river and gauge (Pegnitz gauge
+  24225000, flow, downstream ETA to the Regnitz), samples / CSV export / CZML replay.
+- On the first alert: incident window with actions checklist, escalation ladder (Police/Fire → Umweltamt + SUN
+  → WWA Nürnberg → Regierung von Mittelfranken / LfU → IWAP Rhein; logged only, no message is sent), public
+  warning request draft with radius on the map (only authorities can issue warnings), and a pre-filled report
+  and log (export JSON / CSV). "Export all runs (JSON)" in the runs section saves everything.
 
 ## 6. Patrol loop: outfalls A, B, C, home, river bank, home, repeat
 
 Robot on the start mark. Uses `lab_nav` only, not `lab_mission` (its mission controller would send goals too).
+No pollution data reaches the dashboard in this mode.
 
 ```bash
 ros2 launch plumetrace_sim lab_nav.launch.py rviz:=true
@@ -179,23 +276,48 @@ on low battery, default 11.0 V). Log: `~/plumetrace_runs/<time>-patrol/patrol.cs
 Run it first with `--loops 1` and a hand near Ctrl-C; drop to `--speed normal` if the robot overshoots stops
 or slides on the turns.
 
+## 7. Before leaving
+
+```bash
+tools/start_demo.sh stop
+ls ~/plumetrace_runs/
+mkdir -p ~/euroteq/lab_turtlebot/lab/runs && cp -r ~/plumetrace_runs/<time>* ~/euroteq/lab_turtlebot/lab/runs/
+```
+
+Export the dashboard runs ("Export all runs (JSON)") if you want the incident records. Commit reports, maps and
+run summaries you want to keep; never commit `web/config.local.js`.
+
 ## Troubleshooting
 
 | Symptom | Check |
 | --- | --- |
-| `lab_check.sh` sees no nodes | `echo $ROS_DOMAIN_ID` on robot and laptop must match; same network |
+| `lab_check.sh` sees no nodes | `echo $ROS_DOMAIN_ID` on robot and laptop must match (32); same network |
+| `start_demo.sh`: "plumetrace_sim is not built" | `tools/lab_setup.sh` |
+| `start_demo.sh`: "relay needs websockets >= 13" | `tools/lab_setup.sh --pip` |
+| `start_demo.sh`: robot does not answer ping | robot on, same Wi-Fi, address 192.168.8.32 (else `PLUMETRACE_ROBOT=user@address`) |
+| Terminal 3: ssh asks for password every time | normal; or once: `ssh-copy-id turtlebot@192.168.8.32` |
+| Terminal 3: `ros2: command not found` on the robot | the robot's `~/.bashrc` must source `/opt/ros/jazzy/setup.bash` and its TurtleBot3 workspace |
+| Terminal 4 waits forever for `/odom` | bringup not running or wrong domain: look at terminal 3, run `ros2 topic list` |
+| No windows open (only a list of `bash ...` lines) | no gnome-terminal or display: use `tools/start_demo.sh --tmux` |
+| Dashboard says "reconnecting" | relay not running (terminal 1); between runs it reconnects by itself when the next gateway starts |
+| Dashboard shows the robot but no samples | mission not started yet, or mission ended; see Mission events section |
+| Cloudflare link does not load | `cloudflared` output in terminal 2; quick tunnels change address on every start |
 | `wait_ready.py` says "asking the lifecycle managers to start again" | normal once in a while (seen in simulation); it should then print `ready`. If it ends with `not active: [...]`, Ctrl-C terminal A, `tools/lab_stop.sh`, start again |
 | Nav2 active, goal accepted, robot does not move | wrong `/cmd_vel` type: relaunch with `stamped:=false` (or `true`) |
-| A node fails to configure | read its error in terminal A; `params/nav2_burger.yaml` loads cleanly in Nav2 1.3.13 in simulation |
+| Robot moves stop-go, two publishers on `/cmd_vel` | `ros2 topic info /cmd_vel -v`; stop the extra one (e.g. the no-Nav2 script) |
+| Jerky motion in general | see `docs/jerky_motion_diagnosis.md` (ranked causes and parameter fixes) |
+| A node fails to configure | read its error in terminal A (or `launch_<S>.log` with `run_abc.py`) |
 | "Transform ... extrapolation into the future/past" | clock offset: see step 1 |
 | AMCL pose jumps or is mirrored | robot was not on the start mark, or marker objects moved since mapping |
-| Robot circles or creeps at a goal and never finishes | add `xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15` to the `lab_nav` / `lab_mission` command (defaults 0.03 m, 0.10 rad, tuned in simulation only) |
+| Robot circles or creeps at a goal and never finishes | add `xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15` to the `lab_nav` / `lab_mission` command (or `RUN_ABC_ARGS`) |
 | Robot cannot leave the bank ("failed to create plan") | it is too close to the water: check the tape positions against the tape guide; the keepout leaves 0.06 m of margin |
+| Battery shown in orange or red on the dashboard | below 11.3 V / 11.0 V: charge or swap before the next run |
 | `lab_map` fails: slam_toolbox missing | `sudo apt install ros-jazzy-slam-toolbox` (needs someone with sudo), or skip mapping (step 3) |
-| Everything stuck | Ctrl-C, then `tools/lab_stop.sh` (kills all ROS nodes on the lablaptop) |
+| Everything stuck | Ctrl-C, then `tools/start_demo.sh stop` or `tools/lab_stop.sh` (kills all ROS nodes on the lablaptop) |
 
 ## Limits on the real robot
 
 There is no ground-truth pose, so the position error of a sample is not measured.
+The pollution readings are emulated from the synthetic plume at the robot's localised position (no real probe).
 STOP obstacles from the city view need `collision_monitor:=true`, which is off by default because it
 depends on robot and lablaptop clocks agreeing.
