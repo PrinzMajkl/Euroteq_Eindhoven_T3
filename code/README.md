@@ -4,12 +4,41 @@ This directory contains source code, scripts, prototypes, and technical experime
 
 ---
 
-## Folder Structure
-*(To be detailed based on tech stack and architectural design)*
+## Folder Structure & Key Files
 
-## Setup & Running Instructions
-*(Prerequisites, installation commands, environment setup, and execution steps)*
+| File | Description |
+| --- | --- |
+| [`fuchslochwelle_mcp.py`](file:///c:/Users/Michal/Documents/Github/Euroteq_Eindhoven_T3/code/fuchslochwelle_mcp.py) | Mock MCP server (stdio JSON-RPC 2.0) checking surfability and storm-related river water pollution at Fuchslochwelle (Nuremberg). |
+| [`digital_twin_pollution_v5.py`](file:///c:/Users/Michal/Documents/Github/Euroteq_Eindhoven_T3/code/digital_twin_pollution_v5.py) | Digital Twin pollution simulator and telemetry server. |
+| [`safe_navigation_pollution_v5.py`](file:///c:/Users/Michal/Documents/Github/Euroteq_Eindhoven_T3/code/safe_navigation_pollution_v5.py) | Safe autonomous navigation controller with pollution detection integration. |
+| [`gateway_node.py`](file:///c:/Users/Michal/Documents/Github/Euroteq_Eindhoven_T3/code/gateway_node.py) | Gateway communication bridge between ROS2 navigation and Digital Twin. |
 
+---
 
-{"timestamp": 1791965606.4681737, "robot": {"x": 0.468157886350158, "y": 0.0026143415082901735, "yaw": 0.007570505142211913, "velocity_mps": 0.0, "status": "STOPPED_BY_TWIN", "battery_percent": 93.13, "battery_voltage_v": null, "battery_source": "SIMULATED_RUNTIME_MODEL", "battery_is_simulated": true, "battery_estimated_remaining_min": 88.2}, "environment": {"nh3_n_mg_l": 4.0966, "do_mg_l": 6.657, "nearest_obstacle_m": 2.2769999504089355}, "pollution": {"alarm": true, "gradient_mg_l_per_m": 6.000492483016486, "estimated_source_x": null, "estimated_source_y": null, "suspected_hotspot_x": 0.4494, "suspected_hotspot_y": 0.0024, "sample_count": 6, "sensor_origin": "SYNTHETIC_POSITION_BASED", "measurement_accuracy": "NOT_VALIDATED"}, "synchronization": {"robot_telemetry_fresh": true, "sensor_data_fresh": false, "robot_telemetry_age_sec": 0.31, "sensor_data_age_sec": 9.01, "last_sample_id": 6, "battery_available": true}, "mission": {"current_target": {"x": 0.4494, "y": 0.0024, "frame_id": "odom", "tolerance_m": 0.25, "basis": "PEAK_MEASUREMENT_PROXY"}, "mode": "FAILED", "decision": "STOP", "last_nav2_event": {"status": "NAV2_UNAVAILABLE", "timestamp": 1791965602.4737725, "reason": "NavigateToPose action server not active"}}}
+## MCP Server: Fuchslochwelle Surf Advisor (`fuchslochwelle_mcp.py`)
 
+A zero-dependency stdio Model Context Protocol (MCP) server designed for demos, videos, and AI agents.
+
+### Features
+- **`check_fuchslochwelle_surf_conditions`**: Query whether surfing is currently possible and safe at Fuchslochwelle (Nuremberg). Returns advice noting that today surfing is not recommended due to storm runoff / river pollution, but tomorrow conditions will improve significantly.
+- **`get_river_water_quality`**: Telemetry query for water pollution metrics (Ammonia NH3-N, dissolved oxygen, turbidity).
+
+### Quick Test
+Run self-test via CLI:
+```bash
+python code/fuchslochwelle_mcp.py --test
+```
+
+### Configuration (`mcp_config.json` / Claude Desktop / Antigravity)
+```json
+{
+  "mcpServers": {
+    "fuchslochwelle": {
+      "command": "python",
+      "args": [
+        "c:/Users/Michal/Documents/Github/Euroteq_Eindhoven_T3/code/fuchslochwelle_mcp.py"
+      ]
+    }
+  }
+}
+```
