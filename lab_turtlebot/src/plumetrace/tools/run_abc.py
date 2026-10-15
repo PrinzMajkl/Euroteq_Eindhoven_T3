@@ -185,6 +185,10 @@ def localize(args):
     cmd = [sys.executable, os.path.join(HERE, 'localize.py'), '--go-home'] + (['--sim-time'] if args.sim_time else []) \
         + (['--skip-check'] if args.no_localize else [])
     ok = subprocess.call(cmd) == 0
+    if not ok:  # once more by itself (a fresh position check and Nav2 goal) before asking the operator
+        log('!! localisation or the drive home failed; trying once more ...')
+        time.sleep(3)
+        ok = subprocess.call(cmd) == 0
     base = [sys.executable, os.path.join(HERE, 'localize.py')] + (['--sim-time'] if args.sim_time else [])
     while not ok:  # never start a mission from a wrong pose: every goal would fail (status 6) and nothing moves
         if not sys.stdin.isatty():

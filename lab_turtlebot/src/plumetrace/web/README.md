@@ -55,3 +55,25 @@ All text that arrives from the network is escaped before it is inserted as HTML.
 ## Commands (all others are rejected)
 
 `abort`, `return_home`, `add_nogo` (`polygon` of `[lat, lon]`), `remove_nogo` (`id`), `add_obstacle` (`polygon` or `center` + `size_m`, `mode` REROUTE|STOP), `remove_obstacle` (`id`).
+
+## Authority view (`authority.html`)
+
+A second, plain-language page for the water authorities, next to the operator dashboard (`index.html`). Same
+gateway messages and the same relay; nothing in the ROS code changes.
+
+- Open `http://localhost:8080/authority.html` (static server) or `http://<relay>/authority.html` (relay; add
+  `?key=...` for commands). `?live` connects at once; otherwise it opens in **Replay**.
+- Status in one sentence (surveying, pollution found, most likely outfall, source confirmed), "Which outfall is
+  leaking?" bars from `posterior`, ammonia / oxygen tiles with the `PEGNITZ_RESPONSE.thresholds`, ammonia per
+  sample, river flow and time to the Regnitz.
+- Response: opens on the first reading above 0.6 mg/L. The escalation ladder marks which tiers to notify now
+  (1 always, 2 once a source is likely, 3 when severe); "Mark as notified" and the action checklist only record
+  the time. Nothing is sent.
+- Ask the robot: **Return home** and **Stop the mission** send `return_home` / `abort` (relay viewers need the key).
+  "A spot" and "An outfall" are logged for the operator: there is no gateway command for an extra stop yet.
+- Incident report with the Meldebogen fields (`report_fields`), print or save as PDF; samples CSV.
+- Map: Leaflet with satellite or street tiles, `data/water_area.geojson`, outfalls, stations, the estimated plume
+  (`plume_points`), samples, robot and its track along the bank.
+- Replay: `data/replay_{A,B,C}.jsonl` are offline missions (sweep strategy, seed 1) recorded in the gateway's
+  message format by `tools/make_authority_replay.py` with the twin's own plume, sensor model and estimator.
+  "Load file" plays any such recording.
