@@ -51,8 +51,9 @@ TOOLS = [
     {
         "name": "get_river_water_quality",
         "description": (
-            "Get human recreational water safety and hygiene telemetry (E. coli, intestinal enterococci, "
-            "sewer overflow status, floating debris risk, and river flow rate) for surfers at Fuchslochwelle."
+            "Get real-time in-situ telemetry measured by autonomous water monitoring robot sensors "
+            "(Ammonium NH3-N sewage proxy, optical turbidity, electrical conductivity, LiDAR floating debris, and flow rate) "
+            "at the Fuchslochwelle spot."
         ),
         "inputSchema": {
             "type": "object",
@@ -73,26 +74,26 @@ def handle_check_surf_conditions(args: dict) -> str:
 
     today_text = (
         "⛔ TODAY: SURFING NOT RECOMMENDED\n"
-        "• Water Quality: Contaminated / High Health Risk\n"
-        "• Reason: Severe thunderstorms occurred upstream, triggering Combined Sewer Overflows (CSO) "
-        "and heavy urban/agricultural runoff into the Pegnitz river. Fecal bacteria (E. coli & Enterococci) "
-        "and turbidity are heavily elevated above safe bathing standards.\n"
-        "• Health Risk: High risk of ear, eye, and gastrointestinal infections. Avoid swallowing water.\n"
-        "• Advice: Skip surfing today. Give the river time to flush out the post-storm pollution."
+        "• Water Quality: Contaminated / Poor\n"
+        "• Reason: Severe thunderstorms occurred upstream, causing heavy stormwater runoff and sewer overflow "
+        "into the Pegnitz river. Autonomous robot in-situ sensors detected a severe spike in Ammonium (NH3-N at 3.85 mg/L), "
+        "high optical turbidity, and elevated electrical conductivity, confirming raw sewage wash.\n"
+        "• Hazards: High river pollution and floating debris detected by robot LiDAR.\n"
+        "• Advice: Skip surfing today. Give the river time to flush out the post-storm pollution plume."
     )
 
     tomorrow_text = (
         "✅ TOMORROW: SURFING RECOMMENDED / CONDITIONS IMPROVING\n"
-        "• Water Quality: Clean / Safe (Projected within EU Bathing Limits)\n"
-        "• Reason: Storm runoff is clearing rapidly, bacterial counts will dilute and settle back "
-        "to baseline safe thresholds by tomorrow morning.\n"
-        "• River Discharge: Projected optimal ~18 m³/s with clean water flow.\n"
+        "• Water Quality: Clean / Normalizing (Projected)\n"
+        "• Reason: Storm runoff is clearing rapidly. Robot telemetry trends show Ammonium (NH3-N) "
+        "and turbidity dropping steadily back to clean baseline levels (< 0.2 mg/L).\n"
+        "• River Flow: Projected optimal ~18 m³/s with clear water and no floating debris.\n"
         "• Advice: Surfing conditions will be significantly better and safe tomorrow. Good wave shape expected!"
     )
 
     summary = (
         "🌊 Summary: Surfing at Fuchslochwelle is currently not recommended today because recent storms "
-        "caused severe river contamination (sewer runoff & bacteria), but conditions will be much better and safe tomorrow!"
+        "caused heavy river pollution (confirmed by robot NH3-N and turbidity sensors), but conditions will be much better tomorrow!"
     )
 
     if timeframe == "today":
@@ -105,16 +106,17 @@ def handle_check_surf_conditions(args: dict) -> str:
 def handle_water_quality(args: dict) -> str:
     spot = args.get("spot", "Fuchslochwelle, Pegnitz") if args else "Fuchslochwelle, Pegnitz"
     return (
-        f"📊 Surfer Hygiene & Water Safety Telemetry - {spot}\n"
+        f"📊 Autonomous Robot Sensor Telemetry - {spot}\n"
         "--------------------------------------------------\n"
-        "• Overall Status: ⚠️ CONTAMINATED (Unsafe for recreation today)\n"
-        "• E. coli: 2,450 CFU/100ml (EU Bathing Water Limit: < 900 CFU/100ml) ❌ EXCEEDED\n"
-        "• Intestinal Enterococci: 720 CFU/100ml (Limit: < 330 CFU/100ml) ❌ EXCEEDED\n"
-        "• Combined Sewer Overflow (CSO): Active storm runoff triggered 4h ago\n"
-        "• Floating Debris / Tree Branches: High risk after thunderstorm\n"
-        "• River Discharge / Flow Rate: 23.5 m³/s (Wave runnable, but water biohazard)\n"
-        "• Human Health Hazards: High risk of otitis (surfer's ear), gastroenteritis, eye irritation\n"
-        "• Clearance Forecast: Bacterial levels dropping by 80% overnight; safe to surf tomorrow afternoon"
+        "• Deployment: PlumeTrace Autonomous Surface Vehicle (In-situ real-time sensors)\n"
+        "• Status: ⚠️ POLLUTION PLUME DETECTED (Post-thunderstorm runoff)\n"
+        "• Ammonium Nitrogen (NH3-N): 3.85 mg/L (ALARM: Threshold 0.60 mg/L) ❌ SEWAGE OVERFLOW PROXY\n"
+        "• Turbidity: 68 NTU (Clean baseline < 5 NTU) ❌ HEAVY SEDIMENT & RUNOFF\n"
+        "• Electrical Conductivity (EC): 840 µS/cm (Elevated ionic urban wash)\n"
+        "• LiDAR Surface Obstacle Scan: Floating logs & debris detected within 2.5m\n"
+        "• River Flow Velocity: 1.4 m/s (Discharge ~22.8 m³/s)\n"
+        "• Forecast Trend: Pollution plume dispersing downstream; expected baseline recovery by tomorrow morning\n"
+        "• Surfing Recommendation: Unsafe today -> Safe tomorrow"
     )
 
 def handle_tool_call(name: str, arguments: dict):
