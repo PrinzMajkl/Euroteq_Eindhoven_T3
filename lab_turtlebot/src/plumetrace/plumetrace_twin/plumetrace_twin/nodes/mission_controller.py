@@ -1,5 +1,8 @@
 """mission_controller: planner -> Nav2 goal -> dwell -> sample -> estimator, until localised.
 
+Strategy 'adaptive' (default) ends at the first sample that makes one outfall >= 95 %; strategy 'sweep' ends only
+when twin_core has no stop left (every sweep stop sampled), so the whole bank is covered.
+
 States IDLE | RUNNING | HOLD | DONE | ABORTED on /mission/state (MissionState, 1 Hz and on change).
 HOLD: while the link stream of /twin/sync is LOST (no heartbeat for >= 3 s) the current Nav2 goal is
 cancelled and the robot holds; the goal is re-sent once every stream is SYNCED again. The same happens while
@@ -35,11 +38,13 @@ class MissionController(Node):
         super().__init__('mission_controller')
         self.declare_parameter('scenario', 'A')
         self.declare_parameter('mode', 'SIM')
+        self.declare_parameter('strategy', 'adaptive')
         self.declare_parameter('autostart', True)
         self.declare_parameter('sample_timeout_s', 20.0)
         self.declare_parameter('mission_timeout_s', 900.0)
         self.scenario = self.get_parameter('scenario').value
         self.mode = self.get_parameter('mode').value
+        self.sweep = self.get_parameter('strategy').value == 'sweep'
         self.frame = ReachFrame.load()
         self.state = 'IDLE'
         self.samples = 0
@@ -264,7 +269,7 @@ class MissionController(Node):
                 self.hold()
                 if self.abort_req:  # re-localisation failed: do not finish DONE on this sample
                     continue
-            if self.localised():
+            if not self.sweep and self.localised():
                 self.wait_for(lambda: self.goal is not None, 3.0)
                 return self.finish('DONE')
 

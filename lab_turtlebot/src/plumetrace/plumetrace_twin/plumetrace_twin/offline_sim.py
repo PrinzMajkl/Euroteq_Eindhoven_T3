@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-from .estimator import CAP, SourceEstimator, lawnmower_order
+from .estimator import CAP, sweep_order
 from .scenario import make_estimator, make_plume
 from .sensor_model import SensorModel, probe_point
 
@@ -72,12 +72,12 @@ def run_mission(frame, sc, seed, strategy='adaptive', cap=CAP):
     robot = KinematicRobot(frame, plume, sensor, float(sc['time_factor']), x0, y0, yaw0)
     est = make_estimator(frame, sc)
     cands = frame.sampling_points()
-    order = lawnmower_order(cands) if strategy == 'lawnmower' else None
+    order = sweep_order(frame, cands, (x0, y0)) if strategy == 'sweep' else None
     sampled, rows, update_s = [], [], []
     localised_at = None
     for k in range(cap):
         t_plan = time.perf_counter()
-        if strategy == 'lawnmower':
+        if strategy == 'sweep':
             if k >= len(order):
                 break
             idx = order[k]
@@ -103,7 +103,8 @@ def run_mission(frame, sc, seed, strategy='adaptive', cap=CAP):
                          probs=[round(float(v), 4) for v in marg], map=lab, p=round(p, 4), q=round(q, 3)))
         if localised_at is None and est.localised():
             localised_at = (k + 1, robot.t, lab)
-            break
+            if strategy != 'sweep':  # the sweep visits every stop; the adaptive mission ends here
+                break
     truth = sc['active_outfall']
     return dict(scenario=sc['scenario'], seed=seed, strategy=strategy,
                 localised=localised_at is not None,
@@ -111,6 +112,7 @@ def run_mission(frame, sc, seed, strategy='adaptive', cap=CAP):
                 time_s=round(localised_at[1], 1) if localised_at else None,
                 label=localised_at[2] if localised_at else est.map_estimate()[0],
                 correct=bool(localised_at and localised_at[2] == truth),
+                final=dict(label=est.map_estimate()[0], p=round(est.map_estimate()[1], 4), time_s=round(robot.t, 1)),
                 max_update_s=round(max(update_s), 4) if update_s else 0.0,
                 mean_update_s=round(float(np.mean(update_s)), 4) if update_s else 0.0,
                 total_samples=len(rows), rows=rows)

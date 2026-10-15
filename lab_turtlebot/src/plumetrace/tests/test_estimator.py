@@ -5,7 +5,7 @@ import os
 import numpy as np
 import pytest
 
-from plumetrace_twin.estimator import SourceEstimator, STRENGTHS
+from plumetrace_twin.estimator import SourceEstimator, STRENGTHS, sweep_order
 from plumetrace_twin.offline_sim import run_mission
 from plumetrace_twin.reach import ReachFrame
 from plumetrace_twin.scenario import load_scenario
@@ -47,3 +47,20 @@ def test_offline_15_runs(frame):
         json.dump([{k: v for k, v in r.items() if k != 'rows'} for r in results], f, indent=1)
     assert good >= 13
     assert worst <= 1.0
+
+
+def test_sweep_order(frame):
+    cands = frame.sampling_points()
+    order = sweep_order(frame, cands, frame.arena['start_pose'][:2])
+    along = [cands[i]['along'] for i in order]
+    assert len(order) == 6 and along == sorted(along, reverse=True)  # start mark is nearest the downstream end
+    far = cands[order[-1]]['waypoint'] + [0.0, -0.5]
+    assert sweep_order(frame, cands, far) == order[::-1]
+
+
+def test_sweep_15_runs(frame):
+    for sc in 'ABC':
+        for seed in range(1, 6):
+            r = run_mission(frame, load_scenario(sc, seed), seed, strategy='sweep')
+            assert r['total_samples'] == 6
+            assert r['final']['label'] == sc and r['final']['p'] >= 0.95, (sc, seed, r['final'])

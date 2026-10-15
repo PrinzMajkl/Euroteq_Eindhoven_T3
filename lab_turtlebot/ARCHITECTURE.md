@@ -7,8 +7,10 @@ Paths in this file are relative to `src/plumetrace/` unless they start with `src
 A pollutant (ammonium, NH₃-N) leaks from one of three outfalls (A, B, C) into a river. We build a
 **1:100 model** of 300 m of the **Pegnitz in Nürnberg** on the lab floor (3 m of taped river). A
 **TurtleBot3** drives along the bank, stops, "samples" the water, and a **digital twin** on the laptop
-updates the probability for each outfall after every sample and decides where to sample next. When one
-outfall reaches **95 %**, the mission ends. A **Cesium 3D city dashboard** shows the robot on the real
+updates the probability for each outfall after every sample and decides where to sample next. Two strategies:
+**adaptive** (default) picks the most informative stop each time and ends when one outfall reaches **95 %**;
+**sweep** drives 6 fixed stops along the whole bank (just upstream and downstream of every outfall) and names the
+outfall after the last stop. A **Cesium 3D city dashboard** shows the robot on the real
 river in Nürnberg, the plume, the readings, and an incident workflow (alerts, who to call, public warning).
 
 The water probe is **emulated**: the robot's real position is used to read a simulated plume. Everything
@@ -211,7 +213,7 @@ sequenceDiagram
     TC->>TC: Bayes update P(A), P(B), P(C)
     TC-->>MC: /twin/posterior
     TC-->>GW: posterior
-    alt max probability ≥ 0.95
+    alt adaptive and max probability ≥ 0.95, or no stop left
         MC->>GW: done (outfall X)
     else
         MC->>TC: /twin/plan_request (next stop)
@@ -227,7 +229,7 @@ stateDiagram-v2
     RUNNING --> HOLD: link LOST or robot LOST
     HOLD --> RUNNING: link back / re-localised (OK)
     HOLD --> ABORTED: re-localisation FAILED
-    RUNNING --> DONE: outfall ≥ 95 % or no more stops
+    RUNNING --> DONE: outfall ≥ 95 % (adaptive) or last stop sampled (sweep)
     RUNNING --> ABORTED: abort / timeout
     RUNNING --> DONE: return_home finished
     DONE --> [*]
@@ -292,7 +294,7 @@ classDiagram
 | `reach.py` (`ReachFrame`) | Converts lab metres ⇄ river metres (×100, rotated) ⇄ GPS on the real Pegnitz |
 | `plume.py` | Physics-light plume: puffs drift downstream and spread; calibrated to 3 mg/L 20 m below the outfall |
 | `sensor_model.py` | Makes the virtual probe realistic: lag, noise, averaging, QC flags |
-| `estimator.py` (`SourceEstimator`) | Bayes: "given these readings, how likely is A, B, C?" and "which stop tells us most next?" |
+| `estimator.py` (`SourceEstimator`, `sweep_order`) | Bayes: "given these readings, how likely is A, B, C?", "which stop tells us most next?" (adaptive) and the fixed sweep stops |
 | `scenario.py` | Loads `config/scenarios/A|B|C.yaml`: leaking outfall, river flow (real gauge data), background |
 | `scanfit.py`, `localizer.py` | Checks laser vs map; fixes a lost or 180°-mirrored position |
 | `simtools.py` | Small Nav2 action client wrapper |
@@ -305,7 +307,7 @@ flowchart LR
         T1["1 relay.py :8090"]
         T2["2 cloudflared"]
         T3["3 ssh → robot bringup"]
-        T4["4 run_abc.py<br/>lab_nav once<br/>localize.py --go-home<br/>lab_mission A, B, C"]
+        T4["4 run_abc.py<br/>lab_nav<br/>localize.py --go-home<br/>lab_mission (secret outfall)"]
         T5["5 RViz"]
     end
     ROBOT["TurtleBot3<br/>192.168.8.32<br/>ROS_DOMAIN_ID=32"]
@@ -315,8 +317,9 @@ flowchart LR
     T1 <--> T2 <--> INTERNET
 ```
 
-`run_abc.py` per scenario: localise and drive to the start mark → start `lab_mission nav:=false scenario:=X`
-→ `/mission/start` → wait for `done` → stop the mission nodes → next scenario. Nav2 stays up the whole time.
+`run_abc.py`: start Nav2 → localise and drive to the start mark → start `lab_mission nav:=false scenario:=X
+strategy:=adaptive|sweep` (X picked at random unless `--scenario` is given; the twin never sees it) →
+`/mission/start` → wait for `done` → drive to the start mark → stop the launches. One mission, one leaking outfall.
 
 ## 10. Dashboard and incident workflow
 

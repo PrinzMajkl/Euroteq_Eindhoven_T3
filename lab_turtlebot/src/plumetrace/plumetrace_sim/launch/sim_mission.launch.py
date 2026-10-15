@@ -1,6 +1,6 @@
 """PlumeTrace mission in the simulated lab arena: Gazebo (lab_world) + the same lab_mission as on the real robot.
 
-    ros2 launch plumetrace_sim sim_mission.launch.py scenario:=B seed:=1 [autostart:=true] [gui:=true]
+    ros2 launch plumetrace_sim sim_mission.launch.py scenario:=B seed:=1 [strategy:=adaptive|sweep] [autostart:=true] [gui:=true]
         [rviz:=true] [headless_rendering:=false] [gateway_host:=localhost] [record:=true] [mission:=true]
 Only two things differ from the real robot: Gazebo stands in for the robot bringup, and every node uses
 Gazebo's clock (use_sim_time:=true). The parameter file, the nodes and the maps are the same. The map is always

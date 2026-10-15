@@ -8,7 +8,7 @@
 #   1 relay       dashboard + live data on http://localhost:8090 (operator link with key printed there)
 #   2 cloudflare  public HTTPS link to the relay (view-only for everyone without the key)
 #   3 robot       ssh to the TurtleBot3, ROS_DOMAIN_ID=32, turtlebot3_bringup robot.launch.py
-#   4 missions    waits for the robot, then tools/run_abc.py: missions A, B, C back to back
+#   4 missions    waits for the robot, then tools/run_abc.py: one mission, leaking outfall picked at random
 #   5 rviz        RViz with the PlumeTrace view (map, robot, costmaps, plan)
 #
 # No Gazebo: with the real robot on domain 32 a simulated robot would publish the same topics.
@@ -19,7 +19,7 @@
 #   ROS_DOMAIN_ID        [32]
 #   PLUMETRACE_RELAY_KEY key for dashboard commands [random per start]
 #   RUN_ABC_ARGS         extra arguments for tools/run_abc.py [--confirm]
-#                        e.g. RUN_ABC_ARGS="--confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15"
+#                        e.g. RUN_ABC_ARGS="--confirm --strategy sweep -- xy_goal_tolerance:=0.05"
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROBOT="${PLUMETRACE_ROBOT:-turtlebot@192.168.8.32}"

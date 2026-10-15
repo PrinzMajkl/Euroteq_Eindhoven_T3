@@ -1,43 +1,41 @@
 #!/usr/bin/env python3
-"""Run the PlumeTrace missions for scenarios A, B and C back to back on the real TurtleBot3 (or Gazebo).
+"""Run one PlumeTrace mission on the real TurtleBot3 (or Gazebo): one leaking outfall, A, B or C.
 
-    python3 tools/run_abc.py [--scenarios ABC] [--seed 1] [--confirm] [--pause 3] [--no-localize] [--sim-time]
-                             [-- launch args]
+    python3 tools/run_abc.py [--scenario A|B|C|random] [--strategy adaptive|sweep] [--seed 1] [--confirm]
+                             [--no-localize] [--sim-time] [-- launch args]
 
-Once, at the start:
+The leaking outfall is the operator's secret dice roll: --scenario random (default) picks A, B or C; the twin never
+sees it and has to find it from the samples. --strategy adaptive (default): the twin picks the most informative
+bank stop each time and the mission ends at 95 %. --strategy sweep: fixed stops just upstream and downstream of
+every outfall, driven along the bank from the end nearest the robot; the mission ends after the last stop. In both
+the dashboard gets the outfall probabilities after every sample.
+
   1. ros2 launch plumetrace_sim lab_nav.launch.py (map server, AMCL, Nav2); tools/wait_ready.py until it is
-     active (one restart if not). Nav2 and AMCL then stay up for all runs.
-Before every mission (A, B and C):
+     active (one restart if not).
   2. tools/localize.py --go-home: check the robot's position on the map (no motion when the scan fits); if it is
-     lost, find it (turning on the spot); then drive to the start mark. So every mission starts from the start
-     mark with a checked position. --no-localize: drive to the start mark only (no check; robot must have
-     started on the mark).
-During every mission:
-  3. ros2 launch plumetrace_sim lab_mission.launch.py scenario:=<S> nav:=false (twin nodes, gateway, logs, and
-     localization_monitor), /mission/start, follow /mission/events until `done`. localization_monitor checks
-     the position every 3 s; when the robot is lost the mission holds, the robot re-localises on the spot and the
-     mission resumes (if that fails, the mission is aborted and the next one localises again first).
-  4. stop the mission launch, pause (--pause, default 3 s), next scenario.
-After the last mission the robot drives to the start mark.
+     lost, find it (turning on the spot); then drive to the start mark. --no-localize: drive to the start mark
+     only (no check; robot must have started on the mark).
+  3. ros2 launch plumetrace_sim lab_mission.launch.py scenario:=<S> strategy:=<strategy> nav:=false (twin nodes,
+     gateway, logs, and localization_monitor), /mission/start, follow /mission/events until `done`.
+     localization_monitor checks the position every 3 s; when the robot is lost the mission holds, the robot
+     re-localises on the spot and the mission resumes (if that fails, the mission is aborted).
+  4. the robot drives back to the start mark; the launches are stopped.
 
-The dashboard (through tools/relay.py) stays open the whole time: it sees a new gateway `hello` and a new
-`mission.scenario` per run, archives the previous run and starts a clean one, so all three runs fill it with
-samples, plume, outfall probabilities, alerts and incidents.
-
-Result per run: PASS only when the mission ends DONE naming the right outfall with probability >= 0.95; UNSURE
-when it ends DONE without that confidence (for example when no stop on the bank was reached, so every sample was
-ignored); FAIL otherwise. The number of stops Nav2 reached is shown too.
---confirm waits for Enter before the first run (--confirm-each: before every run).
-Arguments after `--` go to the lab_nav and every lab_mission launch (e.g. `-- xy_goal_tolerance:=0.05`).
+Result: PASS only when the mission ends DONE naming the right outfall with probability >= 0.95; UNSURE when it ends
+DONE without that confidence (for example when no stop on the bank was reached, so every sample was ignored); FAIL
+otherwise. The number of stops Nav2 reached is shown too.
+--confirm waits for Enter before the mission starts.
+Arguments after `--` go to the lab_nav and lab_mission launches (e.g. `-- xy_goal_tolerance:=0.05`).
 Every line printed carries the clock time and the minutes since the start, so slow steps show up.
 Ctrl-C: aborts the running mission, stops the launches and exits (the robot stops).
-Logs: $PLUMETRACE_RUNS/<time>-abc/ (nav.log, launch_<S>.log per run, summary.json); each mission also writes
-its own run folder (CSV + rosbag) as usual.
+Logs: $PLUMETRACE_RUNS/<time>-abc/ (nav.log, launch_<S>.log, summary.json); the mission also writes its own run
+folder (CSV + rosbag) as usual.
 """
 
 import argparse
 import json
 import os
+import random
 import signal
 import subprocess
 import sys
@@ -222,12 +220,13 @@ def start_mission_launch(node, s, args, out_dir):
         log(f'!! mission nodes from an earlier launch are still running: {left}. Stop them first '
             '(tools/lab_stop.sh stops every ROS node on this laptop, then start run_abc again).')
         return None
-    return Launch('lab_mission.launch.py', [f'scenario:={s}', f'seed:={args.seed}', 'nav:=false', 'rviz:=false']
+    return Launch('lab_mission.launch.py', [f'scenario:={s}', f'seed:={args.seed}', f'strategy:={args.strategy}',
+                                            'nav:=false', 'rviz:=false']
                   + (['loc_monitor:=false'] if args.no_localize else []) + common_args(args),
                   os.path.join(out_dir, f'launch_{s}.log'))
 
 
-def run_one(watcher, s, args, last):
+def run_one(watcher, s, args):
     truth = load_scenario(s)['active_outfall']
     res = dict(scenario=s, truth=truth, started=time.strftime('%H:%M:%S'))
     watcher.reset()
@@ -262,12 +261,11 @@ def run_one(watcher, s, args, last):
         log(f'{s}: {res["result"]} (named {res.get("map_label")} with p={top:.2f}, truth {truth}; '
             f'stops reached {res["stops_reached"]})'
             + (f'; robot was lost {len(holds)}x during the mission and re-localised' if holds else ''))
-        if last:
-            log('returning to the start mark ...')
-            watcher.command('return_home')
-            home = watcher.wait_event('return_home', args.home_timeout)
-            res['home'] = 'OK' if home and home.get('status') == GOAL_SUCCEEDED else 'FAILED'
-            log('on the start mark' if res['home'] == 'OK' else '!! robot did not confirm it is home')
+        log('returning to the start mark ...')
+        watcher.command('return_home')
+        home = watcher.wait_event('return_home', args.home_timeout)
+        res['home'] = 'OK' if home and home.get('status') == GOAL_SUCCEEDED else 'FAILED'
+        log('on the start mark' if res['home'] == 'OK' else '!! robot did not confirm it is home')
     finally:
         res['ended'] = time.strftime('%H:%M:%S')
     return res
@@ -278,16 +276,16 @@ def main():
     extra = argv[argv.index('--') + 1:] if '--' in argv else []
     argv = argv[:argv.index('--')] if '--' in argv else argv
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--scenarios', default='ABC')
+    ap.add_argument('--scenario', default='random', type=str.upper, choices=['A', 'B', 'C', 'RANDOM'],
+                    help='leaking outfall; random = secret pick [random]')
+    ap.add_argument('--strategy', default='adaptive', choices=['adaptive', 'sweep'])
     ap.add_argument('--seed', type=int, default=1)
-    ap.add_argument('--timeout', type=float, default=900.0, help='seconds per mission until done')
+    ap.add_argument('--timeout', type=float, default=900.0, help='seconds until the mission is done')
     ap.add_argument('--home-timeout', type=float, default=200.0)
     ap.add_argument('--ready-timeout', type=float, default=90.0)
-    ap.add_argument('--pause', type=float, default=3.0, help='seconds between runs')
-    ap.add_argument('--confirm', action='store_true', help='wait for Enter before the first run')
-    ap.add_argument('--confirm-each', action='store_true', help='wait for Enter before every run')
+    ap.add_argument('--confirm', action='store_true', help='wait for Enter before the mission starts')
     ap.add_argument('--sim-time', action='store_true', help='Gazebo: use_sim_time:=true')
-    ap.add_argument('--no-localize', action='store_true', help='no position check before missions, only the drive '
+    ap.add_argument('--no-localize', action='store_true', help='no position check before the mission, only the drive '
                     'to the start mark (robot must have started on the mark); also turns off the in-mission monitor')
     args = ap.parse_args(argv)
     args.launch_args = extra
@@ -307,33 +305,29 @@ def main():
     spin.start()
 
     results, launch, nav = [], None, None
-    scenarios = args.scenarios.upper()
+    s = random.choice('ABC') if args.scenario == 'RANDOM' else args.scenario
     try:
         nav = start_nav(args, out_dir)
         if nav is None:
             log('Nav2 did not come up twice: see nav.log in ' + out_dir)
             sys.exit(1)
-        for i, s in enumerate(scenarios):
-            log(f'=== run {i + 1}/{len(scenarios)}: scenario {s} ===')
-            if not (args.no_localize and i == 0):  # localise + start mark before every mission
-                localize(args)
-            if args.confirm_each or (args.confirm and i == 0):
-                input('Press Enter to start the mission. ')
-            launch = start_mission_launch(node, s, args, out_dir)  # main owns it, so Ctrl-C always stops it
-            if launch is None:
-                results.append(dict(scenario=s, truth=load_scenario(s)['active_outfall'], result='LEFTOVER_NODES'))
-                break
-            results.append(run_one(watcher, s, args, last=i + 1 == len(scenarios)))
+        log(f'=== mission: strategy {args.strategy}, leaking outfall '
+            + ('picked at random (secret)' if args.scenario == 'RANDOM' else s) + ' ===')
+        localize(args)
+        if args.confirm:
+            input('Press Enter to start the mission. ')
+        launch = start_mission_launch(node, s, args, out_dir)  # main owns it, so Ctrl-C always stops it
+        if launch is None:
+            results.append(dict(scenario=s, truth=load_scenario(s)['active_outfall'], result='LEFTOVER_NODES'))
+        else:
+            results.append(run_one(watcher, s, args))
             launch.stop()
             launch = None
             left = wait_mission_nodes_gone(node)
             if left:
-                log(f'!! still running after the launch stopped: {left}; not starting another mission')
-                break
-            with open(os.path.join(out_dir, 'summary.json'), 'w') as f:
-                json.dump(results, f, indent=1)
-            if i + 1 < len(scenarios):
-                time.sleep(args.pause)
+                log(f'!! still running after the launch stopped: {left}')
+        with open(os.path.join(out_dir, 'summary.json'), 'w') as f:
+            json.dump(results, f, indent=1)
     except KeyboardInterrupt:
         print('\nCtrl-C: aborting the mission and stopping the launches', flush=True)
         watcher.command('abort')

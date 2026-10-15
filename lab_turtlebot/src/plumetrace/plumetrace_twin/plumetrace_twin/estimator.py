@@ -11,6 +11,8 @@ Localised when the top outfall probability >= 0.95.
 Planner: score = expected entropy reduction of the outfall marginal (20 noise draws)
 / (straight-line distance + 0.3 m); points sampled within 0.10 m are skipped; the top 3 are
 re-checked with Nav2 path lengths when a path function is given; cap 24 samples.
+Sweep (the alternative to the adaptive planner): fixed bank stops just upstream and just downstream of every
+outfall, visited in order along the bank from the end nearest the robot; no early stop at 95 %.
 """
 import math
 
@@ -27,6 +29,7 @@ SKIP_RADIUS = 0.10
 DIST_OFFSET = 0.3
 N_DRAWS = 20
 POS_SIGMA_RIVER = 1.5
+SWEEP_OFFSET = 0.2  # arena metres: sweep stops this far upstream and downstream of every outfall
 _GH_X, _GH_W = np.polynomial.hermite_e.hermegauss(3)
 _GH_W = _GH_W / _GH_W.sum()
 
@@ -181,6 +184,19 @@ class SourceEstimator:
         return ok[chosen], info
 
 
-def lawnmower_order(candidates):
-    """Baseline: the same points, from the furthest downstream to the furthest upstream."""
-    return sorted(range(len(candidates)), key=lambda i: -candidates[i]['along'])
+def sweep_order(frame, candidates, robot_xy):
+    """Sweep: for every outfall the bank stop nearest SWEEP_OFFSET upstream and the one nearest SWEEP_OFFSET
+    downstream of it, ordered along the bank starting from the end nearest robot_xy. Returns candidate indices."""
+    along = np.array([c['along'] for c in candidates])
+    edges = np.array([c['edge'] for c in candidates])
+    picked = set()
+    for o in frame.outfalls:
+        xy = frame.river_to_arena(np.asarray(o['river_xy'], dtype=float))
+        a0 = along[int(np.argmin(np.hypot(*(edges - xy).T)))]
+        for a in (a0 - SWEEP_OFFSET, a0 + SWEEP_OFFSET):
+            picked.add(int(np.argmin(np.abs(along - a))))
+    order = sorted(picked, key=lambda i: along[i])
+    robot_xy = np.asarray(robot_xy, dtype=float)
+    if np.hypot(*(candidates[order[-1]]['waypoint'] - robot_xy)) < np.hypot(*(candidates[order[0]]['waypoint'] - robot_xy)):
+        order.reverse()
+    return order

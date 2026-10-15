@@ -8,7 +8,8 @@ to mission B took long. In that version every run drove home, stopped Nav2, star
 before the next mission. Since 2026-10-15 `run_abc.py` starts Nav2 once and keeps it up; before every mission
 the robot checks its position and drives to the start mark, and during every mission `localization_monitor`
 re-localises it when it is lost (5b, 5c). These have only run against a stand-in for ROS, not on Jazzy or the
-robot.
+robot. Since 2026-10-15 `run_abc.py` runs one mission (one secret leaking outfall) instead of A, B and C back to
+back, and `--strategy sweep` drives fixed stops along the whole bank (offline only so far, 15/15 correct).
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
@@ -29,7 +30,7 @@ cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace && source config/env.sh
 | Navigation only | `ros2 launch plumetrace_sim lab_nav.launch.py rviz:=true` then `python3 tools/wait_ready.py 90` |
 | One mission | `ros2 launch plumetrace_sim lab_mission.launch.py scenario:=B seed:=1` + relay + start (section 5) |
 | **Full demo, 5 terminals** | **`tools/start_demo.sh`** (section 5b) |
-| Missions A, B, C only | `python3 tools/run_abc.py --confirm` (needs bringup running, no other `lab_nav`/`lab_mission`; section 5b) |
+| Mission only (secret outfall) | `python3 tools/run_abc.py --confirm [--strategy sweep]` (needs bringup running, no other `lab_nav`/`lab_mission`; section 5b) |
 | Robot finds itself, drives to the start mark | `python3 tools/localize.py --go-home` (needs `lab_nav` or `lab_mission` running; section 5c) |
 | Dashboard | `PLUMETRACE_RELAY_KEY=<secret> python3 tools/relay.py`, open `http://localhost:8090/?key=<secret>` |
 | Public link | `cloudflared tunnel --url http://localhost:8090` |
@@ -189,7 +190,7 @@ To let others watch from outside the lab: `cloudflared tunnel --url http://local
 `~/.local/bin/cloudflared ...`) prints a `https://*.trycloudflare.com` link. Viewers are view-only; anyone with
 the link sees the page and the Cesium ion token in it, so use a restricted token.
 
-## 5b. Full demo in one command: missions A, B, C with the live dashboard
+## 5b. Full demo in one command: one mission with the live dashboard
 
 Map done (step 3), river taped (step 2). The robot may stand anywhere in the arena: before mission A it finds
 itself on the map and drives to the start mark (section 5c). Terminal 3 starts the bringup over ssh, or leaves it
@@ -208,7 +209,7 @@ It checks the build, `websockets`, `cloudflared` and that the robot answers ping
 | 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
 | 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the install command from step 0 |
 | 3 | robot | `ssh -t turtlebot@192.168.8.32` with `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
-| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: Nav2 up once → Enter → for A, B and C: position check (re-localise if lost) → drive to the start mark → mission, with the position watched during it → robot drives to the start mark at the end. Ends with a PASS/FAIL table with start and end times |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: Nav2 up → position check (re-localise if lost) → drive to the start mark → Enter → one mission (leaking outfall picked at random), with the position watched during it → robot drives to the start mark at the end. Ends with a PASS/FAIL line with start and end times |
 | 5 | rviz | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
 
 Open the operator link from terminal 1 in a browser. Gazebo is not started: a simulated robot on domain 32 would
@@ -226,7 +227,7 @@ tools/start_demo.sh stop
 ```
 
 (`--tmux`: no gnome-terminal windows, switch windows with Ctrl-b 1..5. `PLUMETRACE_ROBOT`: other robot login.
-`RUN_ABC_ARGS`: options for `run_abc.py`; arguments after `--` go to the lab_nav and every lab_mission launch. `stop`: stops relay,
+`RUN_ABC_ARGS`: options for `run_abc.py` (e.g. `--confirm --strategy sweep`); arguments after `--` go to the lab_nav and lab_mission launches. `stop`: stops relay,
 tunnel and all ROS nodes on the lablaptop via `tools/lab_stop.sh`; the bringup on the robot stops when its ssh
 terminal closes or with Ctrl-C there.)
 
@@ -234,36 +235,44 @@ terminal closes or with Ctrl-C there.)
 running: it starts its own):
 
 ```bash
-python3 tools/run_abc.py --confirm
-python3 tools/run_abc.py --scenarios B --confirm
-python3 tools/run_abc.py --scenarios CAB --seed 2
+python3 tools/run_abc.py --confirm                    # secret outfall (random), adaptive stops, ends at 95 %
+python3 tools/run_abc.py --confirm --strategy sweep   # secret outfall, fixed stops along the whole bank
+python3 tools/run_abc.py --scenario B --seed 2        # outfall B leaks (not secret)
 python3 tools/run_abc.py --confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15
-python3 tools/run_abc.py --no-localize      # no position checks (before or during missions); still drives to the mark
-python3 tools/run_abc.py --confirm-each     # wait for Enter before every run, not only the first
+python3 tools/run_abc.py --no-localize      # no position checks (before or during the mission); still drives to the mark
 ```
+
+Strategies (`--strategy`, or `strategy:=` on `lab_mission` / `sim_mission`):
+
+| Strategy | Stops | Ends |
+| --- | --- | --- |
+| `adaptive` (default) | the twin picks the most informative bank stop each time (expected entropy reduction per metre) | as soon as one outfall reaches 95 % (cap 24 samples) |
+| `sweep` | 6 fixed bank stops, 0.2 m (20 m river) upstream and downstream of each outfall, driven along the bank from the end nearest the robot (from the start mark: downstream end first, C → B → A) | after the last stop; the outfall with the highest probability is the answer |
+
+The dashboard gets the outfall probabilities after every sample in both.
 
 What it does, in order:
 
 1. **Nav2 once.** Starts `lab_nav` (map server, AMCL, Nav2) and waits until it is active (`--ready-timeout`,
    default 90 s; one restart if not). Nav2 and AMCL stay up until the end.
-2. **Before every mission (A, B and C): check position, then go to the start mark.** Runs
+2. **Before the mission: check position, then go to the start mark.** Runs
    `tools/localize.py --go-home` (5c). If the laser scan fits the map at the robot's believed position, nothing
    moves; if not, the robot turns on the spot until it has found itself. Then Nav2 drives it to the start mark.
-   Every mission therefore starts from the start mark with a checked position. If this fails, it asks you to put
+   The mission therefore starts from the start mark with a checked position. If this fails, it asks you to put
    the robot on the mark (or use 2D Pose Estimate) and press Enter.
-3. **During every mission: position watched.** Starts `lab_mission ... nav:=false` (twin nodes, gateway, logs and
+3. **During the mission: position watched.** Starts `lab_mission ... nav:=false` (twin nodes, gateway, logs and
    `localization_monitor`; takes a few seconds), starts the mission and waits for `done` (`--timeout`, default
    900 s). `localization_monitor` checks the position every 3 s (5c). If the robot is lost, the mission holds,
    the robot re-localises on the spot, and the mission resumes where it was. If that fails, the mission is
-   aborted, and the next mission's step 2 localises again.
-4. **Between missions.** Stops the mission launch, pauses (`--pause`, default 3 s), then step 2 for the next one.
-5. **At the end.** After the last mission the robot drives to the start mark (`--home-timeout`, default 200 s).
+   aborted.
+4. **At the end.** The robot drives to the start mark (`--home-timeout`, default 200 s), then the mission launch
+   and Nav2 are stopped.
 
-`--no-localize` turns off the checks in steps 2 and 3; the robot still drives to the start mark before
-missions B and C, and must stand on it before mission A.
+`--no-localize` turns off the checks in steps 2 and 3; the robot still drives to the start mark before the
+mission, so it must start with a correct position (on the mark).
 
 Every line it prints starts with the clock time and the minutes since the start, for example
-`[10:42:13 + 6.5 min] mission B started`. If a step is slow, those times show which one. Ctrl-C aborts the mission,
+`[10:42:13 + 1.5 min] mission B started`. If a step is slow, those times show which one. Ctrl-C aborts the mission,
 stops both launches and exits; the robot stops. Logs: `~/plumetrace_runs/<time>-abc/` (`nav.log`,
 `launch_<S>.log` per run, `summary.json` with start and end time per run); each mission also writes its own run
 folder (CSV + rosbag).
@@ -319,7 +328,7 @@ in a row (about 10 s):
 2. **Re-localise.** First without moving (AMCL updates on the spot, mirror reset if that fits better), then, if
    needed, the search while turning on the spot (two attempts). Costmaps are cleared.
 3. **OK.** The mission resumes and drives to the stop it was heading for ("re-localised ✓").
-4. **FAILED.** The mission is aborted. `run_abc.py` reports it and the next mission localises again first.
+4. **FAILED.** The mission is aborted. `run_abc.py` reports it; start it again (it localises first).
 
 Its status is on `/localization/status` (`ros2 topic echo /localization/status`, JSON with `state`, `fit`,
 `fit_mirror`; also in the rosbag). `SUSPECT` means the pose fits but not clearly better than its 180° mirror

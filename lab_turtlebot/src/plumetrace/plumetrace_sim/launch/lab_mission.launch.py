@@ -3,7 +3,7 @@
 Real robot (default): everything runs on the lablaptop; the robot only runs the stock bringup.
 Simulation: sim_mission.launch.py includes this launch with use_sim_time:=true next to Gazebo.
     ros2 launch plumetrace_sim lab_mission.launch.py scenario:=A seed:=1 [autostart:=false]
-        [strategy:=adaptive|lawnmower] [stamped:=true] [collision_monitor:=false] [map:=<yaml>]
+        [strategy:=adaptive|sweep] [stamped:=true] [collision_monitor:=false] [map:=<yaml>]
         [gateway:=true] [gateway_host:=localhost] [record:=true] [rviz:=true] [use_sim_time:=false]
         [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10] [nav:=true] [loc_monitor:=true]
 nav:=false leaves out lab_nav (map server, AMCL, Nav2): for a lab_nav that is already running, as tools/run_abc.py
@@ -60,7 +60,8 @@ def generate_launch_description():
         DeclareLaunchArgument('show_true_plume', default_value='false',
                               description='stream the true plume to the dashboard before the mission is done'),
         DeclareLaunchArgument('seed', default_value='1'),
-        DeclareLaunchArgument('strategy', default_value='adaptive'),
+        DeclareLaunchArgument('strategy', default_value='adaptive',
+                              description='adaptive: ends at 95 %; sweep: fixed stops along the whole bank'),
         DeclareLaunchArgument('mission', default_value='true'),
         DeclareLaunchArgument('autostart', default_value='false'),
         DeclareLaunchArgument('gateway', default_value='true'),
@@ -95,7 +96,8 @@ def generate_launch_description():
         twin('obstacle_registry'),
         twin('obstacle_detector', {'map_yaml': LaunchConfiguration('map')}),
         twin('virtual_obstacle_cloud'),
-        twin('mission_controller', {'scenario': sc, 'autostart': LaunchConfiguration('autostart'), 'mode': 'MIXED'},
+        twin('mission_controller', {'scenario': sc, 'autostart': LaunchConfiguration('autostart'), 'mode': 'MIXED',
+                                    'strategy': LaunchConfiguration('strategy')},
              condition=IfCondition(LaunchConfiguration('mission'))),
         twin('localization_monitor', condition=IfCondition(PythonExpression(
             ["'", LaunchConfiguration('loc_monitor'), "' == 'true' and '", LaunchConfiguration('mission'), "' == 'true'"]))),

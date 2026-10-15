@@ -4,7 +4,8 @@ Subscribes /twin/samples (PlumeSample, de-duplicated). After every sample it upd
 filter, publishes /twin/posterior (Posterior) and plans the next goal, published on /twin/next_goal
 (PoseStamped, frame map; frame_id 'none' = nothing left to sample). /twin/plan_request (Empty)
 asks for a goal without a new sample (mission start). Strategy 'adaptive' (expected entropy
-reduction per metre, top 3 checked with Nav2 ComputePathToPose) or 'lawnmower' (downstream end first).
+reduction per metre, top 3 checked with Nav2 ComputePathToPose; ends at 95 %) or 'sweep' (fixed stops up- and
+downstream of every outfall along the bank from the end nearest the robot; ends after the last stop).
 The twin never sees the active outfall: only the reach geometry and the flow.
 """
 import json
@@ -23,7 +24,7 @@ from tf2_ros import Buffer, TransformListener
 
 from plumetrace_msgs.msg import PlumeSample, Posterior
 
-from ..estimator import CAP, SourceEstimator, lawnmower_order
+from ..estimator import CAP, sweep_order
 from ..reach import ReachFrame
 from ..scenario import load_scenario, make_estimator
 from ..sensor_model import QC_OFF_BANK
@@ -41,9 +42,11 @@ class TwinCore(Node):
         self.frame = ReachFrame.load()
         self.est = make_estimator(self.frame, sc)
         self.strategy = self.get_parameter('strategy').value
+        if self.strategy not in ('adaptive', 'sweep'):
+            raise ValueError(f"strategy must be 'adaptive' or 'sweep', not {self.strategy!r}")
         self.rng = np.random.default_rng(int(self.get_parameter('seed').value) + 101)
         self.cands = self.frame.sampling_points()
-        self.order = lawnmower_order(self.cands)
+        self.order = None  # sweep: fixed on the first plan, from where the robot is then
         self.sampled = []
         self.lock = threading.Lock()
         self.cb = ReentrantCallbackGroup()
@@ -97,12 +100,18 @@ class TwinCore(Node):
         t0 = time.perf_counter()
         with self.lock:
             n = len(self.sampled)
-            done = self.est.localised() or n >= CAP
+            if self.strategy == 'sweep':
+                if self.order is None:
+                    self.order = sweep_order(self.frame, self.cands, self.robot_xy())
+                done = n >= len(self.order)
+            else:
+                done = self.est.localised() or n >= CAP
             info = {}
             idx = None
             if not done:
-                if self.strategy == 'lawnmower':
-                    idx = self.order[n] if n < len(self.order) else None
+                if self.strategy == 'sweep':
+                    idx = self.order[n]
+                    info = dict(stop=n + 1, stops=len(self.order))
                 else:
                     path_len = None
                     if self.nav is not None:
