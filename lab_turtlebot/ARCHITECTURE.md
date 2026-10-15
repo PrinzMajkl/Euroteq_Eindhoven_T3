@@ -1,5 +1,7 @@
 # PlumeTrace: how the system works (for presenting)
 
+Paths in this file are relative to `src/plumetrace/` unless they start with `src/` or `docker/`.
+
 ## 1. The idea in one paragraph
 
 A pollutant (ammonium, NH₃-N) leaks from one of three outfalls (A, B, C) into a river. We build a
@@ -325,7 +327,7 @@ flowchart LR
 - **On an alert:** checklist of actions, escalation ladder (Police/Fire 110/112 → Umweltamt Nürnberg + SUN
   → Wasserwirtschaftsamt Nürnberg → Regierung von Mittelfranken / LfU → Rhine warning plan), public warning
   *request* with a radius on the map (only authorities may warn via MoWaS/NINA), pre-filled report.
-  Sources and caveats: `web/pegnitz_response.js`.
+  Sources and caveats: `src/plumetrace/web/pegnitz_response.js`.
 
 ## 11. Folder map
 
