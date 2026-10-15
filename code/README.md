@@ -20,8 +20,8 @@ This directory contains source code, scripts, prototypes, and technical experime
 A zero-dependency stdio Model Context Protocol (MCP) server designed for demos, videos, and AI agents.
 
 ### Features
-- **`check_fuchslochwelle_surf_conditions`**: Query whether surfing is currently possible and safe at Fuchslochwelle (Nuremberg). Returns advice noting that today surfing is not recommended due to storm runoff and high pollution confirmed by robot sensors, but tomorrow conditions will improve significantly.
-- **`get_river_water_quality`**: Real-time in-situ telemetry measured by autonomous surface vehicle sensors (Ammonium NH3-N sewage proxy, optical turbidity, electrical conductivity, LiDAR surface obstacle detection, and river flow velocity).
+- **`check_fuchslochwelle_surf_conditions`**: Query whether surfing is possible and safe at Fuchslochwelle (Nuremberg). Returns plain surfer-friendly advice: today surfing is not recommended due to storm contamination and floating debris, but tomorrow will be much better.
+- **`get_river_water_quality`**: Simple river status and hazard check (contamination status, debris warnings, surf recommendation).
 
 ### Quick Test
 Run self-test via CLI:
