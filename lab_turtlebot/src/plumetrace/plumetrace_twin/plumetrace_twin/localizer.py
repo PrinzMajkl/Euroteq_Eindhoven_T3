@@ -387,12 +387,13 @@ class Localizer:
                   f'(std {s[0]:.2f} m, {s[1]:.2f} m, {math.degrees(s[2]):.0f} deg)')
 
     # --- the procedure --------------------------------------------------------------------------------
-    def wait_inputs(self, timeout=30.0):
+    def wait_inputs(self, timeout=30.0, need_pose=True):
+        """Wait for /map and /scan (and /amcl_pose unless need_pose is False: --set-start makes AMCL publish one)."""
         end, kick = time.time() + timeout, time.time() + 2.0
         while time.time() < end:
             with self.lock:
-                ok = self.field is not None and self.scans and self.pose is not None
-                no_pose = self.pose is None
+                ok = self.field is not None and self.scans and (self.pose is not None or not need_pose)
+                no_pose = self.pose is None and need_pose
             if ok:
                 return True
             if no_pose and time.time() > kick:
@@ -403,8 +404,12 @@ class Localizer:
             time.sleep(0.3)
         with self.lock:
             missing = [n for n, v in (('/map', self.field), ('/scan', self.scans), ('/amcl_pose', self.pose))
-                       if not v]
+                       if not v and (n != '/amcl_pose' or need_pose)]
         self.say(f'  no data on {", ".join(missing)} after {timeout:.0f} s: is lab_nav (or lab_mission) running?')
+        if missing == ['/amcl_pose']:
+            self.say('  map and scan are there, so AMCL is running but not updating (often after a failed global '
+                     'search, or with a robot/laptop clock offset: tools/lab_check.sh). Put the robot on the start '
+                     'mark facing +x and choose Enter: that resets AMCL there.')
         return False
 
     def global_search(self):

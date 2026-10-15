@@ -38,7 +38,7 @@ class LocalizationMonitor(Node):
         super().__init__('localization_monitor')
         p = {'enabled': True, 'period_s': 3.0, 'lost_fit': 0.5, 'lost_checks': 3, 'margin': 0.08,
              'min_fit': 0.65, 'keep_fit': 0.75, 'spin_speed': 0.4, 'turns': 2.0, 'attempts': 2,
-             'max_std_xy': 0.08, 'max_std_yaw': 0.15}
+             'max_std_xy': 0.12, 'max_std_yaw': 0.15}
         for k, v in p.items():
             self.declare_parameter(k, v)
         self.param_names = list(p)

@@ -56,7 +56,7 @@ def main():
     ap.add_argument('--spin-speed', type=float, default=0.4, help='rad/s while searching')
     ap.add_argument('--turns', type=float, default=2.0, help='turns per attempt at most')
     ap.add_argument('--attempts', type=int, default=3)
-    ap.add_argument('--max-std-xy', type=float, default=0.08, help='m')
+    ap.add_argument('--max-std-xy', type=float, default=0.12, help='m (0.08 rejected a consistent pose in the lab)')
     ap.add_argument('--max-std-yaw', type=float, default=0.15, help='rad')
     ap.add_argument('--home-timeout', type=float, default=180.0)
     ap.add_argument('--skip-check', action='store_true', help='do not localise, only drive home (with --go-home)')
@@ -80,7 +80,7 @@ def main():
     ok = False
     try:
         if args.set_start:
-            if not loc.wait_inputs():
+            if not loc.wait_inputs(need_pose=False):  # /initialpose below makes AMCL publish again
                 ok = False
             else:
                 loc.set_start()
