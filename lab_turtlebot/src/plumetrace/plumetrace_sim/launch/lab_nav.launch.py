@@ -8,8 +8,11 @@ Simulation: the same launch with use_sim_time:=true next to lab_world.launch.py 
         [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10]
 The robot must stand at the start pose (x, y, yaw in the arena frame; the start mark is 0, 0, 0) when this
 starts. Write x, y and yaw with a decimal point (0.0, not 0): AMCL wants floating-point values.
+bt_navigator runs Nav2's default navigate-to-pose tree without the BackUp recovery (plumetrace_twin.bt_xml): backing
+up blind drove the robot into the taped river when an obstacle blocked the bank.
 """
 import os
+import tempfile
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -19,6 +22,7 @@ from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from nav2_common.launch import RewrittenYaml
+from plumetrace_twin.bt_xml import no_backup_params
 
 
 def default_map(sim):
@@ -44,6 +48,7 @@ def generate_launch_description():
     nav_nodes = ['controller_server', 'smoother_server', 'planner_server', 'behavior_server', 'bt_navigator']
     # controller output goes through the collision monitor when it is enabled
     ctrl_out = PythonExpression(["'cmd_vel_raw' if '", cm, "' == 'true' else 'cmd_vel'"])
+    bt = no_backup_params(get_package_share_directory('nav2_bt_navigator'), tempfile.gettempdir())
 
     return LaunchDescription([
         DeclareLaunchArgument('map', default_value=default_map(sim)),
@@ -93,7 +98,7 @@ def generate_launch_description():
             Node(package='nav2_behaviors', executable='behavior_server', name='behavior_server', output='log',
                  parameters=[params], remappings=[('cmd_vel', ctrl_out)]),
             Node(package='nav2_bt_navigator', executable='bt_navigator', name='bt_navigator', output='screen',
-                 parameters=[params]),
+                 parameters=[params, bt]),
         ]),
         # collision monitor: controller -> cmd_vel_raw -> collision_monitor -> cmd_vel
         Node(package='nav2_collision_monitor', executable='collision_monitor', name='collision_monitor',

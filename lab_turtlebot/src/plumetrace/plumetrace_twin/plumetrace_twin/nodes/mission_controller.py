@@ -8,8 +8,10 @@ HOLD: while the link stream of /twin/sync is LOST (no heartbeat for >= 3 s) the 
 cancelled and the robot holds; the goal is re-sent once every stream is SYNCED again. The same happens while
 localization_monitor reports the robot lost on the map (/localization/status LOST or RELOCALIZING, std_msgs/String
 JSON); OK resumes, FAILED aborts the mission.
-A stop is bad when Nav2 does not reach it or no sample arrives; after max_bad_stops (3) bad stops in a row the mission
-is aborted (the same stop would otherwise be retried until mission_timeout_s).
+When Nav2 gives up on a stop (status ABORTED: no plan, or every recovery failed) the mission is aborted and the robot
+drives back to the start mark (home_on_nav_fail, default true). A stop is also bad when no sample arrives; after
+max_bad_stops (3) bad stops in a row, or after mission_timeout_s, the mission is aborted and the robot drives home as
+well. The `done` event comes after that drive home, so tools/run_abc.py does not stop the launch while it drives.
 Started at launch (autostart) or by /mission/start (std_msgs/Empty).
 Commands on /twin/command (std_msgs/String JSON {"type": ...}): abort, return_home.
 Events (JSON) on /mission/events: goal_sent, goal_result, sample, hold, resume, done, abort.
@@ -45,6 +47,7 @@ class MissionController(Node):
         self.declare_parameter('sample_timeout_s', 20.0)
         self.declare_parameter('mission_timeout_s', 900.0)
         self.declare_parameter('max_bad_stops', 3)
+        self.declare_parameter('home_on_nav_fail', True)
         self.scenario = self.get_parameter('scenario').value
         self.mode = self.get_parameter('mode').value
         self.sweep = self.get_parameter('strategy').value == 'sweep'
@@ -245,8 +248,7 @@ class MissionController(Node):
         bad = 0  # bad stops in a row
         while True:
             if bad >= self.get_parameter('max_bad_stops').value:
-                self.event('abort', reason=f'{bad} stops in a row not reached or not sampled')
-                return self.finish('ABORTED')
+                return self.abort_home(f'{bad} stops in a row not reached or not sampled')
             if self.abort_req:
                 return self.finish('ABORTED')
             if self.home_req:
@@ -258,7 +260,7 @@ class MissionController(Node):
                 self.event('return_home', status=int(st))
                 return self.finish('ABORTED' if self.abort_req else 'DONE')
             if time.time() - t_start > self.get_parameter('mission_timeout_s').value:
-                return self.finish('ABORTED')
+                return self.abort_home('mission timeout')
             if not self.wait_for(lambda: self.goal is not None, 30.0):
                 if self.abort_req:
                     continue
@@ -274,6 +276,8 @@ class MissionController(Node):
             self.event('goal_result', status=int(st))
             if self.abort_req or self.home_req:
                 continue
+            if st == GoalStatus.STATUS_ABORTED and self.get_parameter('home_on_nav_fail').value:
+                return self.abort_home(f'Nav2 could not reach the stop at x {x:.2f} y {y:.2f} (all recoveries failed)')
             n0 = self.samples
             self.trig.publish(UInt32(data=n0 + 1))
             self.event('dwell')
@@ -290,6 +294,17 @@ class MissionController(Node):
             if not self.sweep and self.localised():
                 self.wait_for(lambda: self.goal is not None, 3.0)
                 return self.finish('DONE')
+
+    def abort_home(self, reason):
+        """Abort the mission, but first drive back to the start mark (with HOLD on link or localisation loss)."""
+        self.event('abort', reason=reason)
+        if not self.abort_req:
+            x, y, yaw = self.frame.arena['start_pose']
+            self.homing = True
+            self.event('return_home_start')
+            st = self.drive(x, y, yaw)
+            self.event('return_home', status=int(st))
+        return self.finish('ABORTED')
 
     def finish(self, state):
         p = self.post

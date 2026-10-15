@@ -4,8 +4,10 @@
     python3 tools/localize.py [--go-home] [--force-global] [--skip-check] [--set-start] [--min-fit 0.65] [--sim-time]
 
 --set-start: the robot stands on the start mark; AMCL is reset there and the fit is checked (most reliable in
-the near-symmetric arena). A pose in or at the edge of the taped river is never accepted: Nav2 cannot plan
-from inside the keepout.
+the near-symmetric arena). A pose in or at the edge of the taped river cannot be used as it is: Nav2 cannot plan
+from inside the keepout. When the scan fits there clearly (not the mirror), the robot really is there (pushed
+around an obstacle, for example): it turns away from the water and drives slowly straight out (at most 0.5 m,
+stopping at anything the lidar sees ahead), then the fit is checked again. --no-escape: treat such a pose as wrong.
 
 tools/run_abc.py runs it with --go-home before every mission. During a mission the localization_monitor node
 (started by lab_mission) does the same checks and pauses the mission when the robot is lost.
@@ -61,6 +63,8 @@ def main():
     ap.add_argument('--set-start', action='store_true', help='the robot stands on the start mark: reset AMCL there, '
                     'then check the scan fits (no global search)')
     ap.add_argument('--sim-time', action='store_true', help='Gazebo: use_sim_time:=true')
+    ap.add_argument('--no-escape', dest='escape', action='store_false', help='never drive out of the river: treat a '
+                    'pose in or at it as wrong (global search instead)')
     args = ap.parse_args()
 
     # no rclpy SIGINT handler: Ctrl-C raises KeyboardInterrupt with the context still valid, so stop() reaches the robot

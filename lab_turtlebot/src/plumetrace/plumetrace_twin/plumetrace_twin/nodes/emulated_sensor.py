@@ -85,6 +85,10 @@ class EmulatedSensor(Node):
             self.last_step = now
         tp = self.true_pose()
         if tp is None:
+            if self.dwell is not None and now - self.dwell['start'] > self.dwell_s + 10.0:
+                # else every later trigger is ignored as "dwell in progress" for the rest of the mission
+                self.get_logger().warn('dwell dropped: no robot pose (map -> base_footprint) for 10 s')
+                self.dwell = None
             return
         dt = now - self.last_step
         self.last_step = now

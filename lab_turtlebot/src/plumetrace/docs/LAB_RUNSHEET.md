@@ -17,6 +17,18 @@ Second loop run (2026-10-15): rounds 1 and 2 PASS; in round 3 the drive home fro
 the mission was started anyway and Nav2 rejected every goal at once while no sample arrived, so the same stop was
 retried until Ctrl-C. Since then a mission aborts after 3 bad stops in a row (`max_bad_stops`) and `run_abc.py`
 retries the drive home once by itself before asking.
+Third loop run (2026-10-15, with obstacles on the bank): with an obstacle close ahead Nav2's BackUp recovery
+reversed the robot into the river (the lidar cannot see the tape and nothing checks behind); `localize.py` then
+rejected the true pose in the river and searched globally from there, which failed. Since then `lab_nav` runs Nav2's
+default tree without BackUp (`plumetrace_twin/bt_xml.py`), and `localize.py` trusts a clearly fitting pose in or at
+the river and drives the robot out (turn away from the water, max 0.5 m at 0.05 m/s, stop at anything ahead) before
+the drive home (`--no-escape` restores the old behaviour). The emulated sensor drops a dwell that cannot finish
+without a robot pose, so later samples are not all ignored.
+Back to the start mark whenever a round fails: when Nav2 gives up on a stop (every recovery failed, status 6) the
+mission aborts and the robot drives to the start mark at once (`home_on_nav_fail`, default true); the same after 3
+stops without a sample or the 900 s mission timeout. If that drive fails too, `localize.py --go-home` at the start
+of the next round tries up to 3 times (clearing the costmaps and driving out of the river between tries), and
+`run_abc.py` repeats that once before asking the operator.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
@@ -429,7 +441,8 @@ run summaries you want to keep; never commit `web/config.local.js`.
 | `localize.py`: fits below the threshold although RViz shows the scan on the walls | the real lab differs from the map: lower `--min-fit` / `--keep-fit` (5c) |
 | Mission keeps going on HOLD "robot lost" although RViz shows the scan on the walls | people or bags near the robot, or boards moved: clear the area; or raise tolerance with `ros2 param set /localization_monitor lost_fit 0.4`, or turn the monitor off (`--no-localize`) |
 | Robot circles or creeps at a goal and never finishes | add `xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15` to the `lab_nav` / `lab_mission` command (or `RUN_ABC_ARGS`) |
-| Every stop ends with status 6 and the robot does not move | AMCL puts the robot in or at the edge of the river (inside Nav2's keepout, so no plan is possible). `localize.py` now rejects such a pose. Put the robot on the start mark and press Enter at the prompt (AMCL is reset there: `python3 tools/localize.py --set-start`), or set "2D Pose Estimate" in RViz and type `p` |
+| Every stop ends with status 6 and the robot does not move | AMCL puts the robot in or at the edge of the river (inside Nav2's keepout, so no plan is possible). After 3 such stops the mission aborts; `localize.py` drives the robot out of the river when the scan fits there clearly, else searches globally. If both fail: put the robot on the start mark and press Enter at the prompt (`python3 tools/localize.py --set-start`), or set "2D Pose Estimate" in RViz and type `p` |
+| Robot reverses into the river near an obstacle | Nav2's BackUp recovery: `lab_nav` removes it from the behaviour tree (`bt_navigator` log shows the `..._no_backup.xml` file). If it still backs up, check that file exists in `/tmp` and that `lab_nav` was restarted after `git pull` + `tools/lab_setup.sh` |
 | Robot cannot leave the bank ("failed to create plan") | it is too close to the water: check the tape positions against the tape guide; the keepout leaves 0.06 m of margin |
 | Battery shown in orange or red on the dashboard | below 11.3 V / 11.0 V: charge or swap before the next run |
 | `lab_map` fails: slam_toolbox missing | `sudo apt install ros-jazzy-slam-toolbox` (needs someone with sudo), or skip mapping (step 3) |
