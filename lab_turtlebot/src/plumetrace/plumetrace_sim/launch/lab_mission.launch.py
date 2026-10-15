@@ -6,6 +6,9 @@ Simulation: sim_mission.launch.py includes this launch with use_sim_time:=true n
         [strategy:=adaptive|sweep] [stamped:=true] [collision_monitor:=false] [map:=<yaml>]
         [gateway:=true] [gateway_host:=localhost] [record:=true] [rviz:=true] [use_sim_time:=false]
         [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10] [nav:=true] [loc_monitor:=true]
+        [sensor_noise_rel:=0.05] [sensor_noise_abs:=0.01] [sensor_lag_s:=2.0] [sensor_dwell_s:=3.0]
+sensor_*: the emulated probe (relative and absolute noise in mg/L, lag, dwell = readings averaged at 1 Hz); the twin
+uses the same noise in its likelihood and the dashboard shows the values.
 nav:=false leaves out lab_nav (map server, AMCL, Nav2): for a lab_nav that is already running, as tools/run_abc.py
 does so that Nav2 and the robot's position on the map stay up between missions.
 loc_monitor:=true (default) runs localization_monitor: during the mission it checks the robot's position on the
@@ -24,6 +27,8 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
+
+SENSOR_DEFAULTS = dict(noise_rel=0.05, noise_abs=0.01, lag_s=2.0, dwell_s=3.0)  # = plumetrace_twin.sensor_model
 
 
 BAG_TOPICS = ['/localization/status', '/plume/sample_raw', '/plume/sample', '/twin/samples', '/twin/posterior', '/twin/next_goal',
@@ -50,6 +55,8 @@ def generate_launch_description():
                                time.strftime('%Y%m%d-%H%M%S'))
     nav_args = ['map', 'stamped', 'collision_monitor', 'x', 'y', 'yaw', 'rviz', 'use_sim_time', 'xy_goal_tolerance',
                 'yaw_goal_tolerance']
+
+    sensor = {k: ParameterValue(LaunchConfiguration('sensor_' + k), value_type=float) for k in SENSOR_DEFAULTS}
 
     def twin(exe, params=None, **kw):
         return Node(package='plumetrace_twin', executable=exe, output='screen',
@@ -81,18 +88,21 @@ def generate_launch_description():
         DeclareLaunchArgument('yaw_goal_tolerance', default_value='0.10', description='radians'),
         DeclareLaunchArgument('nav', default_value='true', description='false: use a lab_nav that is already running'),
         DeclareLaunchArgument('loc_monitor', default_value='true', description='re-localise when lost during the mission'),
+        *[DeclareLaunchArgument('sensor_' + k, default_value=str(v), description='emulated sensor')
+          for k, v in SENSOR_DEFAULTS.items()],
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(sim, 'launch', 'lab_nav.launch.py')),
             launch_arguments={k: LaunchConfiguration(k) for k in nav_args}.items(),
             condition=IfCondition(LaunchConfiguration('nav'))),
         # robot side (runs here; the probe reads the plume at the robot's localised pose)
-        twin('emulated_sensor', {'scenario': sc, 'seed': seed}),
+        twin('emulated_sensor', dict(sensor, scenario=sc, seed=seed)),
         twin('edge_buffer'),
         twin('link_gate'),
         # twin side
         twin('sample_ingest'),
         twin('sync_monitor'),
-        twin('twin_core', {'scenario': sc, 'seed': seed, 'strategy': LaunchConfiguration('strategy')}),
+        twin('twin_core', {'scenario': sc, 'seed': seed, 'strategy': LaunchConfiguration('strategy'),
+                           'noise_rel': sensor['noise_rel'], 'noise_abs': sensor['noise_abs']}),
         twin('obstacle_registry'),
         twin('obstacle_detector', {'map_yaml': LaunchConfiguration('map')}),
         twin('virtual_obstacle_cloud'),
@@ -106,6 +116,7 @@ def generate_launch_description():
                        output='log', condition=IfCondition(LaunchConfiguration('record'))),
         Node(package='plumetrace_gateway', executable='gateway', output='screen',
              parameters=[wall, {'scenario': sc, 'host': LaunchConfiguration('gateway_host'),
-                                          'show_true_plume': LaunchConfiguration('show_true_plume')}],
+                                          'show_true_plume': LaunchConfiguration('show_true_plume'),
+                                          **{'sensor_' + k: v for k, v in sensor.items()}}],
              condition=IfCondition(LaunchConfiguration('gateway'))),
     ])

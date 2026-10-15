@@ -5,6 +5,8 @@ localised pose from TF). A dwell starts on /sensor/trigger (std_msgs/UInt32 = re
 +1, +2, +3 s (1 Hz); the mean is published as plumetrace_msgs/PlumeSample on /plume/sample_raw.
 The sample carries the robot's own localisation (map -> base_footprint) and the probe point in the
 river frame. Plume clock = time_factor x simulation time since the node started.
+Sensor settings (parameters, defaults in sensor_model.SENSOR_DEFAULTS): noise_rel, noise_abs (mg/L), lag_s, dwell_s
+(one reading per second of dwell).
 """
 import math
 
@@ -20,7 +22,7 @@ from plumetrace_msgs.msg import PlumeSample
 
 from ..reach import ReachFrame
 from ..scenario import load_scenario, make_plume
-from ..sensor_model import QC_MOVED, QC_OFF_BANK, QC_POSE_STALE, SensorModel, probe_point
+from ..sensor_model import QC_MOVED, QC_OFF_BANK, QC_POSE_STALE, SENSOR_DEFAULTS, SensorModel, probe_point
 from ..simtools import quat_to_yaw
 
 
@@ -29,8 +31,8 @@ class EmulatedSensor(Node):
         super().__init__('emulated_sensor')
         self.declare_parameter('scenario', 'A')
         self.declare_parameter('seed', 1)
-        self.declare_parameter('dwell_s', 3.0)
-        self.declare_parameter('lag_s', 2.0)
+        for k, v in SENSOR_DEFAULTS.items():
+            self.declare_parameter(k, v)
         sc = load_scenario(self.get_parameter('scenario').value, self.get_parameter('seed').value)
         self.sc = sc
         self.frame = ReachFrame.load()
@@ -38,7 +40,9 @@ class EmulatedSensor(Node):
         self.plume = make_plume(self.frame, sc)
         self.time_factor = float(sc['time_factor'])
         seed = int(sc['noise_seed'])
-        self.model = SensorModel(np.random.default_rng(seed * 1000 + 7), tau=self.get_parameter('lag_s').value)
+        sen = {k: float(self.get_parameter(k).value) for k in SENSOR_DEFAULTS}
+        self.model = SensorModel(np.random.default_rng(seed * 1000 + 7), tau=sen['lag_s'], noise_rel=sen['noise_rel'],
+                                 noise_abs=sen['noise_abs'])
         self.dwell_s = float(self.get_parameter('dwell_s').value)
         self.tf = Buffer()
         self.tfl = TransformListener(self.tf, self)
@@ -48,7 +52,7 @@ class EmulatedSensor(Node):
         self.create_subscription(UInt32, '/sensor/trigger', self.on_trigger, 10)
         self.last_step = None
         self.create_timer(0.1, self.tick)
-        self.get_logger().info(f"scenario {sc['scenario']} (outfall {sc['active_outfall']}), seed {seed}")
+        self.get_logger().info(f"scenario {sc['scenario']} (outfall {sc['active_outfall']}), seed {seed}, sensor {sen}")
 
     # --- helpers ---------------------------------------------------------
     def now_s(self):

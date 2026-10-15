@@ -55,6 +55,8 @@ class MissionController(Node):
         self.loc_lost = False
         self.abort_req = False
         self.home_req = False
+        self.homing = False  # the mission's own drive home is running
+        self.going_home = threading.Lock()  # one drive home at a time: a second goal would pre-empt (abort) the first
         self.cv = threading.Condition()
         cb = ReentrantCallbackGroup()
         self.nav = Nav2Client(self)
@@ -144,16 +146,22 @@ class MissionController(Node):
                 self.set_state('ABORTED')
         elif t == 'return_home':
             if running:
-                self.home_req = True
-                self.nav.cancel()
+                if not self.homing:  # a repeated return_home must not cancel the drive home itself
+                    self.home_req = True
+                    self.nav.cancel()
             else:
                 threading.Thread(target=self.go_home, daemon=True).start()
 
     def go_home(self):
-        x, y, yaw = self.frame.arena['start_pose']
-        self.event('return_home_start')
-        st, _ = self.nav.go(x, y, yaw, timeout=180)
-        self.event('return_home', status=int(st))
+        if not self.going_home.acquire(blocking=False):
+            return  # repeated return_home while already driving home
+        try:
+            x, y, yaw = self.frame.arena['start_pose']
+            self.event('return_home_start')
+            st, _ = self.nav.go(x, y, yaw, timeout=180)
+            self.event('return_home', status=int(st))
+        finally:
+            self.going_home.release()
 
     # --- outputs ------------------------------------------------------------
     def event(self, kind, **kw):
@@ -237,6 +245,7 @@ class MissionController(Node):
             if self.home_req:
                 x, y, yaw = self.frame.arena['start_pose']
                 self.home_req = False
+                self.homing = True
                 self.event('return_home_start')
                 st = self.drive(x, y, yaw)
                 self.event('return_home', status=int(st))

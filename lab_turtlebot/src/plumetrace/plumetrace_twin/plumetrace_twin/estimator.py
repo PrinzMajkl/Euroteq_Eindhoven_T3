@@ -3,7 +3,8 @@
 Hypotheses: outfalls A, B, C x 20 log-spaced strength factors from 0.2 to 5 (uniform prior).
 Prediction for a sample at probe point p: C = c_bg + q * E_h(p), with E_h the steady excess of
 outfall h at strength 1 (analytical steady solution, k = 0, bank reflection).
-Likelihood: Gaussian, sigma = 0.05 * pred + 0.02 mg/L + 10 % model error (0.10 * pred), marginalised
+Likelihood: Gaussian, sigma = noise_rel * pred + 2 * noise_abs + 10 % model error (0.10 * pred), with the
+sensor's noise settings (default 0.05 and 0.01 mg/L: sigma = 0.05 * pred + 0.02 + 0.10 * pred), marginalised
 over the probe position uncertainty: a 3 x 3 Gauss-Hermite mixture in (s, n) with
 sigma_pos = 1.5 m river (0.015 m arena, the AMCL error measured in A4).
 Localised when the top outfall probability >= 0.95.
@@ -34,13 +35,14 @@ _GH_X, _GH_W = np.polynomial.hermite_e.hermegauss(3)
 _GH_W = _GH_W / _GH_W.sum()
 
 
-def sigma_of(pred):
-    return 0.05 * pred + 0.02 + 0.10 * pred
+MODEL_ERR = 0.10
 
 
 class SourceEstimator:
-    def __init__(self, frame, labels=LABELS, strengths=STRENGTHS, q_m3s=10.0, Q=None, **params):
+    def __init__(self, frame, labels=LABELS, strengths=STRENGTHS, q_m3s=10.0, Q=None, noise_rel=0.05, noise_abs=0.01,
+                 **params):
         self.frame = frame
+        self.noise_rel, self.noise_abs = float(noise_rel), float(noise_abs)
         self.labels = list(labels)
         self.q = np.asarray(strengths, dtype=float)
         # Q and further plume parameters (c_bg, do_bg) come from the scenario (scenario.plume_params)
@@ -67,9 +69,11 @@ class SourceEstimator:
         e = self.unit_excess(river_xy)
         return self.p.c_bg + self.q[None, :, None] * e[:, None, :]
 
-    @staticmethod
-    def loglik(y, pred):
-        sig = sigma_of(pred)
+    def sigma(self, pred):
+        return (self.noise_rel + MODEL_ERR) * pred + 2.0 * self.noise_abs
+
+    def loglik(self, y, pred):
+        sig = self.sigma(pred)
         return -0.5 * ((y - pred) / sig) ** 2 - np.log(sig)
 
     def predict_mix(self, river_xy):
@@ -84,10 +88,9 @@ class SourceEstimator:
         H, Q = pred.shape[:2]
         return pred.reshape(H, Q, len(s), 9), w
 
-    @classmethod
-    def loglik_mix(cls, y, pred_mix, w):
+    def loglik_mix(self, y, pred_mix, w):
         """log sum_k w_k N(y; pred_k, sigma(pred_k)) over the last axis."""
-        ll = cls.loglik(y, pred_mix) + np.log(w)
+        ll = self.loglik(y, pred_mix) + np.log(w)
         m = ll.max(axis=-1, keepdims=True)
         return (m + np.log(np.exp(ll - m).sum(axis=-1, keepdims=True)))[..., 0]
 
@@ -139,7 +142,7 @@ class SourceEstimator:
         for k in range(N):
             pk = pm[:, :, k, :]
             truth = pk.reshape(H * Q, -1)[cells, comp]
-            ys = truth + sigma_of(truth) * z
+            ys = truth + self.sigma(truth) * z
             hs = 0.0
             for y in ys:
                 l2 = lp + self.loglik_mix(y, pk, w)

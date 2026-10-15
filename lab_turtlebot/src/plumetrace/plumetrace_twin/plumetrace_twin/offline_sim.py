@@ -12,7 +12,7 @@ import numpy as np
 
 from .estimator import CAP, sweep_order
 from .scenario import make_estimator, make_plume
-from .sensor_model import SensorModel, probe_point
+from .sensor_model import SENSOR_DEFAULTS, SensorModel, probe_point
 
 V, W, DT = 0.15, 1.0, 0.1
 POSE_SIGMA, YAW_SIGMA = 0.015, 0.02
@@ -64,13 +64,16 @@ class KinematicRobot:
         return float(np.mean(vals))
 
 
-def run_mission(frame, sc, seed, strategy='adaptive', cap=CAP):
+def run_mission(frame, sc, seed, strategy='adaptive', cap=CAP, sensor=None):
+    """sensor: overrides of sensor_model.SENSOR_DEFAULTS (noise_rel, noise_abs, lag_s, dwell_s)."""
+    sen = dict(SENSOR_DEFAULTS, **(sensor or {}))
     rng = np.random.default_rng(seed)
     plume = make_plume(frame, sc)
-    sensor = SensorModel(np.random.default_rng(seed * 1000 + 7))
+    sensor = SensorModel(np.random.default_rng(seed * 1000 + 7), tau=sen['lag_s'], noise_rel=sen['noise_rel'],
+                         noise_abs=sen['noise_abs'])
     x0, y0, yaw0 = frame.arena['start_pose']
     robot = KinematicRobot(frame, plume, sensor, float(sc['time_factor']), x0, y0, yaw0)
-    est = make_estimator(frame, sc)
+    est = make_estimator(frame, sc, noise_rel=sen['noise_rel'], noise_abs=sen['noise_abs'])
     cands = frame.sampling_points()
     order = sweep_order(frame, cands, (x0, y0)) if strategy == 'sweep' else None
     sampled, rows, update_s = [], [], []
@@ -90,7 +93,7 @@ def run_mission(frame, sc, seed, strategy='adaptive', cap=CAP):
         c = cands[idx]
         robot.wait(PLAN_OVERHEAD_S)
         robot.drive_to(c['waypoint'][0], c['waypoint'][1], c['yaw'])
-        value = robot.dwell()
+        value = robot.dwell(int(round(sen['dwell_s'])))
         ex, ey = robot.x + rng.normal(0, POSE_SIGMA), robot.y + rng.normal(0, POSE_SIGMA)
         eyaw = robot.yaw + rng.normal(0, YAW_SIGMA)
         river = frame.arena_to_river(probe_point(ex, ey, eyaw))

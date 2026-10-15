@@ -62,7 +62,8 @@ def test_plume_true_event_hello_validate(ctx):
     sc = dict(scenario='A', flow=dict(q_m3s=4.48), background=dict(nh3_n_mg_l=0.04, do_mg_l=9.1), time_factor=10.0,
               active_outfall='B')
     hello = dict(type='hello', reach='r', reach_id='i', time_factor=10.0, origin=dict(lat=0, lon=0, h=0),
-                 commands=list(P.COMMANDS), scenario=P.hello_scenario(sc))
+                 commands=list(P.COMMANDS), scenario=P.hello_scenario(sc),
+                 sensor=dict(noise_rel=0.05, noise_abs=0.01, lag_s=2.0, dwell_s=3.0))
     assert 'active_outfall' not in hello['scenario'] and 'strength' not in json.dumps(hello)
     assert 'id' not in hello['scenario']  # scenario files are named after the leaking outfall
     for m in (pt, P.plume_points_msg('plume_points', 1.0, grid, [0.1, 0.2]), ev, hello):

@@ -64,3 +64,14 @@ def test_sweep_15_runs(frame):
             r = run_mission(frame, load_scenario(sc, seed), seed, strategy='sweep')
             assert r['total_samples'] == 6
             assert r['final']['label'] == sc and r['final']['p'] >= 0.95, (sc, seed, r['final'])
+
+
+def test_sensor_settings(frame):
+    """Default noise reproduces the old sigma; a noisier, longer-dwell sensor still finds the outfall."""
+    est = SourceEstimator(frame)
+    pred = np.array([0.0, 1.0, 3.0])
+    assert np.allclose(est.sigma(pred), 0.05 * pred + 0.02 + 0.10 * pred)
+    for sc in 'ABC':
+        r = run_mission(frame, load_scenario(sc, 1), 1, strategy='sweep',
+                        sensor=dict(noise_rel=0.15, noise_abs=0.03, lag_s=3.0, dwell_s=5))
+        assert r['final']['label'] == sc, r['final']

@@ -14,7 +14,7 @@ actions and UML diagrams.
 | Simulation (Gazebo, Jazzy container) | Scenarios A, B, C each ended with the right outfall ([SIMULATION.md](src/plumetrace/docs/SIMULATION.md)) |
 | Real robot | Bringup and Nav2 run from the lablaptop (`ROS_DOMAIN_ID=32`, robot `turtlebot@192.168.8.32`); first mission ran, but stops failed from a wrong heading, so no confident result yet |
 | One-command demo | `tools/start_demo.sh`: relay, Cloudflare link, robot bringup over ssh, missions A/B/C, RViz |
-| Mission runner | `tools/run_abc.py`: one mission with a secret leaking outfall (A, B or C at random), `--strategy adaptive` (ends at 95 %) or `sweep` (6 fixed stops along the whole bank); self-localisation and drive to the start mark first, PASS only at ≥ 95 % confidence |
+| Mission runner | `tools/run_abc.py`: continuous rounds (start mark → mission → start mark → ...), each with a secret leaking outfall (A, B or C at random), mock sensor settings `--sensor-*` shown on the dashboard, `--strategy adaptive` (ends at 95 %) or `sweep` (6 fixed stops along the whole bank); self-localisation and drive to the start mark first, PASS only at ≥ 95 % confidence |
 | Self-localisation | `tools/localize.py` + `localization_monitor` (mirror check, global search, HOLD and resume during a mission); tested against stand-ins, thresholds from simulation |
 | Dashboard | Robot, plume (estimated / true), samples, outfall probabilities, battery, runs table, incident workflow (Pegnitz escalation chain, public warning request); minimal layout |
 | Open issues | Jerky motion: [jerky_motion_diagnosis.md](src/plumetrace/docs/jerky_motion_diagnosis.md) (parameter fixes proposed, not applied); localisation thresholds not yet tuned on the real lab |

@@ -307,7 +307,7 @@ flowchart LR
         T1["1 relay.py :8090"]
         T2["2 cloudflared"]
         T3["3 ssh → robot bringup"]
-        T4["4 run_abc.py<br/>lab_nav<br/>localize.py --go-home<br/>lab_mission (secret outfall)"]
+        T4["4 run_abc.py --strategy sweep<br/>lab_nav once<br/>loop: localize.py --go-home,<br/>lab_mission (secret outfall)"]
         T5["5 RViz"]
     end
     ROBOT["TurtleBot3<br/>192.168.8.32<br/>ROS_DOMAIN_ID=32"]
@@ -319,7 +319,9 @@ flowchart LR
 
 `run_abc.py`: start Nav2 → localise and drive to the start mark → start `lab_mission nav:=false scenario:=X
 strategy:=adaptive|sweep` (X picked at random unless `--scenario` is given; the twin never sees it) →
-`/mission/start` → wait for `done` → drive to the start mark → stop the launches. One mission, one leaking outfall.
+`/mission/start` → wait for `done` → stop the mission launch → next round from the start mark, until Ctrl-C
+(`--loops N` for N rounds). One leaking outfall per round. `--sensor-*` sets the emulated probe's noise, lag and
+dwell (twin likelihood uses the same noise; the dashboard shows them in the Mock sensor panel).
 
 ## 10. Dashboard and incident workflow
 

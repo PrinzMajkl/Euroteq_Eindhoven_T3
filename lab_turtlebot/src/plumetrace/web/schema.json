@@ -64,6 +64,30 @@
               "type": "number"
             }
           }
+        },
+        "sensor": {
+          "type": "object",
+          "description": "emulated NH3-N probe settings for this run (sensor_* launch arguments)",
+          "properties": {
+            "noise_rel": {
+              "type": "number"
+            },
+            "noise_abs": {
+              "type": "number"
+            },
+            "lag_s": {
+              "type": "number"
+            },
+            "dwell_s": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "noise_rel",
+            "noise_abs",
+            "lag_s",
+            "dwell_s"
+          ]
         }
       },
       "required": [

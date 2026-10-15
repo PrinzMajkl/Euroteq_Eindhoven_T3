@@ -25,6 +25,7 @@ from tf2_ros import Buffer, TransformListener
 from plumetrace_msgs.msg import MissionState, ObstacleArray, PlumeSample, Posterior, SyncStatus
 from plumetrace_twin.reach import ReachFrame
 from plumetrace_twin.scenario import load_scenario, make_estimator, make_plume
+from plumetrace_twin.sensor_model import SENSOR_DEFAULTS
 from plumetrace_twin.simtools import quat_to_yaw
 
 from . import protocol as P
@@ -36,6 +37,9 @@ class Gateway(Node):
         self.declare_parameter('host', 'localhost')
         self.declare_parameter('port', 8765)
         self.declare_parameter('scenario', 'A')
+        for k, v in SENSOR_DEFAULTS.items():  # the emulated sensor's settings, shown on the dashboard
+            self.declare_parameter('sensor_' + k, v)
+        self.sensor = {k: float(self.get_parameter('sensor_' + k).value) for k in SENSOR_DEFAULTS}
         # plume_true reveals the leaking outfall: hidden until the mission is done unless this is true
         self.declare_parameter('show_true_plume', False, ParameterDescriptor(dynamic_typing=True))
         self.frame = ReachFrame.load()
@@ -179,7 +183,8 @@ class Gateway(Node):
         fr = self.frame
         return dict(type='hello', reach=fr.name, reach_id=fr.reach_id, time_factor=self.time_factor,
                     origin=dict(lat=fr.lat0, lon=fr.lon0, h=fr.h0), scale=fr.scale,
-                    commands=list(P.COMMANDS), alert_mg_l=P.ALERT_MG_L, scenario=P.hello_scenario(self.sc))
+                    commands=list(P.COMMANDS), alert_mg_l=P.ALERT_MG_L, scenario=P.hello_scenario(self.sc),
+                    sensor=dict(self.sensor))
 
     async def handler(self, ws):
         self.ws_clients.add(ws)

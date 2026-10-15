@@ -20,11 +20,13 @@ def generate_launch_description():
     sim = get_package_share_directory('plumetrace_sim')
     world_args = ['gui', 'static_boards', 'headless_rendering']
     mission_args = ['scenario', 'seed', 'strategy', 'mission', 'autostart', 'gateway', 'gateway_host', 'record',
-                    'rviz', 'collision_monitor', 'run_dir', 'xy_goal_tolerance', 'yaw_goal_tolerance']
+                    'rviz', 'collision_monitor', 'run_dir', 'xy_goal_tolerance', 'yaw_goal_tolerance',
+                    'sensor_noise_rel', 'sensor_noise_abs', 'sensor_lag_s', 'sensor_dwell_s']
     defaults = dict(gui='true', static_boards='true', headless_rendering='false', scenario='B', seed='1',
                     strategy='adaptive', mission='true', autostart='true', gateway='true',
                     gateway_host='localhost', record='true', rviz='true', collision_monitor='false',
-                    xy_goal_tolerance='0.03', yaw_goal_tolerance='0.10')
+                    xy_goal_tolerance='0.03', yaw_goal_tolerance='0.10', sensor_noise_rel='0.05',
+                    sensor_noise_abs='0.01', sensor_lag_s='2.0', sensor_dwell_s='3.0')
     defaults['run_dir'] = os.path.join(os.environ.get('PLUMETRACE_RUNS', os.path.expanduser('~/plumetrace_runs')),
                                        time.strftime('%Y%m%d-%H%M%S') + '-sim')
     fixed = {'use_sim_time': 'true', 'stamped': 'true', 'map': os.path.join(sim, 'maps', 'arena.yaml'),

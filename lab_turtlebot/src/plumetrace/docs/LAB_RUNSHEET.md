@@ -9,7 +9,10 @@ before the next mission. Since 2026-10-15 `run_abc.py` starts Nav2 once and keep
 the robot checks its position and drives to the start mark, and during every mission `localization_monitor`
 re-localises it when it is lost (5b, 5c). These have only run against a stand-in for ROS, not on Jazzy or the
 robot. Since 2026-10-15 `run_abc.py` runs one mission (one secret leaking outfall) instead of A, B and C back to
-back, and `--strategy sweep` drives fixed stops along the whole bank (offline only so far, 15/15 correct).
+back, and `--strategy sweep` drives fixed stops along the whole bank. First lablaptop sweep (2026-10-15): C PASS,
+6/6 stops, but the drive home failed (repeated `return_home` goals pre-empted each other). Since then `run_abc.py`
+loops (start mark, mission, start mark, mission ...) and drives home itself with `localize.py --go-home`; the
+emulated sensor's noise, lag and dwell are set per run (`--sensor-*`) and shown on the dashboard.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
@@ -30,7 +33,7 @@ cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace && source config/env.sh
 | Navigation only | `ros2 launch plumetrace_sim lab_nav.launch.py rviz:=true` then `python3 tools/wait_ready.py 90` |
 | One mission | `ros2 launch plumetrace_sim lab_mission.launch.py scenario:=B seed:=1` + relay + start (section 5) |
 | **Full demo, 5 terminals** | **`tools/start_demo.sh`** (section 5b) |
-| Mission only (secret outfall) | `python3 tools/run_abc.py --confirm [--strategy sweep]` (needs bringup running, no other `lab_nav`/`lab_mission`; section 5b) |
+| Missions only (loop, secret outfall) | `python3 tools/run_abc.py --confirm --strategy sweep [--loops 3]` (needs bringup running, no other `lab_nav`/`lab_mission`; section 5b) |
 | Robot finds itself, drives to the start mark | `python3 tools/localize.py --go-home` (needs `lab_nav` or `lab_mission` running; section 5c) |
 | Dashboard | `PLUMETRACE_RELAY_KEY=<secret> python3 tools/relay.py`, open `http://localhost:8090/?key=<secret>` |
 | Public link | `cloudflared tunnel --url http://localhost:8090` |
@@ -190,7 +193,7 @@ To let others watch from outside the lab: `cloudflared tunnel --url http://local
 `~/.local/bin/cloudflared ...`) prints a `https://*.trycloudflare.com` link. Viewers are view-only; anyone with
 the link sees the page and the Cesium ion token in it, so use a restricted token.
 
-## 5b. Full demo in one command: one mission with the live dashboard
+## 5b. Full demo in one command: continuous sweep missions with the live dashboard
 
 Map done (step 3), river taped (step 2). The robot may stand anywhere in the arena: before mission A it finds
 itself on the map and drives to the start mark (section 5c). Terminal 3 starts the bringup over ssh, or leaves it
@@ -209,7 +212,7 @@ It checks the build, `websockets`, `cloudflared` and that the robot answers ping
 | 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
 | 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the install command from step 0 |
 | 3 | robot | `ssh -t turtlebot@192.168.8.32` with `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
-| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm --strategy sweep`: Nav2 up → position check (re-localise if lost) → drive to the start mark → Enter → one full-sweep mission (leaking outfall picked at random; 6 fixed stops along the whole bank, past A, B and C), with the position watched during it → robot drives to the start mark at the end. Ends with a PASS/FAIL line with start and end times |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm --strategy sweep`: Nav2 up → position check (re-localise if lost) → drive to the start mark → Enter → full-sweep mission (leaking outfall picked at random; 6 fixed stops along the whole bank, past C, B and A), with the position watched during it → back to the start mark → next sweep, until Ctrl-C. Prints PASS/FAIL per round and a table at the end |
 | 5 | rviz | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
 
 Open the operator link from terminal 1 in a browser. Gazebo is not started: a simulated robot on domain 32 would
@@ -235,9 +238,10 @@ terminal closes or with Ctrl-C there.)
 running: it starts its own):
 
 ```bash
-python3 tools/run_abc.py --confirm                    # secret outfall (random), adaptive stops, ends at 95 %
-python3 tools/run_abc.py --confirm --strategy sweep   # secret outfall, fixed stops along the whole bank
-python3 tools/run_abc.py --scenario B --seed 2        # outfall B leaks (not secret)
+python3 tools/run_abc.py --confirm --strategy sweep   # loop until Ctrl-C: home, sweep, home, sweep ... (secret outfall per round)
+python3 tools/run_abc.py --confirm --loops 1          # one round, adaptive stops, ends at 95 %
+python3 tools/run_abc.py --scenario B --loops 3       # outfall B leaks every round (not secret)
+python3 tools/run_abc.py --strategy sweep --sensor-noise-rel 0.15 --sensor-noise-abs 0.03 --sensor-lag 3 --sensor-dwell 5
 python3 tools/run_abc.py --confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15
 python3 tools/run_abc.py --no-localize      # no position checks (before or during the mission); still drives to the mark
 ```
@@ -251,22 +255,35 @@ Strategies (`--strategy`, or `strategy:=` on `lab_mission` / `sim_mission`):
 
 The dashboard gets the outfall probabilities after every sample in both.
 
+Mock sensor (`--sensor-*`, or `sensor_*:=` on `lab_mission` / `sim_mission`), the same for every round:
+
+| Option | Default | Meaning |
+| --- | --- | --- |
+| `--sensor-noise-rel` | 0.05 | relative noise per reading (1σ, 5 %) |
+| `--sensor-noise-abs` | 0.01 | absolute noise per reading, mg/L (1σ) |
+| `--sensor-lag` | 2 | probe lag (time constant), s |
+| `--sensor-dwell` | 3 | dwell per stop, s (1..10) = number of 1 Hz readings averaged |
+
+The twin uses the same noise in its likelihood (a noisier sensor makes it less sure per sample, not wrong), and the
+dashboard shows the values in the **Mock sensor** panel and in every exported run.
+
 What it does, in order:
 
 1. **Nav2 once.** Starts `lab_nav` (map server, AMCL, Nav2) and waits until it is active (`--ready-timeout`,
    default 90 s; one restart if not). Nav2 and AMCL stay up until the end.
-2. **Before the mission: check position, then go to the start mark.** Runs
+2. **Every round: check position, then go to the start mark.** Runs
    `tools/localize.py --go-home` (5c). If the laser scan fits the map at the robot's believed position, nothing
    moves; if not, the robot turns on the spot until it has found itself. Then Nav2 drives it to the start mark.
-   The mission therefore starts from the start mark with a checked position. If this fails, it asks you to put
+   Every mission therefore starts from the start mark with a checked position, wherever the last one ended. If this fails, it asks you to put
    the robot on the mark (or use 2D Pose Estimate) and press Enter.
 3. **During the mission: position watched.** Starts `lab_mission ... nav:=false` (twin nodes, gateway, logs and
    `localization_monitor`; takes a few seconds), starts the mission and waits for `done` (`--timeout`, default
    900 s). `localization_monitor` checks the position every 3 s (5c). If the robot is lost, the mission holds,
    the robot re-localises on the spot, and the mission resumes where it was. If that fails, the mission is
    aborted.
-4. **At the end.** The robot drives to the start mark (`--home-timeout`, default 200 s), then the mission launch
-   and Nav2 are stopped.
+4. **Next round.** Stops the mission launch and goes back to step 2 (`--loops N`: N rounds, default 0 = until
+   Ctrl-C). With a finite `--loops` the robot drives to the start mark after the last round. Ctrl-C aborts the
+   mission and stops the robot where it is.
 
 `--no-localize` turns off the checks in steps 2 and 3; the robot still drives to the start mark before the
 mission, so it must start with a correct position (on the mark).

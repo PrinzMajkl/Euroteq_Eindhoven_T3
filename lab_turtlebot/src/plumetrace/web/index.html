@@ -258,6 +258,10 @@
     <details class="sec" data-k="alerts"><summary>Alerts</summary>
       <ul id="alerts"></ul>
     </details>
+    <details class="sec" data-k="sensor" open><summary>Mock sensor</summary>
+      <dl id="sensor"></dl>
+      <div class="small">Emulated NH₃-N probe, set per run (<code>run_abc.py --sensor-*</code>). The twin uses the same noise.</div>
+    </details>
     <details class="sec" data-k="river"><summary>River · gauge</summary>
       <dl id="river"></dl>
       <div id="river-note" class="small"></div>
@@ -621,6 +625,18 @@ function renderRiver() {
   const src = (R.sources || []).map((u, i) => `<a href="${esc(u)}" target="_blank" rel="noopener">[${i + 1}]</a>`).join(' ');
   $('river-note').innerHTML = (R.bathing ? `<b>Bathing:</b> ${esc(R.bathing)}<br>` : '') +
     `Velocity = Q / (width × depth); ETA = distance to the Regnitz confluence / velocity.` + (src ? `<br>Sources: ${src}` : '');
+}
+function renderSensor() {
+  const S = STATE.sensor;
+  if (!S) { $('sensor').innerHTML = '<dt>Settings</dt><dd>— (not in hello)</dd>'; return; }
+  const dwell = isNum(S.dwell_s) ? Math.round(S.dwell_s) : null;
+  const rows = [
+    ['Noise per reading', `± ${num(S.noise_rel * 100, 1)} % + ${num(S.noise_abs, 3)} mg/L (1σ)`],
+    ['Lag (time constant)', `${num(S.lag_s, 1)} s`],
+    ['Dwell per stop', dwell == null ? '—' : `${dwell} s = mean of ${dwell} reading${dwell === 1 ? '' : 's'} at 1 Hz`],
+    ['Noise at 1 mg/L (mean)', dwell ? `± ${num((S.noise_rel * 1.0 + S.noise_abs) / Math.sqrt(dwell), 3)} mg/L` : '—'],
+  ];
+  $('sensor').innerHTML = rows.map(([k, val]) => `<dt>${k}</dt><dd>${val}</dd>`).join('');
 }
 function renderPollution() {
   const s = STATE.lastSample;
@@ -1015,7 +1031,8 @@ const RUN_END_STATES = ['DONE', 'ABORTED', 'IDLE'];
 const BATT = { warned: false, last: null, warn_v: 11.3, bad_v: 11.0, rearm_v: 11.5 };  // Burger 3S LiPo
 function ensureRun() {
   if (!RUN) RUN = { n: RUNS.length + 1, scenario: null, start: nowIso(), t0: null, t1: null, end: null, lastSeq: 0, ended: false,
-                    done: null, doneText: '', final_state: null, return_home: null, activity: 'waiting for mission', events: [], hellos: 0 };
+                    done: null, doneText: '', final_state: null, return_home: null, activity: 'waiting for mission', events: [], hellos: 0,
+                    sensor: STATE.sensor || null };
   return RUN;
 }
 function runStatus(r) {
@@ -1042,6 +1059,7 @@ function runSnapshot(withDetail) {
     min_do: minDo,
     result: d ? { map_label: d.map_label ?? null, probability: p, final: d.final ?? null, localised: isLocalised(d), probabilities: d.probabilities ?? null } : null,
     final_state: r.final_state, return_home: r.return_home, status: runStatus(r), gateway_hellos: r.hellos,
+    sensor: r.sensor || STATE.sensor || null,
     incident: INC ? { id: INC.id, severity: INC.severity, notified: INC.notified.map((n) => `tier ${n.tier} ${n.name} at ${n.time}`),
                       likely: INC.likely, probability: INC.prob, confirmed: !!INC.confirmed, closed: INC.closed || null } : null,
   };
@@ -1147,6 +1165,9 @@ const handlers = {
       STATE.bg = isNum(m.scenario.background_nh3_n_mg_l) ? +m.scenario.background_nh3_n_mg_l : 0.05;
       STATE.q = isNum(m.scenario.q_m3s) ? +m.scenario.q_m3s : null;
     }
+    STATE.sensor = m.sensor && typeof m.sensor === 'object' ? m.sensor : null;
+    if (RUN && !RUN.sensor) RUN.sensor = STATE.sensor;
+    renderSensor();
     // a hello again = gateway restarted (or relay reconnected): nothing is re-created here; it only marks the
     // current run as ended so that a sample with a restarted seq opens a new run
     if (RUN && (samples.length || RUN.done)) RUN.ended = true;
@@ -1294,7 +1315,7 @@ const handlers = {
   },
   ack(m) { $('hint').textContent = m.ok ? `✓ ${m.command} ${m.detail || ''}` : `✗ rejected: ${m.detail}`; },
 };
-renderRiver(); renderPollution();
+renderRiver(); renderPollution(); renderSensor();
 
 // ---------- WebSocket ----------
 let ws;

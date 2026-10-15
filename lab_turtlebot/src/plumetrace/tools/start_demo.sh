@@ -8,8 +8,9 @@
 #   1 relay       dashboard + live data on http://localhost:8090 (operator link with key printed there)
 #   2 cloudflare  public HTTPS link to the relay (view-only for everyone without the key)
 #   3 robot       ssh to the TurtleBot3, ROS_DOMAIN_ID=32, turtlebot3_bringup robot.launch.py
-#   4 missions    waits for the robot, then tools/run_abc.py --strategy sweep: one mission, leaking outfall picked
-#                 at random, 6 fixed stops along the whole bank (past A, B and C)
+#   4 missions    waits for the robot, then tools/run_abc.py --strategy sweep in a loop until Ctrl-C:
+#                 start mark, sweep (6 fixed stops past C, B and A; leaking outfall picked at random every round),
+#                 start mark, sweep, ...
 #   5 rviz        RViz with the PlumeTrace view (map, robot, costmaps, plan)
 #
 # No Gazebo: with the real robot on domain 32 a simulated robot would publish the same topics.
@@ -22,6 +23,7 @@
 #   RUN_ABC_ARGS         extra arguments for tools/run_abc.py [--confirm --strategy sweep]
 #                        e.g. RUN_ABC_ARGS="--confirm --strategy sweep -- xy_goal_tolerance:=0.05"
 #                        adaptive instead of the sweep: RUN_ABC_ARGS="--confirm --strategy adaptive"
+#                        3 rounds only, noisier sensor: RUN_ABC_ARGS="--confirm --strategy sweep --loops 3 --sensor-noise-rel 0.15"
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROBOT="${PLUMETRACE_ROBOT:-turtlebot@192.168.8.32}"

@@ -41,6 +41,7 @@ def make_plume(frame, sc):
                       t_on=float(sc['source_on_s']), **plume_params(sc))
 
 
-def make_estimator(frame, sc):
+def make_estimator(frame, sc, noise_rel=0.05, noise_abs=0.01):
+    """noise_rel, noise_abs: the emulated sensor's noise settings (sensor_model.SENSOR_DEFAULTS)."""
     from .estimator import SourceEstimator
-    return SourceEstimator(frame, **plume_params(sc))
+    return SourceEstimator(frame, noise_rel=noise_rel, noise_abs=noise_abs, **plume_params(sc))

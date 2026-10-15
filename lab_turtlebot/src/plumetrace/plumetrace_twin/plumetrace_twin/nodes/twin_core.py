@@ -27,7 +27,7 @@ from plumetrace_msgs.msg import PlumeSample, Posterior
 from ..estimator import CAP, sweep_order
 from ..reach import ReachFrame
 from ..scenario import load_scenario, make_estimator
-from ..sensor_model import QC_OFF_BANK
+from ..sensor_model import QC_OFF_BANK, SENSOR_DEFAULTS
 from ..simtools import Nav2Client, pose_stamped
 
 
@@ -38,9 +38,12 @@ class TwinCore(Node):
         self.declare_parameter('strategy', 'adaptive')
         self.declare_parameter('seed', 1)
         self.declare_parameter('use_nav2_paths', True)
+        self.declare_parameter('noise_rel', SENSOR_DEFAULTS['noise_rel'])  # the sensor's noise, for the likelihood
+        self.declare_parameter('noise_abs', SENSOR_DEFAULTS['noise_abs'])
         sc = load_scenario(self.get_parameter('scenario').value)
         self.frame = ReachFrame.load()
-        self.est = make_estimator(self.frame, sc)
+        self.est = make_estimator(self.frame, sc, noise_rel=float(self.get_parameter('noise_rel').value),
+                                  noise_abs=float(self.get_parameter('noise_abs').value))
         self.strategy = self.get_parameter('strategy').value
         if self.strategy not in ('adaptive', 'sweep'):
             raise ValueError(f"strategy must be 'adaptive' or 'sweep', not {self.strategy!r}")

@@ -1,7 +1,8 @@
 """Emulated NH3-N probe: first-order lag, multiplicative + additive Gaussian noise, dwell averaging.
 
-Fixed defaults: 1 Hz readings; noise 5 % multiplicative + 0.01 mg/L additive; lag 2 s; dwell 3 s;
-reported value = mean of the 3 dwell readings. Probe point = robot position + 0.13 m along its heading.
+Defaults (SENSOR_DEFAULTS; set per run with the sensor_* launch arguments): 1 Hz readings; noise 5 % multiplicative
++ 0.01 mg/L additive; lag 2 s; dwell 3 s; reported value = mean of the dwell readings. Probe point = robot position
++ 0.13 m along its heading.
 """
 import math
 
@@ -13,6 +14,7 @@ QC_OFF_BANK = 4     # probe point more than 0.05 m (arena) from the water edge
 QC_REPLAY = 8       # reserved: sample was re-sent by the edge buffer
 
 PROBE_OFFSET = 0.13
+SENSOR_DEFAULTS = dict(noise_rel=0.05, noise_abs=0.01, lag_s=2.0, dwell_s=3.0)
 
 
 def probe_point(x, y, yaw, offset=PROBE_OFFSET):
