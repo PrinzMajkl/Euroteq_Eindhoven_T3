@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlumeTrace Authority View</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="authority.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="config.js"></script>
+<script src="pegnitz_response.js" onerror="console.warn('pegnitz_response.js not loaded: built-in thresholds')"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <h1>PlumeTrace</h1>
+    <p class="brand-sub">Authority view <span id="reach-name">Pegnitz, Nürnberg Lederersteg</span></p>
+  </div>
+  <div class="source" role="radiogroup" aria-label="Data source">
+    <button type="button" class="source-btn" data-source="live" role="radio" aria-checked="false">Live</button>
+    <button type="button" class="source-btn" data-source="replay" role="radio" aria-checked="true">Replay</button>
+  </div>
+  <div class="link" id="link" aria-live="polite"><span class="link-dot"></span><span id="link-text">Replay</span></div>
+  <div class="clock" id="clock">--:--</div>
+  <div class="top-actions">
+    <a class="btn" href="index.html" title="The full operator dashboard (Cesium)">Operator view</a>
+    <button type="button" class="btn" id="btn-csv">Samples CSV</button>
+    <button type="button" class="btn btn-primary" id="btn-report">Incident report</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="map-wrap" aria-label="River map">
+    <div id="map"></div>
+
+    <div class="map-tools" role="group" aria-label="Map view">
+      <button type="button" class="chip" data-view="overview">Whole reach</button>
+      <button type="button" class="chip" data-view="follow" aria-pressed="false">Follow robot</button>
+      <button type="button" class="chip" data-view="source">Likely source</button>
+      <button type="button" class="chip" id="btn-plume" aria-pressed="true">Plume</button>
+    </div>
+
+    <section class="panel requests" aria-labelledby="req-title">
+      <div class="panel-head">
+        <h2 id="req-title">Ask the robot</h2>
+        <button type="button" class="icon-btn" id="req-toggle" aria-expanded="true" title="Hide panel">–</button>
+      </div>
+      <div id="req-body">
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" class="tab" data-type="inspect" aria-selected="true">A spot</button>
+          <button type="button" role="tab" class="tab" data-type="outfall" aria-selected="false">An outfall</button>
+          <button type="button" role="tab" class="tab" data-type="robot" aria-selected="false">Stop / home</button>
+        </div>
+        <form id="req-form" novalidate>
+          <div class="field" data-for="inspect">
+            <span class="field-label">Where</span>
+            <button type="button" class="btn btn-block" id="pick-spot">Choose on the map</button>
+            <p class="hint" id="pick-hint">Click a point on the river.</p>
+          </div>
+          <label class="field" data-for="outfall">
+            <span class="field-label">Which outfall</span>
+            <select id="req-outfall"><option value="A">Outfall A</option><option value="B">Outfall B</option><option value="C">Outfall C</option></select>
+          </label>
+          <label class="field" data-for="inspect outfall">
+            <span class="field-label">What to check</span>
+            <select id="req-check">
+              <option value="both" selected>Ammonia and oxygen</option>
+              <option value="ammonia">Ammonia (sign of sewage)</option>
+              <option value="oxygen">Oxygen (risk to fish)</option>
+            </select>
+          </label>
+          <fieldset class="field radios" data-for="robot">
+            <legend class="field-label">Action</legend>
+            <label><input type="radio" name="robot-cmd" value="return_home" checked> Return home</label>
+            <label><input type="radio" name="robot-cmd" value="abort"> Stop the mission now</label>
+          </fieldset>
+          <label class="field" data-for="inspect outfall robot">
+            <span class="field-label">Reason</span>
+            <input id="req-reason" type="text" maxlength="140" placeholder="For example: citizen report of a smell">
+          </label>
+          <fieldset class="field radios" data-for="inspect outfall">
+            <legend class="field-label">Priority</legend>
+            <label><input type="radio" name="prio" value="normal" checked> Normal</label>
+            <label><input type="radio" name="prio" value="urgent"> Urgent</label>
+          </fieldset>
+          <p class="hint" id="req-note"></p>
+          <button type="submit" class="btn btn-primary btn-block" id="req-submit">Send request</button>
+        </form>
+        <h3 class="sub">Requests</h3>
+        <ol class="queue" id="queue"><li class="empty">No requests yet.</li></ol>
+      </div>
+    </section>
+
+    <div class="legend" aria-label="Map legend">
+      <p class="legend-title">Ammonia (NH₃-N)</p>
+      <ul id="legend-bins"></ul>
+      <ul class="legend-symbols">
+        <li><span class="sym sym-robot"></span>Robot</li>
+        <li><span class="sym sym-outfall"></span>Outfall</li>
+        <li><span class="sym sym-station"></span>Gauge / station</li>
+      </ul>
+    </div>
+
+    <div class="replay" id="replay">
+      <button type="button" class="icon-btn round" id="rp-play" title="Play">▶</button>
+      <input type="range" id="rp-seek" min="0" max="1000" value="0" aria-label="Replay position">
+      <span class="rp-time" id="rp-time">0:00 / 0:00</span>
+      <select id="rp-speed" aria-label="Replay speed"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select>
+      <select id="rp-file-pick" aria-label="Recorded mission"></select>
+      <label class="btn btn-small" title="Replay a .jsonl recording">Load file<input type="file" id="rp-file" accept=".jsonl,.json,.txt" hidden></label>
+    </div>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+  </section>
+
+  <aside class="rail" aria-label="Situation">
+    <section class="status" id="status" data-tone="idle">
+      <p class="status-mode" id="status-mode">Waiting for data</p>
+      <p class="status-text" id="status-text">Press play to replay a recorded mission, or switch to Live.</p>
+      <p class="status-act" id="status-act"></p>
+    </section>
+
+    <section class="block" aria-labelledby="o-title">
+      <h2 id="o-title">Which outfall is leaking?</h2>
+      <div id="outfall-bars" class="bars"></div>
+      <p class="note" id="outfall-note">The digital twin updates these chances after every water sample.</p>
+    </section>
+
+    <section class="tiles" aria-label="Current readings">
+      <div class="tile" id="tile-nh3"><p class="tile-label">Ammonia</p><p class="tile-value"><span id="v-nh3">–</span><small> mg/L</small></p><p class="tile-note" id="n-nh3">No reading yet</p></div>
+      <div class="tile" id="tile-do"><p class="tile-label">Oxygen</p><p class="tile-value"><span id="v-do">–</span><small> mg/L</small></p><p class="tile-note" id="n-do">No reading yet</p></div>
+      <div class="tile"><p class="tile-label">Samples</p><p class="tile-value"><span id="v-samples">0</span></p><p class="tile-note" id="n-samples">By hand: €0</p></div>
+      <div class="tile"><p class="tile-label">Battery</p><p class="tile-value"><span id="v-batt">–</span></p><p class="tile-note" id="n-batt">–</p></div>
+    </section>
+
+    <section class="block">
+      <div class="chart-head"><h2>Ammonia per sample</h2>
+        <p class="chart-key"><span class="key-line key-nh3"></span>Measured <span class="key-line key-limit"></span>Legal limit</p></div>
+      <div class="chart-box" id="chart-nh3"></div>
+    </section>
+
+    <section class="block" aria-labelledby="r-title">
+      <h2 id="r-title">River and timing</h2>
+      <dl class="facts" id="river-facts"></dl>
+    </section>
+
+    <section class="block incident" id="incident" hidden aria-labelledby="i-title">
+      <h2 id="i-title">Response</h2>
+      <p class="incident-sum" id="incident-sum"></p>
+      <h3 class="sub">Who to notify</h3>
+      <ol class="ladder" id="ladder"></ol>
+      <h3 class="sub">Recommended actions</h3>
+      <ul class="checklist" id="actions"></ul>
+      <p class="note" id="disclaimer"></p>
+    </section>
+
+    <section class="block" aria-labelledby="a-title">
+      <h2 id="a-title">Timeline</h2>
+      <ol id="log" class="log"><li class="empty">Nothing yet.</li></ol>
+    </section>
+  </aside>
+</main>
+
+<div class="report-overlay" id="report" hidden>
+  <div class="report-sheet" role="dialog" aria-modal="true" aria-labelledby="rep-title">
+    <div class="report-actions no-print">
+      <button type="button" class="btn btn-primary" id="r-print">Print or save as PDF</button>
+      <button type="button" class="btn" id="r-close">Close</button>
+    </div>
+    <article id="report-body"></article>
+  </div>
+</div>
+
+<script src="authority.js"></script>
+</body>
+</html>
