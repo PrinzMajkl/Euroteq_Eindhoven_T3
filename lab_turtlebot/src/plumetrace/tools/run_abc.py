@@ -24,6 +24,9 @@ The dashboard (through tools/relay.py) stays open the whole time: it sees a new 
 `mission.scenario` per run, archives the previous run and starts a clean one, so all three runs fill it with
 samples, plume, outfall probabilities, alerts and incidents.
 
+Result per run: PASS only when the mission ends DONE naming the right outfall with probability >= 0.95; UNSURE
+when it ends DONE without that confidence (for example when no stop on the bank was reached, so every sample was
+ignored); FAIL otherwise. The number of stops Nav2 reached is shown too.
 --confirm waits for Enter before the first run (--confirm-each: before every run).
 Arguments after `--` go to the lab_nav and every lab_mission launch (e.g. `-- xy_goal_tolerance:=0.05`).
 Every line printed carries the clock time and the minutes since the start, so slow steps show up.
@@ -57,6 +60,7 @@ except ImportError:  # workspace not sourced: still runs, without state confirma
     MissionState = None
 
 GOAL_SUCCEEDED = 4  # action_msgs/GoalStatus.STATUS_SUCCEEDED
+LOCALISED_P = 0.95  # plumetrace_twin.estimator.LOCALISED_P: the mission's own confidence threshold
 
 
 class Watcher:
@@ -204,12 +208,24 @@ def run_one(watcher, s, args, out_dir, last):
             res.update(result='TIMEOUT')
             watcher.wait_event('done', 20)
         else:
-            ok = done.get('final') == 'DONE' and done.get('map_label') == truth
-            res.update(result='PASS' if ok else 'FAIL', final=done.get('final'), map_label=done.get('map_label'),
-                       probabilities=done.get('probabilities'), samples=done.get('samples'))
+            probs = done.get('probabilities') or []
+            confident = bool(probs) and max(probs) >= LOCALISED_P
+            ok = done.get('final') == 'DONE' and done.get('map_label') == truth and confident
+            # a uniform posterior also has a map_label (the first outfall), so the label alone is not a result
+            result = 'PASS' if ok else ('UNSURE' if done.get('final') == 'DONE' and not confident else 'FAIL')
+            res.update(result=result, final=done.get('final'), map_label=done.get('map_label'),
+                       probabilities=probs, samples=done.get('samples'))
+        goals = [e for e in watcher.events if e.get('type') == 'goal_result']
+        failed = [e for e in goals if e.get('status') != GOAL_SUCCEEDED]
+        res['stops_reached'] = f'{len(goals) - len(failed)}/{len(goals)}'
+        if goals and len(failed) > len(goals) / 2:
+            log(f'!! Nav2 failed {len(failed)} of {len(goals)} stops: samples were taken off the bank and are ignored. '
+                'Check the robot position in RViz (scan on the walls?) and for duplicate nodes (run sheet 5b).')
         holds = [e for e in watcher.events if e.get('type') == 'localization_lost']
         res['relocalized'] = len(holds)
-        log(f'{s}: {res["result"]} (named {res.get("map_label")}, truth {truth})'
+        top = max(res.get('probabilities') or [0])
+        log(f'{s}: {res["result"]} (named {res.get("map_label")} with p={top:.2f}, truth {truth}; '
+            f'stops reached {res["stops_reached"]})'
             + (f'; robot was lost {len(holds)}x during the mission and re-localised' if holds else ''))
         if last:
             log('returning to the start mark ...')
@@ -285,10 +301,12 @@ def main():
         node.destroy_node()
         rclpy.try_shutdown()
 
-    print('\nscenario  result   named  truth  home    samples  started   ended')
+    print('\nscenario  result   named  p     truth  stops   samples  started   ended')
     for r in results:
-        print(f"{r['scenario']:<9} {r.get('result', '?'):<8} {str(r.get('map_label')):<6} {r['truth']:<6} "
-              f"{r.get('home', '-'):<7} {str(r.get('samples', '-')):<8} {r.get('started', '')}  {r.get('ended', '')}")
+        p = max(r.get('probabilities') or [0])
+        print(f"{r['scenario']:<9} {r.get('result', '?'):<8} {str(r.get('map_label')):<6} {p:<5.2f} {r['truth']:<6} "
+              f"{r.get('stops_reached', '-'):<7} {str(r.get('samples', '-')):<8} {r.get('started', '')}  "
+              f"{r.get('ended', '')}")
     print(f'logs: {out_dir}')
     sys.exit(0 if results and all(r.get('result') == 'PASS' for r in results) else 1)
 
