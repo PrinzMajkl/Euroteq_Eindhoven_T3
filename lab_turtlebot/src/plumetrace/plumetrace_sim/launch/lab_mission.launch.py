@@ -5,7 +5,9 @@ Simulation: sim_mission.launch.py includes this launch with use_sim_time:=true n
     ros2 launch plumetrace_sim lab_mission.launch.py scenario:=A seed:=1 [autostart:=false]
         [strategy:=adaptive|lawnmower] [stamped:=true] [collision_monitor:=false] [map:=<yaml>]
         [gateway:=true] [gateway_host:=localhost] [record:=true] [rviz:=true] [use_sim_time:=false]
-        [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10]
+        [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10] [nav:=true]
+nav:=false leaves out lab_nav (map server, AMCL, Nav2): for a lab_nav that is already running, as tools/run_abc.py
+does so that Nav2 and the robot's position on the map stay up between missions.
 With autostart:=false (default) the mission waits for:
     ros2 topic pub --once /mission/start std_msgs/msg/Empty "{}"
 """
@@ -74,9 +76,11 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='false', description='true only with Gazebo'),
         DeclareLaunchArgument('xy_goal_tolerance', default_value='0.03', description='metres'),
         DeclareLaunchArgument('yaw_goal_tolerance', default_value='0.10', description='radians'),
+        DeclareLaunchArgument('nav', default_value='true', description='false: use a lab_nav that is already running'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(sim, 'launch', 'lab_nav.launch.py')),
-            launch_arguments={k: LaunchConfiguration(k) for k in nav_args}.items()),
+            launch_arguments={k: LaunchConfiguration(k) for k in nav_args}.items(),
+            condition=IfCondition(LaunchConfiguration('nav'))),
         # robot side (runs here; the probe reads the plume at the robot's localised pose)
         twin('emulated_sensor', {'scenario': sc, 'seed': seed}),
         twin('edge_buffer'),

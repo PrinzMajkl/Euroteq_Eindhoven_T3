@@ -1,11 +1,14 @@
 # Lab run sheet: PlumeTrace on the real TurtleBot3 (ROS 2 Jazzy)
 
 Everything of ours runs on the lablaptop. The robot only runs the stock bringup.
-**Status (2026-10-14):** the whole chain ran in simulation on Jazzy (scenarios A, B, C each ended with the right
+**Status (2026-10-15):** the whole chain ran in simulation on Jazzy (scenarios A, B, C each ended with the right
 outfall, see `docs/SIMULATION.md`), and the repo has brought up and driven the real robot from the lablaptop.
-`tools/start_demo.sh` and `tools/run_abc.py` (section 5b) are new and have not run on the lablaptop yet.
-`tools/localize.py` (section 5c: the robot finds itself on the map and drives to the start mark) is new as of
-2026-10-15 and has only run against a stand-in for ROS, not on Jazzy or the robot.
+`tools/start_demo.sh` and `tools/run_abc.py` (section 5b) ran once on the lablaptop: mission A ran, but the switch
+to mission B took long. In that version every run drove home, stopped Nav2, started it again and waited for it
+before the next mission. Since 2026-10-15
+`run_abc.py` starts Nav2 once and keeps it up, and missions follow each other directly (5b). That version, and
+`tools/localize.py` (section 5c: the robot finds itself on the map and drives to the start mark), have only run
+against a stand-in for ROS, not on Jazzy or the robot.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
@@ -26,7 +29,7 @@ cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace && source config/env.sh
 | Navigation only | `ros2 launch plumetrace_sim lab_nav.launch.py rviz:=true` then `python3 tools/wait_ready.py 90` |
 | One mission | `ros2 launch plumetrace_sim lab_mission.launch.py scenario:=B seed:=1` + relay + start (section 5) |
 | **Full demo, 5 terminals** | **`tools/start_demo.sh`** (section 5b) |
-| Missions A, B, C only | `python3 tools/run_abc.py --confirm` (needs bringup running; section 5b) |
+| Missions A, B, C only | `python3 tools/run_abc.py --confirm` (needs bringup running, no other `lab_nav`/`lab_mission`; section 5b) |
 | Robot finds itself, drives to the start mark | `python3 tools/localize.py --go-home` (needs `lab_nav` or `lab_mission` running; section 5c) |
 | Dashboard | `PLUMETRACE_RELAY_KEY=<secret> python3 tools/relay.py`, open `http://localhost:8090/?key=<secret>` |
 | Public link | `cloudflared tunnel --url http://localhost:8090` |
@@ -205,7 +208,7 @@ It checks the build, `websockets`, `cloudflared` and that the robot answers ping
 | 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
 | 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the install command from step 0 |
 | 3 | robot | `ssh -t turtlebot@192.168.8.32` with `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
-| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: lab_mission A → robot localises itself and drives to the start mark → mission A → done → robot drives home → B → C. Press Enter before each run. Ends with a PASS/FAIL table |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: Nav2 up once → robot localises itself and drives to the start mark → Enter → mission A → done → mission B from where the robot stands → C → robot drives to the start mark. Ends with a PASS/FAIL table with start and end times |
 | 5 | rviz | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
 
 Open the operator link from terminal 1 in a browser. Gazebo is not started: a simulated robot on domain 32 would
@@ -223,27 +226,42 @@ tools/start_demo.sh stop
 ```
 
 (`--tmux`: no gnome-terminal windows, switch windows with Ctrl-b 1..5. `PLUMETRACE_ROBOT`: other robot login.
-`RUN_ABC_ARGS`: options for `run_abc.py`; arguments after `--` go to every lab_mission launch. `stop`: stops relay,
+`RUN_ABC_ARGS`: options for `run_abc.py`; arguments after `--` go to the lab_nav and every lab_mission launch. `stop`: stops relay,
 tunnel and all ROS nodes on the lablaptop via `tools/lab_stop.sh`; the bringup on the robot stops when its ssh
 terminal closes or with Ctrl-C there.)
 
-`run_abc.py` on its own (bringup already running, relay in another terminal):
+`run_abc.py` on its own (bringup already running, relay in another terminal, no other `lab_nav` or `lab_mission`
+running: it starts its own):
 
 ```bash
 python3 tools/run_abc.py --confirm
 python3 tools/run_abc.py --scenarios B --confirm
-python3 tools/run_abc.py --scenarios CAB --seed 2 --pause 20
+python3 tools/run_abc.py --scenarios CAB --seed 2
 python3 tools/run_abc.py --confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15
 python3 tools/run_abc.py --no-localize      # robot already on the start mark: skip self-localisation
+python3 tools/run_abc.py --home-between     # drive to the start mark after every run (slower)
+python3 tools/run_abc.py --confirm-each     # wait for Enter before every run, not only the first
 ```
 
-Per run it starts `lab_mission` (RViz off; terminal 5 has it), waits for Nav2 (restarts the launch once if it is
-not ready), before the first run (and after any failed return home) runs `tools/localize.py` and sends the robot
-to the start mark (5c), starts the mission, waits for `done` (`--timeout`, default 900 s), sends the robot home
-(`--home-timeout`, default 200 s), stops the launch and pauses (`--pause`, default 10 s). If the robot does not
-confirm it is home, the next run localises it again first. Ctrl-C aborts the mission and stops
-the launch. Logs: `~/plumetrace_runs/<time>-abc/launch_<S>.log` and `summary.json`; each mission also writes its
-own run folder (CSV + rosbag).
+What it does, in order:
+
+1. **Nav2 once.** Starts `lab_nav` (map server, AMCL, Nav2) and waits until it is active (`--ready-timeout`,
+   default 90 s; one restart if not). Nav2 and AMCL stay up until the end, so the robot keeps its position on the
+   map between runs.
+2. **Localise.** Runs `tools/localize.py --go-home` (5c): the robot finds itself on the map and drives to the start
+   mark. `--no-localize` skips this. If it fails, it asks you to put the robot on the mark and press Enter.
+3. **Per scenario.** Starts `lab_mission ... nav:=false` (twin nodes, gateway, logs; takes a few seconds), starts
+   the mission and waits for `done` (`--timeout`, default 900 s). Then it stops that launch, pauses (`--pause`,
+   default 3 s) and starts the next scenario. The next mission starts from where the robot stands; the planner
+   plans from the robot's current position.
+4. **Home.** After the last run the robot drives to the start mark (`--home-timeout`, default 200 s).
+   `--home-between` does this after every run.
+
+Every line it prints starts with the clock time and the minutes since the start, for example
+`[10:42:13 + 6.5 min] mission B started`. If a step is slow, those times show which one. Ctrl-C aborts the mission,
+stops both launches and exits; the robot stops. Logs: `~/plumetrace_runs/<time>-abc/` (`nav.log`,
+`launch_<S>.log` per run, `summary.json` with start and end time per run); each mission also writes its own run
+folder (CSV + rosbag).
 
 What the dashboard shows during the demo:
 
@@ -342,7 +360,9 @@ run summaries you want to keep; never commit `web/config.local.js`.
 | Nav2 active, goal accepted, robot does not move | wrong `/cmd_vel` type: relaunch with `stamped:=false` (or `true`) |
 | Robot moves stop-go, two publishers on `/cmd_vel` | `ros2 topic info /cmd_vel -v`; stop the extra one (e.g. the no-Nav2 script) |
 | Jerky motion in general | see `docs/jerky_motion_diagnosis.md` (ranked causes and parameter fixes) |
-| A node fails to configure | read its error in terminal A (or `launch_<S>.log` with `run_abc.py`) |
+| A node fails to configure | read its error in terminal A (or `nav.log` / `launch_<S>.log` with `run_abc.py`) |
+| `run_abc.py`: long wait before a mission starts | the time stamps show the step. Before `Nav2 is active`: Nav2 start-up (see `nav.log`). Between `localising` and `robot localised`: the search or the drive home (5c). Before `mission X started`: the mission nodes did not come up (see `launch_X.log`) |
+| `run_abc.py`: "Nav2 did not come up twice" | another `lab_nav` or `lab_mission` was still running: `tools/lab_stop.sh`, then start again |
 | "Transform ... extrapolation into the future/past" | clock offset: see step 1 |
 | AMCL pose jumps or is mirrored | run `python3 tools/localize.py --force-global` (5c); if it keeps failing, marker objects moved since mapping |
 | `localize.py`: "AMCL has not settled on one pose yet" three times | too little structure in view: move the robot nearer the inner boards, or set the pose with 2D Pose Estimate |
