@@ -751,7 +751,8 @@
     pickSel.hidden = ok.length < 2;
     const params = new URLSearchParams(location.search);
     if (ok.length) { try { await loadReplayUrl(ok[0].file, ok[0].name); } catch (e) { toast(e.message); } }
-    if (params.has('live') || params.has('key')) useSource('live');
+    // through tools/relay.py (wsUrl 'auto') the page opens live, like the operator view; ?replay keeps Replay
+    if (params.has('live') || params.has('key') || (CFG.wsUrl === 'auto' && !params.has('replay'))) useSource('live');
   })();
   pickSel.addEventListener('change', async () => {
     const r = REPLAYS.find((x) => x.file === pickSel.value);

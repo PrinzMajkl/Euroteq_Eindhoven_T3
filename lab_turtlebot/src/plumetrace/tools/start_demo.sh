@@ -82,6 +82,7 @@ tail_keep() { echo 'echo; echo "[finished: this terminal stays open]"; exec bash
   cat <<EOF
 echo "Operator (commands allowed): http://localhost:8090/?key=$KEY"
 echo "Viewers (view-only):         http://localhost:8090/  or the cloudflare link in terminal 2"
+echo "Cesium operator view:        http://localhost:8090/index.html?key=$KEY"
 PLUMETRACE_RELAY_KEY='$KEY' python3 tools/relay.py --port 8090 &
 fg_job "$STATE/relay.pid"
 EOF
@@ -155,4 +156,5 @@ else
   exit 1
 fi
 echo "Dashboard (operator): http://localhost:8090/?key=$KEY"
+echo "Cesium operator view: http://localhost:8090/index.html?key=$KEY"
 echo "Stop everything: tools/start_demo.sh stop"

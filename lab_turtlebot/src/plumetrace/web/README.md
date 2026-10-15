@@ -61,8 +61,9 @@ All text that arrives from the network is escaped before it is inserted as HTML.
 A second, plain-language page for the water authorities, next to the operator dashboard (`index.html`). Same
 gateway messages and the same relay; nothing in the ROS code changes.
 
-- Open `http://localhost:8080/authority.html` (static server) or `http://<relay>/authority.html` (relay; add
-  `?key=...` for commands). `?live` connects at once; otherwise it opens in **Replay**.
+- The relay serves this page at `/` (`http://<relay>/`, add `?key=...` for commands) and opens it live;
+  the Cesium operator view is `http://<relay>/index.html`. `?replay` opens in **Replay** instead. On the static
+  server open `http://localhost:8080/authority.html`; there `?live` connects at once, otherwise it opens in Replay.
 - Status in one sentence (surveying, pollution found, most likely outfall, source confirmed), "Which outfall is
   leaking?" bars from `posterior`, ammonia / oxygen tiles with the `PEGNITZ_RESPONSE.thresholds`, ammonia per
   sample, river flow and time to the Regnitz.

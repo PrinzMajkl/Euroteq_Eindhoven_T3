@@ -3,7 +3,7 @@
 
     python3 tools/relay.py [--port 8090] [--gateway ws://localhost:8765] [--bind 127.0.0.1]
 
-http://<host>:<port>/      the dashboard (the files in web/)
+http://<host>:<port>/      the dashboard: authority.html (the files in web/); the Cesium operator view is /index.html
 ws://<host>:<port>/ws      live data, relayed from the PlumeTrace gateway
 
 Viewers are view-only: their commands are answered with a rejected ack and never reach the gateway.
@@ -48,7 +48,7 @@ class Relay:
         url = urlsplit(request.path)
         if url.path == '/ws':
             return None  # continue with the WebSocket handshake
-        rel = 'index.html' if url.path in ('', '/') else url.path.lstrip('/')
+        rel = 'authority.html' if url.path in ('', '/') else url.path.lstrip('/')
         path = os.path.realpath(os.path.join(WEB, rel))
         if not (path == WEB or path.startswith(WEB + os.sep)) or not os.path.isfile(path):
             return self.reply(404, b'not found\n', 'text/plain')
