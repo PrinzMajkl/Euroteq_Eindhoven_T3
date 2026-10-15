@@ -6,7 +6,9 @@ its methods wait). args carries the thresholds: min_fit, keep_fit, margin, spin_
 max_std_xy, max_std_yaw, home_timeout (see tools/localize.py for their meaning and defaults).
 
   accept(threshold, label)  scan fits at AMCL's pose and clearly better than at the mirrored pose; if the
-                            mirror fits clearly better, AMCL is reset to it. No motion.
+                            mirror fits clearly better, AMCL is reset to it. No motion, except with args.escape
+                            (tools/localize.py): a pose that fits but lies in or at the river is real (the robot
+                            was pushed there, e.g. around an obstacle), so escape_river() drives it out first.
   global_search()           AMCL spreads its particles over the whole map, the robot turns on the spot until
                             AMCL settles, then accept(). Up to `attempts` times.
   run()                     accept(keep_fit) (unless force_global), else global_search(); clears costmaps.
@@ -29,6 +31,10 @@ from .scanfit import DistanceField, fit_score, judge, mirror_pose, scan_endpoint
 
 GOAL_SUCCEEDED = 4
 RIVER_CLEARANCE = 0.06  # m from the taped water: closer, the footprint is in the keepout and Nav2 cannot plan
+ESCAPE_CLEARANCE = 0.20  # m from the water at the end of escape_river (robot radius 0.105 + margin)
+ESCAPE_SPEED = 0.05      # m/s, straight ahead
+ESCAPE_MAX = 0.5         # m driven at most
+FRONT_STOP = 0.25        # m: escape stops when the lidar sees something this close within +-30 deg ahead
 LASER_MAX = 3.5  # same as AMCL's laser_max_range
 
 
@@ -184,23 +190,114 @@ class Localizer:
         if verdict == 'mirrored':
             self.flip_to_mirror()
             verdict = self.assess(threshold, label + ' after the reset')
-        return verdict == 'ok' and self.clear_of_river(label)
+        if verdict != 'ok':
+            return False
+        rd = self.river_distance()
+        if getattr(self.args, 'escape', False) and rd is not None and rd[0] < RIVER_CLEARANCE:
+            return self.escape_river(label, threshold)
+        return self.clear_of_river(label)
+
+    def water(self):
+        if self._water is None:
+            from .reach import ReachFrame
+            self._water = ReachFrame.load().water_polygon_arena()
+        return self._water
+
+    def river_distance(self, p=None):
+        """(distance to the water, nearest water-edge point (x, y), inside the water) for pose p (default AMCL's),
+        or None (no pose, or shapely missing)."""
+        p = p or self.pose_xyyaw()
+        if p is None:
+            return None
+        try:
+            from shapely.geometry import Point
+            from shapely.ops import nearest_points
+            w = self.water()
+        except Exception:
+            return None
+        pt = Point(p[0], p[1])
+        edge = nearest_points(w.exterior, pt)[0]
+        return w.distance(pt), (edge.x, edge.y), w.contains(pt)
+
+    def tf_pose(self):
+        """(x, y, yaw) of map -> base_footprint now (AMCL + odometry), or None."""
+        try:
+            t = self.tf.lookup_transform('map', 'base_footprint', Time()).transform
+        except Exception:
+            return None
+        return t.translation.x, t.translation.y, yaw_of(t.rotation)
+
+    def front_clear(self):
+        """False when the latest scan has a return closer than FRONT_STOP within +-30 deg ahead."""
+        with self.lock:
+            s = self.scans[-1] if self.scans else None
+        if s is None:
+            return False
+        for i, r in enumerate(s.ranges):
+            a = math.atan2(math.sin(s.angle_min + i * s.angle_increment), math.cos(s.angle_min + i * s.angle_increment))
+            if abs(a) <= math.radians(30) and s.range_min < r < FRONT_STOP:
+                return False
+        return True
+
+    def escape_river(self, label, threshold):
+        """The scan fits (and not the mirror), so the robot really stands in or at the river. Nav2 cannot plan from
+        inside the keepout: turn to face away from the water, drive slowly straight out until ESCAPE_CLEARANCE from
+        it (at most ESCAPE_MAX, stop at anything the lidar sees ahead), then check the fit again."""
+        if self.cmd_pub is None:
+            self.make_cmd_pub()
+        d, (ex, ey), inside = self.river_distance()
+        x, y, _ = self.pose_xyyaw()
+        dx, dy = (ex - x, ey - y) if inside else (x - ex, y - ey)
+        if math.hypot(dx, dy) < 1e-3:  # on the edge itself: head for the start mark side (away from the bank)
+            dx, dy = -x, -y
+        heading = math.atan2(dy, dx)
+        self.say(f'  {label}: the scan fits, so the robot really is {"in" if inside else f"{d:.2f} m from"} the river '
+                 f'at x {x:+.2f} y {y:+.2f}: turning to {math.degrees(heading):+.0f} deg and driving out')
+        end = time.time() + 20.0
+        while time.time() < end:  # turn on the spot (a circular robot does not sweep the water while turning)
+            p = self.tf_pose()
+            if p is None:
+                break
+            err = math.atan2(math.sin(heading - p[2]), math.cos(heading - p[2]))
+            if abs(err) < 0.08:
+                break
+            self.cmd(0.0, math.copysign(max(0.25, min(0.5, abs(err))), err))
+            time.sleep(0.1)
+        self.stop()
+        start, moved, why, end = self.tf_pose(), 0.0, 'timeout', time.time() + ESCAPE_MAX / ESCAPE_SPEED + 5.0
+        while time.time() < end:
+            p = self.tf_pose()
+            if p is None or start is None:
+                why = 'no position'
+                break
+            moved = math.hypot(p[0] - start[0], p[1] - start[1])
+            rd = self.river_distance(p)
+            if rd is not None and rd[0] >= ESCAPE_CLEARANCE and not rd[2]:
+                why = 'clear'
+                break
+            if moved >= ESCAPE_MAX:
+                why = f'drove {ESCAPE_MAX:.1f} m'
+                break
+            if not self.front_clear():
+                why = 'something in front'
+                break
+            self.cmd(ESCAPE_SPEED, 0.0)
+            time.sleep(0.1)
+        self.stop()
+        self.settle()
+        self.say(f'  escape: {why} after {moved:.2f} m')
+        self.report('after the escape')
+        return self.assess(threshold, 'after the escape') == 'ok' and self.clear_of_river('after the escape')
 
     def clear_of_river(self, label):
         """False when AMCL puts the robot in or at the edge of the river: Nav2 cannot plan from inside the keepout
         (every goal ends with status 6 and the robot does not move), and on the real floor it is almost always a
         wrong pose that fits the near-symmetric walls."""
         p = self.pose_xyyaw()
-        if p is None:
+        rd = self.river_distance(p)
+        if rd is None:  # no pose, or shapely missing: skip the check rather than block the mission
             return True
-        try:
-            from shapely.geometry import Point
-            from .reach import ReachFrame
-            if self._water is None:
-                self._water = ReachFrame.load().water_polygon_arena()
-        except Exception:  # shapely missing: skip the check rather than block the mission
-            return True
-        d = self._water.distance(Point(p[0], p[1]))
+        d = rd[0]
         if d < RIVER_CLEARANCE:
             self.say(f'  {label}: AMCL puts the robot {"in" if d == 0 else f"{d:.2f} m from"} the river at '
                      f'x {p[0]:+.2f} y {p[1]:+.2f}: Nav2 cannot drive from there; treating the pose as wrong')
@@ -255,9 +352,13 @@ class Localizer:
         time.sleep(0.5)  # discovery
 
     def turn(self, wz):
+        self.cmd(0.0, wz)
+
+    def cmd(self, vx, wz):
         if self.cmd_pub is None:
             return
         tw = Twist()
+        tw.linear.x = float(vx)
         tw.angular.z = float(wz)
         if self.stamped:
             msg = TwistStamped()
