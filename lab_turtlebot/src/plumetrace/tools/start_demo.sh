@@ -8,7 +8,8 @@
 #   1 relay       dashboard + live data on http://localhost:8090 (operator link with key printed there)
 #   2 cloudflare  public HTTPS link to the relay (view-only for everyone without the key)
 #   3 robot       ssh to the TurtleBot3, ROS_DOMAIN_ID=32, turtlebot3_bringup robot.launch.py
-#   4 missions    waits for the robot, then tools/run_abc.py: one mission, leaking outfall picked at random
+#   4 missions    waits for the robot, then tools/run_abc.py --strategy sweep: one mission, leaking outfall picked
+#                 at random, 6 fixed stops along the whole bank (past A, B and C)
 #   5 rviz        RViz with the PlumeTrace view (map, robot, costmaps, plan)
 #
 # No Gazebo: with the real robot on domain 32 a simulated robot would publish the same topics.
@@ -18,15 +19,16 @@
 #   PLUMETRACE_ROBOT     ssh target of the robot [turtlebot@192.168.8.32]
 #   ROS_DOMAIN_ID        [32]
 #   PLUMETRACE_RELAY_KEY key for dashboard commands [random per start]
-#   RUN_ABC_ARGS         extra arguments for tools/run_abc.py [--confirm]
+#   RUN_ABC_ARGS         extra arguments for tools/run_abc.py [--confirm --strategy sweep]
 #                        e.g. RUN_ABC_ARGS="--confirm --strategy sweep -- xy_goal_tolerance:=0.05"
+#                        adaptive instead of the sweep: RUN_ABC_ARGS="--confirm --strategy adaptive"
 set -u
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ROBOT="${PLUMETRACE_ROBOT:-turtlebot@192.168.8.32}"
 DOMAIN="${ROS_DOMAIN_ID:-32}"
 STATE="${XDG_RUNTIME_DIR:-/tmp}/plumetrace_demo"
 SESSION=plumetrace
-RUN_ABC_ARGS="${RUN_ABC_ARGS:---confirm}"
+RUN_ABC_ARGS="${RUN_ABC_ARGS:---confirm --strategy sweep}"
 
 if [ "${1:-}" = stop ]; then
   for f in "$STATE"/*.pid; do

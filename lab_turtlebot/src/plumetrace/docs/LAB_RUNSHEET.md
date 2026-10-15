@@ -209,7 +209,7 @@ It checks the build, `websockets`, `cloudflared` and that the robot answers ping
 | 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
 | 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the install command from step 0 |
 | 3 | robot | `ssh -t turtlebot@192.168.8.32` with `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
-| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: Nav2 up → position check (re-localise if lost) → drive to the start mark → Enter → one mission (leaking outfall picked at random), with the position watched during it → robot drives to the start mark at the end. Ends with a PASS/FAIL line with start and end times |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm --strategy sweep`: Nav2 up → position check (re-localise if lost) → drive to the start mark → Enter → one full-sweep mission (leaking outfall picked at random; 6 fixed stops along the whole bank, past A, B and C), with the position watched during it → robot drives to the start mark at the end. Ends with a PASS/FAIL line with start and end times |
 | 5 | rviz | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
 
 Open the operator link from terminal 1 in a browser. Gazebo is not started: a simulated robot on domain 32 would
@@ -222,12 +222,12 @@ tools/start_demo.sh --tmux
 tmux attach -t plumetrace
 PLUMETRACE_ROBOT=ubuntu@192.168.8.40 tools/start_demo.sh
 PLUMETRACE_RELAY_KEY=mysecret tools/start_demo.sh
-RUN_ABC_ARGS="--confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15" tools/start_demo.sh
+RUN_ABC_ARGS="--confirm --strategy sweep -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15" tools/start_demo.sh
 tools/start_demo.sh stop
 ```
 
 (`--tmux`: no gnome-terminal windows, switch windows with Ctrl-b 1..5. `PLUMETRACE_ROBOT`: other robot login.
-`RUN_ABC_ARGS`: options for `run_abc.py` (e.g. `--confirm --strategy sweep`); arguments after `--` go to the lab_nav and lab_mission launches. `stop`: stops relay,
+`RUN_ABC_ARGS`: options for `run_abc.py` (default `--confirm --strategy sweep`; `--confirm --strategy adaptive` for the adaptive mission); arguments after `--` go to the lab_nav and lab_mission launches. `stop`: stops relay,
 tunnel and all ROS nodes on the lablaptop via `tools/lab_stop.sh`; the bringup on the robot stops when its ssh
 terminal closes or with Ctrl-C there.)
 
