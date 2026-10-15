@@ -28,6 +28,7 @@ from tf2_ros import Buffer, TransformListener
 from .scanfit import DistanceField, fit_score, judge, mirror_pose, scan_endpoints
 
 GOAL_SUCCEEDED = 4
+RIVER_CLEARANCE = 0.06  # m from the taped water: closer, the footprint is in the keepout and Nav2 cannot plan
 LASER_MAX = 3.5  # same as AMCL's laser_max_range
 
 
@@ -57,6 +58,7 @@ class Localizer:
         self.initial_pub = node.create_publisher(PoseWithCovarianceStamped, '/initialpose', 10)
         self.cmd_pub = None
         self.stamped = None
+        self._water = None      # river polygon in the arena frame (lazy)
 
     # --- inputs ---------------------------------------------------------------------------------------
     def on_map(self, msg):
@@ -182,7 +184,55 @@ class Localizer:
         if verdict == 'mirrored':
             self.flip_to_mirror()
             verdict = self.assess(threshold, label + ' after the reset')
-        return verdict == 'ok'
+        return verdict == 'ok' and self.clear_of_river(label)
+
+    def clear_of_river(self, label):
+        """False when AMCL puts the robot in or at the edge of the river: Nav2 cannot plan from inside the keepout
+        (every goal ends with status 6 and the robot does not move), and on the real floor it is almost always a
+        wrong pose that fits the near-symmetric walls."""
+        p = self.pose_xyyaw()
+        if p is None:
+            return True
+        try:
+            from shapely.geometry import Point
+            from .reach import ReachFrame
+            if self._water is None:
+                self._water = ReachFrame.load().water_polygon_arena()
+        except Exception:  # shapely missing: skip the check rather than block the mission
+            return True
+        d = self._water.distance(Point(p[0], p[1]))
+        if d < RIVER_CLEARANCE:
+            self.say(f'  {label}: AMCL puts the robot {"in" if d == 0 else f"{d:.2f} m from"} the river at '
+                     f'x {p[0]:+.2f} y {p[1]:+.2f}: Nav2 cannot drive from there; treating the pose as wrong')
+            return False
+        return True
+
+    def set_start(self):
+        """Reset AMCL to the start mark (the operator has put the robot there), then let it settle."""
+        from .reach import ReachFrame
+        x, y, yaw = ReachFrame.load().arena['start_pose']
+        msg = PoseWithCovarianceStamped()
+        msg.header.frame_id = 'map'
+        msg.header.stamp = Time().to_msg()
+        msg.pose.pose.position.x, msg.pose.pose.position.y = float(x), float(y)
+        msg.pose.pose.orientation = Quaternion(z=math.sin(yaw / 2), w=math.cos(yaw / 2))
+        cov = [0.0] * 36
+        cov[0] = cov[7] = 0.05 ** 2
+        cov[35] = 0.1 ** 2
+        msg.pose.covariance = cov
+        self.say(f'  AMCL reset to the start mark (x {x:+.2f} y {y:+.2f} yaw {math.degrees(yaw):+.0f} deg)')
+        with self.lock:
+            before = self.pose_count
+        for _ in range(3):  # cheap insurance against a lost first message
+            self.initial_pub.publish(msg)
+            time.sleep(0.3)
+        end = time.time() + 3.0
+        while time.time() < end:
+            with self.lock:
+                if self.pose_count != before:
+                    break
+            time.sleep(0.1)
+        self.settle()
 
     def call(self, client, timeout=5.0):
         if not client.wait_for_service(timeout_sec=timeout):

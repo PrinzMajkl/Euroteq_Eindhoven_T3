@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Let the TurtleBot find out where it is on the fixed map by itself, then (optionally) drive to the start mark.
 
-    python3 tools/localize.py [--go-home] [--force-global] [--skip-check] [--min-fit 0.65] [--sim-time]
+    python3 tools/localize.py [--go-home] [--force-global] [--skip-check] [--set-start] [--min-fit 0.65] [--sim-time]
+
+--set-start: the robot stands on the start mark; AMCL is reset there and the fit is checked (most reliable in
+the near-symmetric arena). A pose in or at the edge of the taped river is never accepted: Nav2 cannot plan
+from inside the keepout.
 
 tools/run_abc.py runs it with --go-home before every mission. During a mission the localization_monitor node
 (started by lab_mission) does the same checks and pauses the mission when the robot is lost.
@@ -54,6 +58,8 @@ def main():
     ap.add_argument('--max-std-yaw', type=float, default=0.15, help='rad')
     ap.add_argument('--home-timeout', type=float, default=180.0)
     ap.add_argument('--skip-check', action='store_true', help='do not localise, only drive home (with --go-home)')
+    ap.add_argument('--set-start', action='store_true', help='the robot stands on the start mark: reset AMCL there, '
+                    'then check the scan fits (no global search)')
     ap.add_argument('--sim-time', action='store_true', help='Gazebo: use_sim_time:=true')
     args = ap.parse_args()
 
@@ -69,7 +75,17 @@ def main():
     spin.start()
     ok = False
     try:
-        ok = True if args.skip_check else loc.run()
+        if args.set_start:
+            if not loc.wait_inputs():
+                ok = False
+            else:
+                loc.set_start()
+                ok = loc.accept(args.keep_fit, 'on the start mark')
+                if not ok:
+                    print('localize: the scan does not fit the map at the start mark. Is the robot on the mark, facing '
+                          '+x (away from the back wall)? Does the real arena match the map (boards moved)?', flush=True)
+        else:
+            ok = True if args.skip_check else loc.run()
         if ok and args.go_home:
             ok = loc.go_home()
     except KeyboardInterrupt:

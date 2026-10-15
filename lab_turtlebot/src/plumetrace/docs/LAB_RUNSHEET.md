@@ -399,6 +399,7 @@ run summaries you want to keep; never commit `web/config.local.js`.
 | `localize.py`: fits below the threshold although RViz shows the scan on the walls | the real lab differs from the map: lower `--min-fit` / `--keep-fit` (5c) |
 | Mission keeps going on HOLD "robot lost" although RViz shows the scan on the walls | people or bags near the robot, or boards moved: clear the area; or raise tolerance with `ros2 param set /localization_monitor lost_fit 0.4`, or turn the monitor off (`--no-localize`) |
 | Robot circles or creeps at a goal and never finishes | add `xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15` to the `lab_nav` / `lab_mission` command (or `RUN_ABC_ARGS`) |
+| Every stop ends with status 6 and the robot does not move | AMCL puts the robot in or at the edge of the river (inside Nav2's keepout, so no plan is possible). `localize.py` now rejects such a pose. Put the robot on the start mark and press Enter at the prompt (AMCL is reset there: `python3 tools/localize.py --set-start`), or set "2D Pose Estimate" in RViz and type `p` |
 | Robot cannot leave the bank ("failed to create plan") | it is too close to the water: check the tape positions against the tape guide; the keepout leaves 0.06 m of margin |
 | Battery shown in orange or red on the dashboard | below 11.3 V / 11.0 V: charge or swap before the next run |
 | `lab_map` fails: slam_toolbox missing | `sudo apt install ros-jazzy-slam-toolbox` (needs someone with sudo), or skip mapping (step 3) |

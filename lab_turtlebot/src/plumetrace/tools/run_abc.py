@@ -181,14 +181,21 @@ def localize(args):
     cmd = [sys.executable, os.path.join(HERE, 'localize.py'), '--go-home'] + (['--sim-time'] if args.sim_time else []) \
         + (['--skip-check'] if args.no_localize else [])
     ok = subprocess.call(cmd) == 0
-    if ok:
-        log('robot localised and on the start mark')
-    elif sys.stdin.isatty():
-        input('  Localisation or the drive home failed. Put the robot on the start mark facing +x (or set '
-              '"2D Pose Estimate" in RViz), then press Enter. ')
-    else:
-        log('!! localisation failed; continuing with the pose AMCL has')
-    return ok
+    base = [sys.executable, os.path.join(HERE, 'localize.py')] + (['--sim-time'] if args.sim_time else [])
+    while not ok:  # never start a mission from a wrong pose: every goal would fail (status 6) and nothing moves
+        if not sys.stdin.isatty():
+            log('!! localisation failed; continuing with the pose AMCL has')
+            return False
+        a = input('  Localisation or the drive home failed.\n'
+                  '    Enter = I put the robot on the start mark facing +x (AMCL is reset there)\n'
+                  '    p     = I set "2D Pose Estimate" in RViz (check it, then drive to the start mark)\n'
+                  '    s     = start the mission anyway\n  > ').strip().lower()
+        if a == 's':
+            log('!! starting with an unchecked pose')
+            return False
+        ok = subprocess.call(base + (['--go-home'] if a == 'p' else ['--set-start'])) == 0
+    log('robot localised and on the start mark')
+    return True
 
 
 MISSION_NODES = ('mission_controller', 'plumetrace_gateway', 'twin_core', 'emulated_sensor', 'localization_monitor')
