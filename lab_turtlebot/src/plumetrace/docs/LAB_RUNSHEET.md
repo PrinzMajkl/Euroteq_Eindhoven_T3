@@ -13,6 +13,10 @@ back, and `--strategy sweep` drives fixed stops along the whole bank. First labl
 6/6 stops, but the drive home failed (repeated `return_home` goals pre-empted each other). Since then `run_abc.py`
 loops (start mark, mission, start mark, mission ...) and drives home itself with `localize.py --go-home`; the
 emulated sensor's noise, lag and dwell are set per run (`--sensor-*`) and shown on the dashboard.
+Second loop run (2026-10-15): rounds 1 and 2 PASS; in round 3 the drive home from the last stop failed (status 6),
+the mission was started anyway and Nav2 rejected every goal at once while no sample arrived, so the same stop was
+retried until Ctrl-C. Since then a mission aborts after 3 bad stops in a row (`max_bad_stops`) and `run_abc.py`
+retries the drive home once by itself before asking.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:

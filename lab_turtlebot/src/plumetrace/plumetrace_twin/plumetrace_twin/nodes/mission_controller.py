@@ -8,6 +8,8 @@ HOLD: while the link stream of /twin/sync is LOST (no heartbeat for >= 3 s) the 
 cancelled and the robot holds; the goal is re-sent once every stream is SYNCED again. The same happens while
 localization_monitor reports the robot lost on the map (/localization/status LOST or RELOCALIZING, std_msgs/String
 JSON); OK resumes, FAILED aborts the mission.
+A stop is bad when Nav2 does not reach it or no sample arrives; after max_bad_stops (3) bad stops in a row the mission
+is aborted (the same stop would otherwise be retried until mission_timeout_s).
 Started at launch (autostart) or by /mission/start (std_msgs/Empty).
 Commands on /twin/command (std_msgs/String JSON {"type": ...}): abort, return_home.
 Events (JSON) on /mission/events: goal_sent, goal_result, sample, hold, resume, done, abort.
@@ -42,6 +44,7 @@ class MissionController(Node):
         self.declare_parameter('autostart', True)
         self.declare_parameter('sample_timeout_s', 20.0)
         self.declare_parameter('mission_timeout_s', 900.0)
+        self.declare_parameter('max_bad_stops', 3)
         self.scenario = self.get_parameter('scenario').value
         self.mode = self.get_parameter('mode').value
         self.sweep = self.get_parameter('strategy').value == 'sweep'
@@ -239,7 +242,11 @@ class MissionController(Node):
         self.set_state('RUNNING')
         self.goal = None
         self.req.publish(Empty())
+        bad = 0  # bad stops in a row
         while True:
+            if bad >= self.get_parameter('max_bad_stops').value:
+                self.event('abort', reason=f'{bad} stops in a row not reached or not sampled')
+                return self.finish('ABORTED')
             if self.abort_req:
                 return self.finish('ABORTED')
             if self.home_req:
@@ -272,8 +279,10 @@ class MissionController(Node):
             self.event('dwell')
             if not self.wait_for(lambda: self.samples > n0, self.get_parameter('sample_timeout_s').value):
                 self.event('sample_timeout')
+                bad += 1
                 self.req.publish(Empty())
                 continue
+            bad = bad + 1 if st != GoalStatus.STATUS_SUCCEEDED else 0
             if self.loc_lost:  # lost while sampling: wait until the position is fixed before the next stop
                 self.hold()
                 if self.abort_req:  # re-localisation failed: do not finish DONE on this sample
