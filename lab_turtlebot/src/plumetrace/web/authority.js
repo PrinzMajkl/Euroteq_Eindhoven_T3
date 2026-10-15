@@ -745,7 +745,8 @@
   const pickSel = $('rp-file-pick');
   (async () => {
     const ok = [];
-    for (const r of REPLAYS) { try { const h = await fetch(r.file, { method: 'HEAD', cache: 'no-store' }); if (h.ok) ok.push(r); } catch (e) { /* skip */ } }
+    // GET, not HEAD: tools/relay.py (websockets) only accepts GET requests
+    for (const r of REPLAYS) { try { const h = await fetch(r.file, { cache: 'no-store' }); if (h.ok) ok.push(r); } catch (e) { /* skip */ } }
     pickSel.innerHTML = ok.map((r) => `<option value="${esc(r.file)}">${esc(r.name)}</option>`).join('');
     pickSel.hidden = ok.length < 2;
     const params = new URLSearchParams(location.search);
