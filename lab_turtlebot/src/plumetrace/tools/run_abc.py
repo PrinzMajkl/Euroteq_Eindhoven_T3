@@ -293,7 +293,8 @@ def main():
     ap.add_argument('--sensor-dwell', type=int, default=3, choices=range(1, 11), metavar='1..10',
                     help='dwell per stop, s = readings averaged [3]')
     ap.add_argument('--seed', type=int, default=1)
-    ap.add_argument('--timeout', type=float, default=900.0, help='seconds until the mission is done')
+    ap.add_argument('--timeout', type=float, default=1200.0,
+                    help='seconds until the mission is done (its own timeout is 900 s, then it drives home)')
     ap.add_argument('--ready-timeout', type=float, default=90.0)
     ap.add_argument('--confirm', action='store_true', help='wait for Enter before the first round')
     ap.add_argument('--sim-time', action='store_true', help='Gazebo: use_sim_time:=true')

@@ -12,7 +12,8 @@ max_std_xy, max_std_yaw, home_timeout (see tools/localize.py for their meaning a
   global_search()           AMCL spreads its particles over the whole map, the robot turns on the spot until
                             AMCL settles, then accept(). Up to `attempts` times.
   run()                     accept(keep_fit) (unless force_global), else global_search(); clears costmaps.
-  go_home()                 Nav2 to start_pose in config/reach_frame.yaml.
+  go_home()                 Nav2 to start_pose in config/reach_frame.yaml; up to 3 tries, each after clearing the
+                            costmaps (and driving out of the river with args.escape).
 """
 import math
 import threading
@@ -477,7 +478,7 @@ class Localizer:
             while not fut.done() and time.time() < end:
                 time.sleep(0.05)
 
-    def go_home(self):
+    def go_home(self, attempts=3):
         from .reach import ReachFrame
         from .simtools import Nav2Client
         x, y, yaw = ReachFrame.load().arena['start_pose']
@@ -485,8 +486,21 @@ class Localizer:
         if not nav.wait(30.0):
             self.say('  Nav2 navigate_to_pose is not available')
             return False
-        self.say(f'  driving to the start mark ({x:.2f}, {y:.2f}, yaw {math.degrees(yaw):.0f} deg) ...')
-        st, sec = nav.go(x, y, yaw, timeout=self.args.home_timeout)
-        self.say(f'  {"on the start mark" if st == GOAL_SUCCEEDED else f"did not reach the start mark (status {st})"}'
-              f' after {sec:.0f} s')
-        return st == GOAL_SUCCEEDED
+        for attempt in range(1, attempts + 1):
+            self.say(f'  driving to the start mark ({x:.2f}, {y:.2f}, yaw {math.degrees(yaw):.0f} deg)'
+                     + (f', try {attempt}/{attempts}' if attempt > 1 else '') + ' ...')
+            st, sec = nav.go(x, y, yaw, timeout=self.args.home_timeout)
+            self.say(f'  {"on the start mark" if st == GOAL_SUCCEEDED else f"did not reach the start mark (status {st})"}'
+                     f' after {sec:.0f} s')
+            if st == GOAL_SUCCEEDED:
+                return True
+            if attempt == attempts:
+                break
+            # every Nav2 recovery failed: clear stale obstacles, get out of the keepout if the robot is in it, retry
+            for name in ('/global_costmap/clear_entirely_global_costmap', '/local_costmap/clear_entirely_local_costmap'):
+                self.clear_costmap(name)
+            rd = self.river_distance()
+            if getattr(self.args, 'escape', False) and rd is not None and rd[0] < RIVER_CLEARANCE:
+                self.escape_river('before the next try', self.args.keep_fit)
+            time.sleep(2.0)
+        return False

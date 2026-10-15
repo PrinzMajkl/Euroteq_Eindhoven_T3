@@ -24,6 +24,11 @@ default tree without BackUp (`plumetrace_twin/bt_xml.py`), and `localize.py` tru
 the river and drives the robot out (turn away from the water, max 0.5 m at 0.05 m/s, stop at anything ahead) before
 the drive home (`--no-escape` restores the old behaviour). The emulated sensor drops a dwell that cannot finish
 without a robot pose, so later samples are not all ignored.
+Back to the start mark whenever a round fails: when Nav2 gives up on a stop (every recovery failed, status 6) the
+mission aborts and the robot drives to the start mark at once (`home_on_nav_fail`, default true); the same after 3
+stops without a sample or the 900 s mission timeout. If that drive fails too, `localize.py --go-home` at the start
+of the next round tries up to 3 times (clearing the costmaps and driving out of the river between tries), and
+`run_abc.py` repeats that once before asking the operator.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
