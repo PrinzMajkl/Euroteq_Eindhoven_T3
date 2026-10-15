@@ -4,6 +4,8 @@ Everything of ours runs on the lablaptop. The robot only runs the stock bringup.
 **Status (2026-10-14):** the whole chain ran in simulation on Jazzy (scenarios A, B, C each ended with the right
 outfall, see `docs/SIMULATION.md`), and the repo has brought up and driven the real robot from the lablaptop.
 `tools/start_demo.sh` and `tools/run_abc.py` (section 5b) are new and have not run on the lablaptop yet.
+`tools/localize.py` (section 5c: the robot finds itself on the map and drives to the start mark) is new as of
+2026-10-15 and has only run against a stand-in for ROS, not on Jazzy or the robot.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
@@ -25,6 +27,7 @@ cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace && source config/env.sh
 | One mission | `ros2 launch plumetrace_sim lab_mission.launch.py scenario:=B seed:=1` + relay + start (section 5) |
 | **Full demo, 5 terminals** | **`tools/start_demo.sh`** (section 5b) |
 | Missions A, B, C only | `python3 tools/run_abc.py --confirm` (needs bringup running; section 5b) |
+| Robot finds itself, drives to the start mark | `python3 tools/localize.py --go-home` (needs `lab_nav` or `lab_mission` running; section 5c) |
 | Dashboard | `PLUMETRACE_RELAY_KEY=<secret> python3 tools/relay.py`, open `http://localhost:8090/?key=<secret>` |
 | Public link | `cloudflared tunnel --url http://localhost:8090` |
 | RViz alone | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
@@ -185,8 +188,9 @@ the link sees the page and the Cesium ion token in it, so use a restricted token
 
 ## 5b. Full demo in one command: missions A, B, C with the live dashboard
 
-Robot on the start mark, map done (step 3), river taped (step 2). Terminal 3 starts the bringup over ssh, or
-leaves it alone when `/odom` is already visible (bringup started by hand). On the lablaptop:
+Map done (step 3), river taped (step 2). The robot may stand anywhere in the arena: before mission A it finds
+itself on the map and drives to the start mark (section 5c). Terminal 3 starts the bringup over ssh, or leaves it
+alone when `/odom` is already visible (bringup started by hand). On the lablaptop:
 
 ```bash
 cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace
@@ -201,7 +205,7 @@ It checks the build, `websockets`, `cloudflared` and that the robot answers ping
 | 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
 | 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the install command from step 0 |
 | 3 | robot | `ssh -t turtlebot@192.168.8.32` with `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
-| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: lab_mission A → done → robot drives home → B → C. Press Enter before each run after checking the robot sits on the start mark. Ends with a PASS/FAIL table |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: lab_mission A → robot localises itself and drives to the start mark → mission A → done → robot drives home → B → C. Press Enter before each run. Ends with a PASS/FAIL table |
 | 5 | rviz | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
 
 Open the operator link from terminal 1 in a browser. Gazebo is not started: a simulated robot on domain 32 would
@@ -230,12 +234,14 @@ python3 tools/run_abc.py --confirm
 python3 tools/run_abc.py --scenarios B --confirm
 python3 tools/run_abc.py --scenarios CAB --seed 2 --pause 20
 python3 tools/run_abc.py --confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15
+python3 tools/run_abc.py --no-localize      # robot already on the start mark: skip self-localisation
 ```
 
 Per run it starts `lab_mission` (RViz off; terminal 5 has it), waits for Nav2 (restarts the launch once if it is
-not ready), starts the mission, waits for `done` (`--timeout`, default 900 s), sends the robot home
+not ready), before the first run (and after any failed return home) runs `tools/localize.py` and sends the robot
+to the start mark (5c), starts the mission, waits for `done` (`--timeout`, default 900 s), sends the robot home
 (`--home-timeout`, default 200 s), stops the launch and pauses (`--pause`, default 10 s). If the robot does not
-confirm it is home, put it on the start mark by hand before pressing Enter. Ctrl-C aborts the mission and stops
+confirm it is home, the next run localises it again first. Ctrl-C aborts the mission and stops
 the launch. Logs: `~/plumetrace_runs/<time>-abc/launch_<S>.log` and `summary.json`; each mission also writes its
 own run folder (CSV + rosbag).
 
@@ -252,6 +258,36 @@ What the dashboard shows during the demo:
   → WWA Nürnberg → Regierung von Mittelfranken / LfU → IWAP Rhein; logged only, no message is sent), public
   warning request draft with radius on the map (only authorities can issue warnings), and a pre-filled report
   and log (export JSON / CSV). "Export all runs (JSON)" in the runs section saves everything.
+
+## 5c. The robot finds itself on the map and drives to the start mark
+
+The map is fixed, so the robot does not have to start on the start mark. `tools/localize.py` works out where it
+is and `--go-home` sends it to the mark. `run_abc.py` does this by itself before mission A.
+
+```bash
+python3 tools/localize.py --go-home          # lab_nav or lab_mission must be running
+python3 tools/localize.py --force-global     # always search, even if the current pose already fits
+```
+
+1. **Check the current pose.** It compares the laser scan with the map at the pose AMCL has now (normally the
+   start mark). If the scan fits there, nothing moves.
+2. **Search.** Otherwise AMCL spreads its particles over the whole map and the robot turns slowly on the spot
+   (0.4 rad/s, at most two turns per attempt, three attempts) until AMCL settles on one pose.
+3. **Mirror check.** The arena is a near-symmetric rectangle: the pose turned 180° about the arena centre fits the
+   walls almost as well (about 0.8 against 1.0 in tests on the arena map). Only the inner boards tell the two
+   apart. A pose is accepted only if it fits the map and fits at least 0.08 better than its mirror. If the
+   mirror fits clearly better, AMCL is reset to it (`/initialpose`).
+4. **Clear costmaps.** They filled with obstacles drawn at wrong poses during the search.
+5. **Drive.** With `--go-home`, Nav2 drives the robot to the start mark.
+
+It prints both fits each time, for example `scan fit 0.93, at the mirrored pose 0.71 -> ok`. If the real lab
+differs from the map (boards moved, bags, people), fits drop. Lower the thresholds if needed:
+`--min-fit 0.55 --keep-fit 0.65` (defaults 0.65 / 0.75), `--margin 0.05` (default 0.08).
+
+While it turns, keep the area around the robot clear and Ctrl-C at hand (Ctrl-C stops the robot). If it fails, set
+the pose in RViz with **2D Pose Estimate**, or put the robot on the start mark, and press Enter in terminal 4.
+Leave the marker objects where they were when the map was made: the inner boards and those objects are what
+break the arena's symmetry.
 
 ## 6. Patrol loop: outfalls A, B, C, home, river bank, home, repeat
 
@@ -308,7 +344,9 @@ run summaries you want to keep; never commit `web/config.local.js`.
 | Jerky motion in general | see `docs/jerky_motion_diagnosis.md` (ranked causes and parameter fixes) |
 | A node fails to configure | read its error in terminal A (or `launch_<S>.log` with `run_abc.py`) |
 | "Transform ... extrapolation into the future/past" | clock offset: see step 1 |
-| AMCL pose jumps or is mirrored | robot was not on the start mark, or marker objects moved since mapping |
+| AMCL pose jumps or is mirrored | run `python3 tools/localize.py --force-global` (5c); if it keeps failing, marker objects moved since mapping |
+| `localize.py`: "AMCL has not settled on one pose yet" three times | too little structure in view: move the robot nearer the inner boards, or set the pose with 2D Pose Estimate |
+| `localize.py`: fits below the threshold although RViz shows the scan on the walls | the real lab differs from the map: lower `--min-fit` / `--keep-fit` (5c) |
 | Robot circles or creeps at a goal and never finishes | add `xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15` to the `lab_nav` / `lab_mission` command (or `RUN_ABC_ARGS`) |
 | Robot cannot leave the bank ("failed to create plan") | it is too close to the water: check the tape positions against the tape guide; the keepout leaves 0.06 m of margin |
 | Battery shown in orange or red on the dashboard | below 11.3 V / 11.0 V: charge or swap before the next run |

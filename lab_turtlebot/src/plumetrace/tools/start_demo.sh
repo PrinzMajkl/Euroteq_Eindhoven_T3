@@ -103,10 +103,10 @@ EOF
   cat <<EOF
 if timeout 8 ros2 topic list 2>/dev/null | grep -qx /odom; then
   echo "The robot bringup is already running (/odom is visible on domain $DOMAIN): not starting a second one."
-  echo "If it was started somewhere else than the start mark, stop it there, put the robot on the mark, and run:"
+  echo "The robot finds itself on the map before mission A (tools/localize.py). To restart the bringup:"
   echo "  ssh -t $ROBOT \"bash -ic 'export ROS_DOMAIN_ID=$DOMAIN TURTLEBOT3_MODEL=burger LDS_MODEL=LDS-02; ros2 launch turtlebot3_bringup robot.launch.py'\""
 else
-echo "Robot on the START MARK before the bringup starts (its odometry starts at zero here)."
+echo "The robot may stand anywhere in the arena: before mission A it finds itself on the map and drives to the start mark."
 echo "ssh $ROBOT  (enter the robot password if asked)"
 ssh -t -o ServerAliveInterval=5 "$ROBOT" \\
   "bash -ic 'export ROS_DOMAIN_ID=$DOMAIN TURTLEBOT3_MODEL=burger LDS_MODEL=LDS-02; ros2 launch turtlebot3_bringup robot.launch.py'"

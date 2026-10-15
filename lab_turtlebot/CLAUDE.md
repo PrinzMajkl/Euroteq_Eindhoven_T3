@@ -104,6 +104,7 @@ The user wants this work to run to the end without their input. These are settle
 | `web/` | Cesium dashboard | checked through the relay against the real gateway in simulation |
 | `tools/lab_setup.sh`, `lab_check.sh`, `lab_save_map.sh`, `lab_stop.sh`, `lab_tape_guide.py`, `lab_tf2_overlay.sh`, `wait_ready.py`, `wait_done.py` | lablaptop scripts | `lab_setup.sh`, `lab_tape_guide.py`, `wait_ready.py`, `wait_done.py` ran in the container; none ran on the lablaptop |
 | `tools/relay.py` | dashboard + live data on one port, view-only for remote viewers | tested against the real gateway in simulation |
+| `tools/localize.py`, `plumetrace_twin/scanfit.py` | self-localisation: global AMCL search while turning on the spot, scan-to-map fit compared with the 180 deg mirrored pose (resets AMCL to the mirror when that fits clearly better), clears costmaps, `--go-home`; `run_abc.py` runs it before mission A | 2026-10-15: scan-fit tests on the arena map pass; control flow checked against a stand-in for ROS; not run on Jazzy or the robot |
 | `tools/reach_build.py`, `reach_from_open_data.py`, `check_reach_data.py`, `update_scenarios.py`, `export_czml.py` | reach and export tools | `reach_build.py` needs shapely 2.1 or newer |
 | `docs/LAB_RUNSHEET.md` | the commands for a lab session, from git clone | updated for the refitted arena |
 | `docs/SIMULATION.md`, `docs/sim_runs/`, `docs/img/` | what ran on Jazzy, with numbers, workarounds and screenshots | 2026-10-14 |
@@ -162,13 +163,17 @@ gateway streams pose, samples, posterior and obstacles to the dashboard. The das
 
 - `nav2_burger.yaml` has never been loaded by Nav2 1.3.13. Expect parameter errors on first start.
 - AMCL in a near-symmetric rectangle can lock on mirrored; the inner boards and the user's marker
-  objects break the symmetry. The robot must start on the start mark.
+  objects break the symmetry. `tools/localize.py` checks for it (below); without it the robot must start on the start mark.
 - Robot and lablaptop clocks: if they differ by more than a few tenths of a second, Nav2 rejects
   transforms. This is why the collision monitor is off by default.
 - Goal tolerance is 0.03 m / 0.10 rad (launch arguments) and the top speed 0.15 m/s; tuned in simulation only.
 - Simulation only: a lifecycle manager stalled once in five starts (`wait_ready.py` restarts it); the
   browser pane rendering Cesium slowed Gazebo to 0.19x real time.
 - `lab_stop.sh` kills every ROS node on the machine that runs from `/opt/ros`.
+- The arena is near point-symmetric: on the arena map the 180 deg mirrored pose fits the scan about 0.8 against
+  1.0 at the true pose. `localize.py` relies on the inner boards for the difference; its thresholds
+  (`--min-fit` 0.65, `--keep-fit` 0.75, `--margin` 0.08) come from simulated scans, not the real lab.
+- AMCL `max_particles` raised from 2000 to 5000 (2026-10-15) for global localisation; not re-checked in simulation.
 
 ## Working habits
 

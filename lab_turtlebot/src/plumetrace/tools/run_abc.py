@@ -6,6 +6,8 @@
 Per scenario:
   1. ros2 launch plumetrace_sim lab_mission.launch.py scenario:=<S> (Nav2 + twin + gateway; RViz runs separately)
   2. tools/wait_ready.py until Nav2 is active (one restart of the launch if it is not)
+  2b. before the first run (and after a failed return home): tools/localize.py finds the robot on the map by
+     itself (turning on the spot if needed), then the robot drives to the start mark (return_home)
   3. /mission/start, then follow /mission/events until the `done` event
   4. /twin/command return_home, wait until the robot is back on the start mark
   5. stop the launch (SIGINT to its process group), pause, next scenario
@@ -14,8 +16,9 @@ The dashboard (through tools/relay.py) stays open the whole time: it sees a new 
 `mission.scenario` per run, archives the previous run and starts a clean one, so all three runs fill it with
 samples, plume, outfall probabilities, alerts and incidents.
 
-The robot must start on the start mark; between runs it drives home by itself. With --confirm the script
-waits for Enter before each run so you can check (and correct) the robot's position by hand.
+The robot may start anywhere in the arena: it localises itself on the fixed map and drives to the start mark
+before the first mission; between runs it drives home by itself. --no-localize skips this (the robot must then
+start on the start mark). With --confirm the script waits for Enter before each run.
 Arguments after `--` go to every lab_mission launch (e.g. `-- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15`).
 Ctrl-C: aborts the running mission, stops the launch and exits (the robot stops).
 Logs: $PLUMETRACE_RUNS/<time>-abc/ (launch_<S>.log per run, summary.json); each mission also writes its own
@@ -135,7 +138,12 @@ def wait_ready(timeout):
     return subprocess.call([sys.executable, os.path.join(HERE, 'wait_ready.py'), str(timeout)]) == 0
 
 
-def run_one(watcher, s, args, out_dir):
+def localize(args):
+    cmd = [sys.executable, os.path.join(HERE, 'localize.py')] + (['--sim-time'] if args.sim_time else [])
+    return subprocess.call(cmd) == 0
+
+
+def run_one(watcher, s, args, out_dir, need_localize=False):
     truth = load_scenario(s)['active_outfall']
     res = dict(scenario=s, truth=truth, started=time.strftime('%H:%M:%S'))
     for attempt in (1, 2):
@@ -151,6 +159,20 @@ def run_one(watcher, s, args, out_dir):
         return res, None
     try:
         time.sleep(3)  # let the twin and the gateway connect
+        if need_localize:
+            print('  localising the robot on the map ...', flush=True)
+            if localize(args):
+                watcher.command('return_home')
+                home = watcher.wait_event('return_home', args.home_timeout)
+                if not (home and home.get('status') == GOAL_SUCCEEDED):
+                    print('  !! could not drive to the start mark; the mission starts from where the robot is',
+                          flush=True)
+                watcher.reset()
+            elif sys.stdin.isatty():
+                input('  Localisation failed. Put the robot on the start mark facing +x (or set "2D Pose Estimate" '
+                      'in RViz), then press Enter. ')
+            else:
+                print('  !! localisation failed; continuing with the start-mark pose', flush=True)
         if not watcher.start_mission():
             res.update(result='NO_START')
             return res, launch
@@ -189,6 +211,7 @@ def main():
     ap.add_argument('--pause', type=float, default=10.0, help='seconds between runs')
     ap.add_argument('--confirm', action='store_true', help='wait for Enter before each run')
     ap.add_argument('--sim-time', action='store_true', help='Gazebo: use_sim_time:=true')
+    ap.add_argument('--no-localize', action='store_true', help='skip self-localisation; robot starts on the mark')
     args = ap.parse_args(argv)
     args.launch_args = extra
 
@@ -207,8 +230,10 @@ def main():
         for i, s in enumerate(args.scenarios.upper()):
             print(f'\n=== run {i + 1}/{len(args.scenarios)}: scenario {s} ===', flush=True)
             if args.confirm:
-                input('Robot on the start mark, facing away from the back wall? Press Enter to start. ')
-            res, launch = run_one(watcher, s, args, out_dir)
+                input('Robot on the start mark, facing away from the back wall? Press Enter to start. '
+                      if args.no_localize or i > 0 else 'Robot anywhere in the arena (it finds itself)? Press Enter. ')
+            need = not args.no_localize and (i == 0 or results[-1].get('home') != 'OK')
+            res, launch = run_one(watcher, s, args, out_dir, need)
             results.append(res)
             if launch is not None:
                 launch.stop()
