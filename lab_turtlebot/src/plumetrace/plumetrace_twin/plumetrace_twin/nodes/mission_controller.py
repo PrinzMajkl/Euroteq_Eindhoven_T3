@@ -8,13 +8,15 @@ HOLD: while the link stream of /twin/sync is LOST (no heartbeat for >= 3 s) the 
 cancelled and the robot holds; the goal is re-sent once every stream is SYNCED again. The same happens while
 localization_monitor reports the robot lost on the map (/localization/status LOST or RELOCALIZING, std_msgs/String
 JSON); OK resumes, FAILED aborts the mission.
-When Nav2 gives up on a stop (status ABORTED: no plan, or every recovery failed) the mission is aborted and the robot
-drives back to the start mark (home_on_nav_fail, default true). A stop is also bad when no sample arrives; after
-max_bad_stops (3) bad stops in a row, or after mission_timeout_s, the mission is aborted and the robot drives home as
-well. The `done` event comes after that drive home, so tools/run_abc.py does not stop the launch while it drives.
+When Nav2 gives up on a stop (status ABORTED: no plan, or every recovery failed) both costmaps are cleared and the
+same stop is sent again, so the planner replans over the whole map (around the arena if the short way is blocked), up
+to nav_retries (2) times. A stop still not reached is skipped (skip_unreachable, default true: /twin/skip_stop, the
+twin plans the next stop); with skip_unreachable false the mission is aborted and the robot drives back to the start
+mark (home_on_nav_fail, default true). A skipped stop, or one where no sample arrives, is a bad stop; after
+max_bad_stops (3) bad stops in a row, or after mission_timeout_s, the mission is aborted and the robot drives home. The `done` event comes after that drive home, so tools/run_abc.py does not stop the launch while it drives.
 Started at launch (autostart) or by /mission/start (std_msgs/Empty).
 Commands on /twin/command (std_msgs/String JSON {"type": ...}): abort, return_home.
-Events (JSON) on /mission/events: goal_sent, goal_result, sample, hold, resume, done, abort.
+Events (JSON) on /mission/events: goal_sent, replan, goal_result, stop_skipped, sample, hold, resume, done, abort.
 """
 import json
 import threading
@@ -48,6 +50,8 @@ class MissionController(Node):
         self.declare_parameter('mission_timeout_s', 900.0)
         self.declare_parameter('max_bad_stops', 3)
         self.declare_parameter('home_on_nav_fail', True)
+        self.declare_parameter('nav_retries', 2)
+        self.declare_parameter('skip_unreachable', True)
         self.scenario = self.get_parameter('scenario').value
         self.mode = self.get_parameter('mode').value
         self.sweep = self.get_parameter('strategy').value == 'sweep'
@@ -64,12 +68,14 @@ class MissionController(Node):
         self.homing = False  # the mission's own drive home is running
         self.going_home = threading.Lock()  # one drive home at a time: a second goal would pre-empt (abort) the first
         self.cv = threading.Condition()
-        cb = ReentrantCallbackGroup()
+        cb = self.cb = ReentrantCallbackGroup()
+        self.clear_clients = {}
         self.nav = Nav2Client(self)
         self.state_pub = self.create_publisher(MissionState, '/mission/state', 10)
         self.event_pub = self.create_publisher(String, '/mission/events', 50)
         self.trig = self.create_publisher(UInt32, '/sensor/trigger', 10)
         self.req = self.create_publisher(Empty, '/twin/plan_request', 10)
+        self.skip_pub = self.create_publisher(PoseStamped, '/twin/skip_stop', 10)
         self.create_subscription(PoseStamped, '/twin/next_goal', self.on_goal, 10, callback_group=cb)
         self.create_subscription(Posterior, '/twin/posterior', self.on_post, 10, callback_group=cb)
         self.create_subscription(PlumeSample, '/twin/samples', self.on_sample, 50, callback_group=cb)
@@ -273,11 +279,25 @@ class MissionController(Node):
             x, y, yaw = g.pose.position.x, g.pose.position.y, quat_to_yaw(g.pose.orientation)
             self.event('goal_sent', x=round(x, 3), y=round(y, 3), yaw=round(yaw, 3))
             st = self.drive(x, y, yaw)
-            self.event('goal_result', status=int(st))
+            tries = 0
+            while (st == GoalStatus.STATUS_ABORTED and tries < self.get_parameter('nav_retries').value
+                   and not (self.abort_req or self.home_req)):
+                tries += 1  # fresh costmaps, then a new plan over the whole map
+                self.event('replan', attempt=tries, x=round(x, 3), y=round(y, 3))
+                self.clear_costmaps()
+                st = self.drive(x, y, yaw)
+            self.event('goal_result', status=int(st), retries=tries)
             if self.abort_req or self.home_req:
                 continue
-            if st == GoalStatus.STATUS_ABORTED and self.get_parameter('home_on_nav_fail').value:
-                return self.abort_home(f'Nav2 could not reach the stop at x {x:.2f} y {y:.2f} (all recoveries failed)')
+            if st == GoalStatus.STATUS_ABORTED:
+                why = f'Nav2 could not reach the stop at x {x:.2f} y {y:.2f} after {tries} replans'
+                if self.get_parameter('skip_unreachable').value:
+                    self.event('stop_skipped', x=round(x, 3), y=round(y, 3), reason=why)
+                    bad += 1
+                    self.skip_pub.publish(g)  # twin_core marks it and plans the next stop
+                    continue
+                if self.get_parameter('home_on_nav_fail').value:
+                    return self.abort_home(why)
             n0 = self.samples
             self.trig.publish(UInt32(data=n0 + 1))
             self.event('dwell')
@@ -294,6 +314,23 @@ class MissionController(Node):
             if not self.sweep and self.localised():
                 self.wait_for(lambda: self.goal is not None, 3.0)
                 return self.finish('DONE')
+
+    def clear_costmaps(self):
+        """Clear the global and local costmaps (stale obstacle marks would block every new plan)."""
+        try:
+            from nav2_msgs.srv import ClearEntireCostmap
+        except ImportError:
+            return
+        for name in ('/global_costmap/clear_entirely_global_costmap', '/local_costmap/clear_entirely_local_costmap'):
+            c = self.clear_clients.get(name) or self.clear_clients.setdefault(
+                name, self.create_client(ClearEntireCostmap, name, callback_group=self.cb))
+            if c.wait_for_service(timeout_sec=2.0):
+                fut = c.call_async(ClearEntireCostmap.Request())
+                end = time.time() + 5.0
+                while not fut.done() and time.time() < end:
+                    time.sleep(0.05)
+            else:
+                self.get_logger().warn(f'{name} not available; replanning without clearing it')
 
     def abort_home(self, reason):
         """Abort the mission, but first drive back to the start mark (with HOLD on link or localisation loss)."""

@@ -1114,6 +1114,8 @@ function activityFor(m) {
   switch (m.kind) {
     case 'goal_sent': return `driving to stop (${num(d.x, 2)}, ${num(d.y, 2)})`;
     case 'goal_result': return +d.status === 4 ? 'at stop' : `stop not reached (status ${d.status ?? '?'})`;
+    case 'replan': return `stop blocked: clearing costmaps, replanning (try ${d.attempt ?? '?'})`;
+    case 'stop_skipped': return `stop (${num(d.x, 2)}, ${num(d.y, 2)}) unreachable: skipped`;
     case 'dwell': return 'sampling (dwell)';
     case 'sample': return `sample #${d.seq ?? '?'}${isNum(d.nh3) ? ` · ${num(d.nh3, 3)} mg/L` : ''}`;
     case 'sample_timeout': return 'sample timeout, next stop';

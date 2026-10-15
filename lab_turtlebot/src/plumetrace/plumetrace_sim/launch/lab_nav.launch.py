@@ -5,24 +5,25 @@ Real robot (default, wall-clock time): the robot runs the stock bringup
 Simulation: the same launch with use_sim_time:=true next to lab_world.launch.py (sim_mission.launch.py does it).
     ros2 launch plumetrace_sim lab_nav.launch.py [map:=<yaml>] [stamped:=true] [collision_monitor:=false]
         [x:=0.0 y:=0.0 yaw:=0.0] [rviz:=true] [use_sim_time:=false]
-        [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10]
+        [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10] [backup_dist:=0.15]
 The robot must stand at the start pose (x, y, yaw in the arena frame; the start mark is 0, 0, 0) when this
 starts. Write x, y and yaw with a decimal point (0.0, not 0): AMCL wants floating-point values.
-bt_navigator runs Nav2's default navigate-to-pose tree without the BackUp recovery (plumetrace_twin.bt_xml): backing
-up blind drove the robot into the taped river when an obstacle blocked the bank.
+bt_navigator runs Nav2's default navigate-to-pose tree with BackUp shortened to backup_dist metres (default 0.15;
+plumetrace_twin.bt_xml). The 0.30 m default backed the robot into the taped river at an obstacle (2026-10-15);
+backup_dist:=0 removes BackUp completely.
 """
 import os
 import tempfile
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, TimerAction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction, TimerAction
 from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 from nav2_common.launch import RewrittenYaml
-from plumetrace_twin.bt_xml import no_backup_params
+from plumetrace_twin.bt_xml import backup_params
 
 
 def default_map(sim):
@@ -48,7 +49,12 @@ def generate_launch_description():
     nav_nodes = ['controller_server', 'smoother_server', 'planner_server', 'behavior_server', 'bt_navigator']
     # controller output goes through the collision monitor when it is enabled
     ctrl_out = PythonExpression(["'cmd_vel_raw' if '", cm, "' == 'true' else 'cmd_vel'"])
-    bt = no_backup_params(get_package_share_directory('nav2_bt_navigator'), tempfile.gettempdir())
+
+    def bt_navigator(context):
+        dist = float(LaunchConfiguration('backup_dist').perform(context))
+        bt = backup_params(get_package_share_directory('nav2_bt_navigator'), tempfile.gettempdir(), dist)
+        return [Node(package='nav2_bt_navigator', executable='bt_navigator', name='bt_navigator', output='screen',
+                     parameters=[params, bt])]
 
     return LaunchDescription([
         DeclareLaunchArgument('map', default_value=default_map(sim)),
@@ -63,6 +69,8 @@ def generate_launch_description():
         DeclareLaunchArgument('use_sim_time', default_value='false', description='true only with Gazebo'),
         DeclareLaunchArgument('xy_goal_tolerance', default_value='0.03', description='metres'),
         DeclareLaunchArgument('yaw_goal_tolerance', default_value='0.10', description='radians'),
+        DeclareLaunchArgument('backup_dist', default_value='0.15',
+                              description='metres the BackUp recovery reverses; 0 removes BackUp'),
 
         # localisation
         Node(package='nav2_map_server', executable='map_server', name='map_server', output='screen',
@@ -97,8 +105,7 @@ def generate_launch_description():
                  parameters=[params]),
             Node(package='nav2_behaviors', executable='behavior_server', name='behavior_server', output='log',
                  parameters=[params], remappings=[('cmd_vel', ctrl_out)]),
-            Node(package='nav2_bt_navigator', executable='bt_navigator', name='bt_navigator', output='screen',
-                 parameters=[params, bt]),
+            OpaqueFunction(function=bt_navigator),
         ]),
         # collision monitor: controller -> cmd_vel_raw -> collision_monitor -> cmd_vel
         Node(package='nav2_collision_monitor', executable='collision_monitor', name='collision_monitor',

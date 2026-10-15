@@ -135,6 +135,8 @@
     switch (kind) {
       case 'goal_sent': return 'driving to the next sampling point';
       case 'goal_result': return +d.status === 4 ? 'arrived at the sampling point' : 'could not reach the sampling point';
+      case 'replan': return 'way blocked: looking for another route';
+      case 'stop_skipped': return 'could not reach a sampling point: going to the next one';
       case 'dwell': return 'taking a water sample (3 s)';
       case 'sample': return `sample #${d.seq ?? '?'} done${isNum(d.nh3) ? `: ${mg(d.nh3)} mg/L` : ''}`;
       case 'hold': return 'paused';

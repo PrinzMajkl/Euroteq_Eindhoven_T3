@@ -51,6 +51,7 @@ class TwinCore(Node):
         self.cands = self.frame.sampling_points()
         self.order = None  # sweep: fixed on the first plan, from where the robot is then
         self.sampled = []
+        self.skipped = []  # stops mission_controller could not reach (/twin/skip_stop)
         self.lock = threading.Lock()
         self.cb = ReentrantCallbackGroup()
         self.nav = Nav2Client(self) if self.get_parameter('use_nav2_paths').value else None
@@ -61,6 +62,7 @@ class TwinCore(Node):
         self.info_pub = self.create_publisher(String, '/twin/planner_info', 10)
         self.create_subscription(PlumeSample, '/twin/samples', self.on_sample, 50, callback_group=self.cb)
         self.create_subscription(Empty, '/twin/plan_request', lambda _: self.plan_async(), 10, callback_group=self.cb)
+        self.create_subscription(PoseStamped, '/twin/skip_stop', self.on_skip, 10, callback_group=self.cb)
         self.create_timer(1.0, self.publish_posterior, callback_group=self.cb)
         self.update_times = []
 
@@ -96,6 +98,12 @@ class TwinCore(Node):
         msg.map_strength = float(q)
         self.post_pub.publish(msg)
 
+    def on_skip(self, msg):
+        """The robot could not reach this stop: never offer it again, then plan the next one."""
+        with self.lock:
+            self.skipped.append(np.array([msg.pose.position.x, msg.pose.position.y]))
+        self.plan_async()
+
     def plan_async(self, update_s=0.0):
         threading.Thread(target=self.plan, args=(update_s,), daemon=True).start()
 
@@ -103,24 +111,26 @@ class TwinCore(Node):
         t0 = time.perf_counter()
         with self.lock:
             n = len(self.sampled)
+            k = n + len(self.skipped)  # sweep position: every stop is either sampled or skipped
             if self.strategy == 'sweep':
                 if self.order is None:
                     self.order = sweep_order(self.frame, self.cands, self.robot_xy())
-                done = n >= len(self.order)
+                done = k >= len(self.order)
             else:
                 done = self.est.localised() or n >= CAP
             info = {}
             idx = None
             if not done:
                 if self.strategy == 'sweep':
-                    idx = self.order[n]
-                    info = dict(stop=n + 1, stops=len(self.order))
+                    idx = self.order[k]
+                    info = dict(stop=k + 1, stops=len(self.order), skipped=len(self.skipped))
                 else:
                     path_len = None
                     if self.nav is not None:
                         def path_len(c):
                             return self.nav.path_length(c['waypoint'][0], c['waypoint'][1], c['yaw'])
-                    res = self.est.plan(self.robot_xy(), self.cands, self.sampled, self.rng, path_len=path_len)
+                    res = self.est.plan(self.robot_xy(), self.cands, self.sampled + self.skipped, self.rng,
+                                         path_len=path_len)
                     if res is not None:
                         idx, info = res
         plan_s = time.perf_counter() - t0
