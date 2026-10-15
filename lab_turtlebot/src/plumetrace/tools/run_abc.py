@@ -190,17 +190,43 @@ def localize(args):
     return ok
 
 
-def run_one(watcher, s, args, out_dir, last):
+MISSION_NODES = ('mission_controller', 'plumetrace_gateway', 'twin_core', 'emulated_sensor', 'localization_monitor')
+
+
+def mission_nodes_alive(node):
+    return sorted(set(node.get_node_names()) & set(MISSION_NODES))
+
+
+def wait_mission_nodes_gone(node, timeout=20.0):
+    end = time.time() + timeout
+    while time.time() < end:
+        left = mission_nodes_alive(node)
+        if not left:
+            return []
+        time.sleep(1.0)
+    return mission_nodes_alive(node)
+
+
+def start_mission_launch(node, s, args, out_dir):
+    """Never start a mission next to a leftover one (two controllers/gateways = doubled samples, port clash)."""
+    left = wait_mission_nodes_gone(node, timeout=5.0)
+    if left:
+        log(f'!! mission nodes from an earlier launch are still running: {left}. Stop them first '
+            '(tools/lab_stop.sh stops every ROS node on this laptop, then start run_abc again).')
+        return None
+    return Launch('lab_mission.launch.py', [f'scenario:={s}', f'seed:={args.seed}', 'nav:=false', 'rviz:=false']
+                  + (['loc_monitor:=false'] if args.no_localize else []) + common_args(args),
+                  os.path.join(out_dir, f'launch_{s}.log'))
+
+
+def run_one(watcher, s, args, last):
     truth = load_scenario(s)['active_outfall']
     res = dict(scenario=s, truth=truth, started=time.strftime('%H:%M:%S'))
     watcher.reset()
-    launch = Launch('lab_mission.launch.py', [f'scenario:={s}', f'seed:={args.seed}', 'nav:=false', 'rviz:=false']
-                    + (['loc_monitor:=false'] if args.no_localize else []) + common_args(args),
-                    os.path.join(out_dir, f'launch_{s}.log'))
     try:
         if not watcher.start_mission(timeout=60.0):  # retries until the mission controller is up and RUNNING
             res.update(result='NO_START')
-            return res, launch
+            return res
         log(f'mission {s} started')
         done = watcher.wait_event('done', args.timeout)
         if done is None:
@@ -235,7 +261,7 @@ def run_one(watcher, s, args, out_dir, last):
             log('on the start mark' if res['home'] == 'OK' else '!! robot did not confirm it is home')
     finally:
         res['ended'] = time.strftime('%H:%M:%S')
-    return res, launch
+    return res
 
 
 def main():
@@ -281,11 +307,17 @@ def main():
                 localize(args)
             if args.confirm_each or (args.confirm and i == 0):
                 input('Press Enter to start the mission. ')
-            res, launch = run_one(watcher, s, args, out_dir, last=i + 1 == len(scenarios))
-            results.append(res)
-            if launch is not None:
-                launch.stop()
-                launch = None
+            launch = start_mission_launch(node, s, args, out_dir)  # main owns it, so Ctrl-C always stops it
+            if launch is None:
+                results.append(dict(scenario=s, truth=load_scenario(s)['active_outfall'], result='LEFTOVER_NODES'))
+                break
+            results.append(run_one(watcher, s, args, last=i + 1 == len(scenarios)))
+            launch.stop()
+            launch = None
+            left = wait_mission_nodes_gone(node)
+            if left:
+                log(f'!! still running after the launch stopped: {left}; not starting another mission')
+                break
             with open(os.path.join(out_dir, 'summary.json'), 'w') as f:
                 json.dump(results, f, indent=1)
             if i + 1 < len(scenarios):

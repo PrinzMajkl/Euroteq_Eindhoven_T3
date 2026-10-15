@@ -24,6 +24,7 @@ import argparse
 import os
 import sys
 import threading
+import time
 
 import rclpy
 from rclpy.parameter import Parameter
@@ -69,6 +70,11 @@ def main():
             ok = loc.go_home()
     except KeyboardInterrupt:
         print('\nCtrl-C: stopping the robot', flush=True)
+        nav = getattr(loc, 'nav', None)
+        f = nav.cancel() if nav is not None else None  # else Nav2 keeps driving home on its own
+        end = time.time() + 2.0
+        while f is not None and not f.done() and time.time() < end:
+            time.sleep(0.05)
     finally:
         loc.stop()
         node.destroy_node()

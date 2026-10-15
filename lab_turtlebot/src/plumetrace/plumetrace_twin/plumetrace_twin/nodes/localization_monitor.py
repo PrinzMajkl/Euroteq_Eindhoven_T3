@@ -2,8 +2,9 @@
 
 While /mission/state is RUNNING it compares the laser scan with the map at AMCL's pose every `period_s` seconds,
 and with the pose turned 180 deg about the arena centre (the arena is near-symmetric, see scanfit.py).
-The robot counts as lost after `lost_checks` checks in a row where the pose does not fit (`lost_fit`) or does not
-fit clearly better than its mirror (`margin`). Then:
+The robot counts as lost after `lost_checks` checks in a row where the pose does not fit (`lost_fit`) or its mirror
+fits clearly better (`margin`). A pose that fits but is not clearly better than its mirror only reads SUSPECT
+(normal along the outer walls of the near-symmetric arena). Then:
   1. /localization/status LOST: mission_controller cancels the Nav2 goal and holds (state HOLD, event hold
      with reason localization).
   2. RELOCALIZING: first without moving (AMCL updates on the spot; reset to the mirrored pose if that fits clearly
@@ -11,7 +12,9 @@ fit clearly better than its mirror (`margin`). Then:
      Costmaps are cleared afterwards.
   3. OK: mission_controller resumes and re-sends the goal. FAILED (after `attempts` searches): the mission is
      aborted, so tools/run_abc.py moves on (and localises again before the next mission).
-/localization/status is std_msgs/String JSON: {"state": "OK"|"LOST"|"RELOCALIZING"|"FAILED", "fit": .., "fit_mirror": ..}
+/localization/status is std_msgs/String JSON: {"state": "OK"|"SUSPECT"|"LOST"|"RELOCALIZING"|"FAILED", "fit": ..,
+"fit_mirror": ..}. SUSPECT is informational (mission_controller ignores it). The robot only turns once the mission
+reports HOLD (Nav2 idle); if it does not within 30 s the monitor reports FAILED instead of turning.
 published on every check and on every change.
 """
 import json
@@ -72,8 +75,8 @@ class LocalizationMonitor(Node):
             if fit is None:
                 continue
             verdict = judge(fit, fit_m, c.lost_fit, c.margin)
-            bad = bad + 1 if verdict != 'ok' else 0
-            self.publish('OK' if bad == 0 else 'SUSPECT', fit=round(fit, 2), fit_mirror=round(fit_m, 2))
+            bad = bad + 1 if (fit < c.lost_fit or verdict == 'mirrored') else 0
+            self.publish('OK' if verdict == 'ok' else 'SUSPECT', fit=round(fit, 2), fit_mirror=round(fit_m, 2))
             if bad >= c.lost_checks:
                 bad = 0
                 self.recover(fit, fit_m)
@@ -83,9 +86,13 @@ class LocalizationMonitor(Node):
         self.get_logger().warn(f'robot lost: scan fit {fit:.2f}, at the mirrored pose {fit_m:.2f}; holding the '
                                'mission and re-localising')
         self.publish('LOST', fit=round(fit, 2), fit_mirror=round(fit_m, 2))
-        end = time.time() + 5.0  # let mission_controller cancel the goal so the robot stands still
+        end = time.time() + 30.0  # mission_controller cancels the goal (or finishes the dwell, up to 20 s) and holds
         while self.mission_state != 'HOLD' and time.time() < end:
             time.sleep(0.1)
+        if self.mission_state != 'HOLD':  # Nav2 may still be driving: never turn against it
+            self.get_logger().error('mission did not hold within 30 s; not turning, aborting the mission instead')
+            self.publish('FAILED', fit=round(fit, 2), fit_mirror=round(fit_m, 2))
+            return
         time.sleep(1.0)
         self.publish('RELOCALIZING')
         if self.loc.cmd_pub is None:

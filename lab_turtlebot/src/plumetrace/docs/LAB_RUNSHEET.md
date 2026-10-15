@@ -322,7 +322,9 @@ in a row (about 10 s):
 4. **FAILED.** The mission is aborted. `run_abc.py` reports it and the next mission localises again first.
 
 Its status is on `/localization/status` (`ros2 topic echo /localization/status`, JSON with `state`, `fit`,
-`fit_mirror`; also in the rosbag). The end-of-run line in terminal 4 says how often the robot was lost. Turn it
+`fit_mirror`; also in the rosbag). `SUSPECT` means the pose fits but not clearly better than its 180° mirror
+(normal along the outer walls); it does not stop the mission. The robot only turns to re-localise once the mission
+shows HOLD; if Nav2 does not stop within 30 s the mission is aborted instead. The end-of-run line in terminal 4 says how often the robot was lost. Turn it
 off with `loc_monitor:=false` on `lab_mission`, or `--no-localize` on `run_abc.py`. Thresholds are ROS parameters
 of the node: `lost_fit` (0.5), `lost_checks` (3), `period_s` (3.0), `margin` (0.08).
 

@@ -195,10 +195,13 @@ class MissionController(Node):
             th = threading.Thread(target=lambda: result.update(r=self.nav.go(x, y, yaw, timeout=180)))
             th.start()
             held = False
+            last_cancel = 0.0
             while th.is_alive():
-                if (self.sync_lost or self.loc_lost) and not held:
+                if self.sync_lost or self.loc_lost:
                     held = True
-                    self.nav.cancel()
+                    if time.time() - last_cancel > 0.5:  # repeat: a cancel before the goal handle exists is lost
+                        last_cancel = time.time()
+                        self.nav.cancel()
                 time.sleep(0.05)
             if self.sync_lost or self.loc_lost:  # the goal may have been cancelled (on_loc) before the loop saw it
                 held = True
@@ -259,6 +262,8 @@ class MissionController(Node):
                 continue
             if self.loc_lost:  # lost while sampling: wait until the position is fixed before the next stop
                 self.hold()
+                if self.abort_req:  # re-localisation failed: do not finish DONE on this sample
+                    continue
             if self.localised():
                 self.wait_for(lambda: self.goal is not None, 3.0)
                 return self.finish('DONE')

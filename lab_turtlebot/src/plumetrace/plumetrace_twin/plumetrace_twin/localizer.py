@@ -330,7 +330,7 @@ class Localizer:
         from .reach import ReachFrame
         from .simtools import Nav2Client
         x, y, yaw = ReachFrame.load().arena['start_pose']
-        nav = Nav2Client(self.node)
+        nav = self.nav = Nav2Client(self.node)  # kept so tools/localize.py can cancel it on Ctrl-C
         if not nav.wait(30.0):
             self.say('  Nav2 navigate_to_pose is not available')
             return False
