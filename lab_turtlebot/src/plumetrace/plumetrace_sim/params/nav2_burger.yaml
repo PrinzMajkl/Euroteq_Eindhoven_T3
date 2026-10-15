@@ -96,7 +96,7 @@ controller_server:
       min_lookahead_dist: 0.25       # was 0.1: never let the carrot get dangerously close
       max_lookahead_dist: 0.6        # was 0.3
       lookahead_time: 1.5
-      rotate_to_heading_angular_vel: 0.5
+      rotate_to_heading_angular_vel: 0.6
       transform_tolerance: 0.5
       use_velocity_scaled_lookahead_dist: true   # was false: scale lookahead with speed for smoother curves
       min_approach_linear_velocity: 0.03
@@ -107,9 +107,10 @@ controller_server:
       use_cost_regulated_linear_velocity_scaling: false
       regulated_linear_scaling_min_radius: 0.3
       regulated_linear_scaling_min_speed: 0.05
-      use_rotate_to_heading: false   # was true: in-place rotations were the primary source of jerk on real hardware
+      use_rotate_to_heading: true    # needed: without it RPP never turns to the goal yaw (bank stops face the water,
+                                     # 90 deg off the drive direction), every stop timed out with status 6 (lab 2026-10-15)
       allow_reversing: false
-      rotate_to_heading_min_angle: 0.785  # 45° — only used if use_rotate_to_heading is re-enabled
+      rotate_to_heading_min_angle: 0.785  # 45 deg: turn in place only for big heading errors (0.3 caused stutter)
       max_angular_accel: 0.8
       max_robot_pose_search_dist: 10.0
       use_interpolation: true

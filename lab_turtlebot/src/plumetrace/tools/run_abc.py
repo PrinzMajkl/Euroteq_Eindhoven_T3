@@ -45,6 +45,7 @@ import threading
 import time
 
 import rclpy
+from rclpy.executors import SingleThreadedExecutor
 from rclpy.parameter import Parameter
 from rclpy.signals import SignalHandlerOptions
 from std_msgs.msg import Empty, String
@@ -245,7 +246,8 @@ def run_one(watcher, s, args, last):
         failed = [e for e in goals if e.get('status') != GOAL_SUCCEEDED]
         res['stops_reached'] = f'{len(goals) - len(failed)}/{len(goals)}'
         if goals and len(failed) > len(goals) / 2:
-            log(f'!! Nav2 failed {len(failed)} of {len(goals)} stops: samples were taken off the bank and are ignored. '
+            log(f'!! Nav2 failed {len(failed)} of {len(goals)} stops: samples were taken where the robot stopped, not at the '
+                'planned bank stops. '
                 'Check the robot position in RViz (scan on the walls?) and for duplicate nodes (run sheet 5b).')
         holds = [e for e in watcher.events if e.get('type') == 'localization_lost']
         res['relocalized'] = len(holds)
@@ -292,7 +294,10 @@ def main():
     if args.sim_time:
         node.set_parameters([Parameter('use_sim_time', value=True)])
     watcher = Watcher(node)
-    threading.Thread(target=rclpy.spin, args=(node,), daemon=True).start()
+    ex = SingleThreadedExecutor()
+    ex.add_node(node)
+    spin = threading.Thread(target=ex.spin, daemon=True)
+    spin.start()
 
     results, launch, nav = [], None, None
     scenarios = args.scenarios.upper()
@@ -330,6 +335,8 @@ def main():
             launch.stop()
         if nav is not None:
             nav.stop()
+        ex.shutdown(timeout_sec=2.0)  # stop spinning before tearing down, else rclpy aborts at exit
+        spin.join(timeout=3.0)
         node.destroy_node()
         rclpy.try_shutdown()
 

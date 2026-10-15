@@ -27,6 +27,7 @@ import threading
 import time
 
 import rclpy
+from rclpy.executors import SingleThreadedExecutor
 from rclpy.parameter import Parameter
 from rclpy.signals import SignalHandlerOptions
 
@@ -62,7 +63,10 @@ def main():
     if args.sim_time:
         node.set_parameters([Parameter('use_sim_time', value=True)])
     loc = Localizer(node, args)
-    threading.Thread(target=rclpy.spin, args=(node,), daemon=True).start()
+    ex = SingleThreadedExecutor()
+    ex.add_node(node)
+    spin = threading.Thread(target=ex.spin, daemon=True)
+    spin.start()
     ok = False
     try:
         ok = True if args.skip_check else loc.run()
@@ -77,6 +81,8 @@ def main():
             time.sleep(0.05)
     finally:
         loc.stop()
+        ex.shutdown(timeout_sec=2.0)  # stop spinning before tearing down, else rclpy aborts at exit
+        spin.join(timeout=3.0)
         node.destroy_node()
         rclpy.try_shutdown()
     sys.exit(0 if ok else 1)
