@@ -2,7 +2,9 @@
 
 States IDLE | RUNNING | HOLD | DONE | ABORTED on /mission/state (MissionState, 1 Hz and on change).
 HOLD: while the link stream of /twin/sync is LOST (no heartbeat for >= 3 s) the current Nav2 goal is
-cancelled and the robot holds; the goal is re-sent once every stream is SYNCED again.
+cancelled and the robot holds; the goal is re-sent once every stream is SYNCED again. The same happens while
+localization_monitor reports the robot lost on the map (/localization/status LOST or RELOCALIZING, std_msgs/String
+JSON); OK resumes, FAILED aborts the mission.
 Started at launch (autostart) or by /mission/start (std_msgs/Empty).
 Commands on /twin/command (std_msgs/String JSON {"type": ...}): abort, return_home.
 Events (JSON) on /mission/events: goal_sent, goal_result, sample, hold, resume, done, abort.
@@ -45,6 +47,7 @@ class MissionController(Node):
         self.post = None
         self.sync_lost = False
         self.sync_ok = True
+        self.loc_lost = False
         self.abort_req = False
         self.home_req = False
         self.cv = threading.Condition()
@@ -59,6 +62,7 @@ class MissionController(Node):
         self.create_subscription(PlumeSample, '/twin/samples', self.on_sample, 50, callback_group=cb)
         self.create_subscription(SyncStatus, '/twin/sync', self.on_sync, 10, callback_group=cb)
         self.create_subscription(String, '/twin/command', self.on_cmd, 10, callback_group=cb)
+        self.create_subscription(String, '/localization/status', self.on_loc, 10, callback_group=cb)
         self.create_timer(1.0, self.publish_state, callback_group=cb)
         self.started = False
         self.create_subscription(Empty, '/mission/start', lambda _: self.start(), 10, callback_group=cb)
@@ -91,6 +95,34 @@ class MissionController(Node):
             self.sync_lost = st.get('link', 0) == LOST
             self.sync_ok = all(s == 0 for s in msg.states)
             self.cv.notify_all()
+
+    def on_loc(self, msg):
+        try:
+            st = json.loads(msg.data).get('state')
+        except ValueError:
+            return
+        running = self.state in ('RUNNING', 'HOLD')
+        if st in ('LOST', 'RELOCALIZING'):
+            if running and not self.loc_lost:
+                self.event('localization_lost')
+                self.nav.cancel()
+            with self.cv:
+                self.loc_lost = True
+                self.cv.notify_all()
+        elif st == 'OK' and self.loc_lost:
+            if running:
+                self.event('relocalized')
+            with self.cv:
+                self.loc_lost = False
+                self.cv.notify_all()
+        elif st == 'FAILED':
+            with self.cv:
+                self.loc_lost = False
+                self.cv.notify_all()
+            if running:
+                self.event('abort', reason='localization failed')
+                self.abort_req = True
+                self.nav.cancel()
 
     def on_cmd(self, msg):
         try:
@@ -156,7 +188,7 @@ class MissionController(Node):
         while True:
             if self.abort_req or self.home_req:
                 return GoalStatus.STATUS_CANCELED
-            if self.sync_lost:
+            if self.sync_lost or self.loc_lost:
                 self.hold()
                 continue
             result = {}
@@ -164,10 +196,12 @@ class MissionController(Node):
             th.start()
             held = False
             while th.is_alive():
-                if self.sync_lost and not held:
+                if (self.sync_lost or self.loc_lost) and not held:
                     held = True
                     self.nav.cancel()
                 time.sleep(0.05)
+            if self.sync_lost or self.loc_lost:  # the goal may have been cancelled (on_loc) before the loop saw it
+                held = True
             if held:
                 self.hold()
                 continue
@@ -175,8 +209,8 @@ class MissionController(Node):
 
     def hold(self):
         self.set_state('HOLD')
-        self.event('hold')
-        self.wait_for(lambda: self.sync_ok, 1e9)
+        self.event('hold', reason='localization' if self.loc_lost else 'link')
+        self.wait_for(lambda: self.sync_ok and not self.loc_lost, 1e9)
         if not self.abort_req:
             self.set_state('RUNNING')
             self.event('resume')
@@ -223,6 +257,8 @@ class MissionController(Node):
                 self.event('sample_timeout')
                 self.req.publish(Empty())
                 continue
+            if self.loc_lost:  # lost while sampling: wait until the position is fixed before the next stop
+                self.hold()
             if self.localised():
                 self.wait_for(lambda: self.goal is not None, 3.0)
                 return self.finish('DONE')

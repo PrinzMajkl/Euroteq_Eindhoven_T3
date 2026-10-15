@@ -15,6 +15,7 @@ NODES = {
     'obstacle_detector': 'plumetrace_twin.nodes.obstacle_detector:main',
     'virtual_obstacle_cloud': 'plumetrace_twin.nodes.virtual_obstacle_cloud:main',
     'run_logger': 'plumetrace_twin.nodes.run_logger:main',
+    'localization_monitor': 'plumetrace_twin.nodes.localization_monitor:main',
 }
 
 setup(

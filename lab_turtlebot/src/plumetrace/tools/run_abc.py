@@ -1,21 +1,24 @@
 #!/usr/bin/env python3
 """Run the PlumeTrace missions for scenarios A, B and C back to back on the real TurtleBot3 (or Gazebo).
 
-    python3 tools/run_abc.py [--scenarios ABC] [--seed 1] [--confirm] [--home-between] [--pause 3] [--sim-time]
+    python3 tools/run_abc.py [--scenarios ABC] [--seed 1] [--confirm] [--pause 3] [--no-localize] [--sim-time]
                              [-- launch args]
 
 Once, at the start:
   1. ros2 launch plumetrace_sim lab_nav.launch.py (map server, AMCL, Nav2); tools/wait_ready.py until it is
-     active (one restart if not). Nav2 and AMCL then stay up for all runs, so the robot keeps its position on
-     the map and nothing has to come up again between runs.
-  2. tools/localize.py --go-home: the robot finds itself on the map (turning on the spot if needed) and drives to
-     the start mark (--no-localize skips this; the robot must then start on the start mark).
-Per scenario:
-  3. ros2 launch plumetrace_sim lab_mission.launch.py scenario:=<S> nav:=false (twin nodes, gateway, logs only)
-  4. /mission/start, then follow /mission/events until the `done` event
-  5. stop the mission launch, pause (--pause, default 3 s), next scenario. The next mission starts from where the
-     robot stands: the planner plans from the robot's current position. --home-between drives home between runs.
-After the last run the robot drives to the start mark.
+     active (one restart if not). Nav2 and AMCL then stay up for all runs.
+Before every mission (A, B and C):
+  2. tools/localize.py --go-home: check the robot's position on the map (no motion when the scan fits); if it is
+     lost, find it (turning on the spot); then drive to the start mark. So every mission starts from the start
+     mark with a checked position. --no-localize: drive to the start mark only (no check; robot must have
+     started on the mark).
+During every mission:
+  3. ros2 launch plumetrace_sim lab_mission.launch.py scenario:=<S> nav:=false (twin nodes, gateway, logs, and
+     localization_monitor), /mission/start, follow /mission/events until `done`. localization_monitor checks
+     the position every 3 s; when the robot is lost the mission holds, the robot re-localises on the spot and the
+     mission resumes (if that fails, the mission is aborted and the next one localises again first).
+  4. stop the mission launch, pause (--pause, default 3 s), next scenario.
+After the last mission the robot drives to the start mark.
 
 The dashboard (through tools/relay.py) stays open the whole time: it sees a new gateway `hello` and a new
 `mission.scenario` per run, archives the previous run and starts a clean one, so all three runs fill it with
@@ -168,8 +171,10 @@ def start_nav(args, out_dir):
 
 
 def localize(args):
-    log('localising the robot on the map, then driving to the start mark ...')
-    cmd = [sys.executable, os.path.join(HERE, 'localize.py'), '--go-home'] + (['--sim-time'] if args.sim_time else [])
+    log("checking the robot's position on the map, then driving to the start mark ..." if not args.no_localize
+        else 'driving to the start mark ...')
+    cmd = [sys.executable, os.path.join(HERE, 'localize.py'), '--go-home'] + (['--sim-time'] if args.sim_time else []) \
+        + (['--skip-check'] if args.no_localize else [])
     ok = subprocess.call(cmd) == 0
     if ok:
         log('robot localised and on the start mark')
@@ -186,7 +191,8 @@ def run_one(watcher, s, args, out_dir, last):
     res = dict(scenario=s, truth=truth, started=time.strftime('%H:%M:%S'))
     watcher.reset()
     launch = Launch('lab_mission.launch.py', [f'scenario:={s}', f'seed:={args.seed}', 'nav:=false', 'rviz:=false']
-                    + common_args(args), os.path.join(out_dir, f'launch_{s}.log'))
+                    + (['loc_monitor:=false'] if args.no_localize else []) + common_args(args),
+                    os.path.join(out_dir, f'launch_{s}.log'))
     try:
         if not watcher.start_mission(timeout=60.0):  # retries until the mission controller is up and RUNNING
             res.update(result='NO_START')
@@ -201,8 +207,11 @@ def run_one(watcher, s, args, out_dir, last):
             ok = done.get('final') == 'DONE' and done.get('map_label') == truth
             res.update(result='PASS' if ok else 'FAIL', final=done.get('final'), map_label=done.get('map_label'),
                        probabilities=done.get('probabilities'), samples=done.get('samples'))
-        log(f'{s}: {res["result"]} (named {res.get("map_label")}, truth {truth})')
-        if last or args.home_between:
+        holds = [e for e in watcher.events if e.get('type') == 'localization_lost']
+        res['relocalized'] = len(holds)
+        log(f'{s}: {res["result"]} (named {res.get("map_label")}, truth {truth})'
+            + (f'; robot was lost {len(holds)}x during the mission and re-localised' if holds else ''))
+        if last:
             log('returning to the start mark ...')
             watcher.command('return_home')
             home = watcher.wait_event('return_home', args.home_timeout)
@@ -226,10 +235,9 @@ def main():
     ap.add_argument('--pause', type=float, default=3.0, help='seconds between runs')
     ap.add_argument('--confirm', action='store_true', help='wait for Enter before the first run')
     ap.add_argument('--confirm-each', action='store_true', help='wait for Enter before every run')
-    ap.add_argument('--home-between', action='store_true', help='drive to the start mark after every run, '
-                    'not only after the last one')
     ap.add_argument('--sim-time', action='store_true', help='Gazebo: use_sim_time:=true')
-    ap.add_argument('--no-localize', action='store_true', help='skip self-localisation; robot starts on the mark')
+    ap.add_argument('--no-localize', action='store_true', help='no position check before missions, only the drive '
+                    'to the start mark (robot must have started on the mark); also turns off the in-mission monitor')
     args = ap.parse_args(argv)
     args.launch_args = extra
 
@@ -251,10 +259,10 @@ def main():
         if nav is None:
             log('Nav2 did not come up twice: see nav.log in ' + out_dir)
             sys.exit(1)
-        if not args.no_localize:
-            localize(args)
         for i, s in enumerate(scenarios):
             log(f'=== run {i + 1}/{len(scenarios)}: scenario {s} ===')
+            if not (args.no_localize and i == 0):  # localise + start mark before every mission
+                localize(args)
             if args.confirm_each or (args.confirm and i == 0):
                 input('Press Enter to start the mission. ')
             res, launch = run_one(watcher, s, args, out_dir, last=i + 1 == len(scenarios))

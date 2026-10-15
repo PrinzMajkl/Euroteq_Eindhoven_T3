@@ -1098,7 +1098,9 @@ function activityFor(m) {
     case 'dwell': return 'sampling (dwell)';
     case 'sample': return `sample #${d.seq ?? '?'}${isNum(d.nh3) ? ` · ${num(d.nh3, 3)} mg/L` : ''}`;
     case 'sample_timeout': return 'sample timeout, next stop';
-    case 'hold': return 'on HOLD';
+    case 'hold': return d.reason === 'localization' ? 'on HOLD: robot lost, re-localising' : 'on HOLD (link)';
+    case 'localization_lost': return 'robot lost on the map';
+    case 'relocalized': return 're-localised ✓';
     case 'resume': return 'resumed';
     case 'return_home_start': return 'returning home';
     case 'return_home': return +d.status === 4 ? 'home ✓' : `return home failed (status ${d.status ?? '?'})`;

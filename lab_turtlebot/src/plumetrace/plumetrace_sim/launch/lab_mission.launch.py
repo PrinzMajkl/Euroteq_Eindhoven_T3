@@ -5,9 +5,11 @@ Simulation: sim_mission.launch.py includes this launch with use_sim_time:=true n
     ros2 launch plumetrace_sim lab_mission.launch.py scenario:=A seed:=1 [autostart:=false]
         [strategy:=adaptive|lawnmower] [stamped:=true] [collision_monitor:=false] [map:=<yaml>]
         [gateway:=true] [gateway_host:=localhost] [record:=true] [rviz:=true] [use_sim_time:=false]
-        [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10] [nav:=true]
+        [xy_goal_tolerance:=0.03] [yaw_goal_tolerance:=0.10] [nav:=true] [loc_monitor:=true]
 nav:=false leaves out lab_nav (map server, AMCL, Nav2): for a lab_nav that is already running, as tools/run_abc.py
 does so that Nav2 and the robot's position on the map stay up between missions.
+loc_monitor:=true (default) runs localization_monitor: during the mission it checks the robot's position on the
+map and holds the mission to re-localise when the robot is lost.
 With autostart:=false (default) the mission waits for:
     ros2 topic pub --once /mission/start std_msgs/msg/Empty "{}"
 """
@@ -24,7 +26,7 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterValue
 
 
-BAG_TOPICS = ['/plume/sample_raw', '/plume/sample', '/twin/samples', '/twin/posterior', '/twin/next_goal',
+BAG_TOPICS = ['/localization/status', '/plume/sample_raw', '/plume/sample', '/twin/samples', '/twin/posterior', '/twin/next_goal',
               '/twin/planner_info', '/twin/sync', '/twin/obstacles', '/twin/heartbeat', '/twin/command',
               '/twin/registry_cmd', '/mission/state', '/mission/events', '/sensor/trigger', '/edge/heartbeat',
               '/edge/sample_out', '/edge/ack', '/plume/ack', '/robot/pose', '/obstacles/detections',
@@ -77,6 +79,7 @@ def generate_launch_description():
         DeclareLaunchArgument('xy_goal_tolerance', default_value='0.03', description='metres'),
         DeclareLaunchArgument('yaw_goal_tolerance', default_value='0.10', description='radians'),
         DeclareLaunchArgument('nav', default_value='true', description='false: use a lab_nav that is already running'),
+        DeclareLaunchArgument('loc_monitor', default_value='true', description='re-localise when lost during the mission'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(os.path.join(sim, 'launch', 'lab_nav.launch.py')),
             launch_arguments={k: LaunchConfiguration(k) for k in nav_args}.items(),
@@ -94,6 +97,8 @@ def generate_launch_description():
         twin('virtual_obstacle_cloud'),
         twin('mission_controller', {'scenario': sc, 'autostart': LaunchConfiguration('autostart'), 'mode': 'MIXED'},
              condition=IfCondition(LaunchConfiguration('mission'))),
+        twin('localization_monitor', condition=IfCondition(PythonExpression(
+            ["'", LaunchConfiguration('loc_monitor'), "' == 'true' and '", LaunchConfiguration('mission'), "' == 'true'"]))),
         twin('run_logger', {'run_dir': run_dir}, condition=IfCondition(LaunchConfiguration('record'))),
         ExecuteProcess(cmd=['ros2', 'bag', 'record', '-o', PythonExpression(["'", run_dir, "' + '/bag'"])] + BAG_TOPICS,
                        output='log', condition=IfCondition(LaunchConfiguration('record'))),

@@ -5,10 +5,10 @@ Everything of ours runs on the lablaptop. The robot only runs the stock bringup.
 outfall, see `docs/SIMULATION.md`), and the repo has brought up and driven the real robot from the lablaptop.
 `tools/start_demo.sh` and `tools/run_abc.py` (section 5b) ran once on the lablaptop: mission A ran, but the switch
 to mission B took long. In that version every run drove home, stopped Nav2, started it again and waited for it
-before the next mission. Since 2026-10-15
-`run_abc.py` starts Nav2 once and keeps it up, and missions follow each other directly (5b). That version, and
-`tools/localize.py` (section 5c: the robot finds itself on the map and drives to the start mark), have only run
-against a stand-in for ROS, not on Jazzy or the robot.
+before the next mission. Since 2026-10-15 `run_abc.py` starts Nav2 once and keeps it up; before every mission
+the robot checks its position and drives to the start mark, and during every mission `localization_monitor`
+re-localises it when it is lost (5b, 5c). These have only run against a stand-in for ROS, not on Jazzy or the
+robot.
 Keep one hand near Ctrl-C on the launch terminal: it stops Nav2 and the robot stops.
 
 Every terminal on the lablaptop, after step 0:
@@ -208,7 +208,7 @@ It checks the build, `websockets`, `cloudflared` and that the robot answers ping
 | 1 | relay | `tools/relay.py` on port 8090 with a fresh relay key; prints the operator link `http://localhost:8090/?key=...` |
 | 2 | cloudflare | `cloudflared tunnel --url http://localhost:8090` (public `https://*.trycloudflare.com` link, view-only without the key). Not installed: prints the install command from step 0 |
 | 3 | robot | `ssh -t turtlebot@192.168.8.32` with `ROS_DOMAIN_ID=32`, `ros2 launch turtlebot3_bringup robot.launch.py` (type the robot password there) |
-| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: Nav2 up once → robot localises itself and drives to the start mark → Enter → mission A → done → mission B from where the robot stands → C → robot drives to the start mark. Ends with a PASS/FAIL table with start and end times |
+| 4 | missions | waits for `/odom` and `/scan`, then `tools/run_abc.py --confirm`: Nav2 up once → Enter → for A, B and C: position check (re-localise if lost) → drive to the start mark → mission, with the position watched during it → robot drives to the start mark at the end. Ends with a PASS/FAIL table with start and end times |
 | 5 | rviz | `rviz2 -d plumetrace_sim/rviz/plumetrace.rviz` |
 
 Open the operator link from terminal 1 in a browser. Gazebo is not started: a simulated robot on domain 32 would
@@ -238,24 +238,29 @@ python3 tools/run_abc.py --confirm
 python3 tools/run_abc.py --scenarios B --confirm
 python3 tools/run_abc.py --scenarios CAB --seed 2
 python3 tools/run_abc.py --confirm -- xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15
-python3 tools/run_abc.py --no-localize      # robot already on the start mark: skip self-localisation
-python3 tools/run_abc.py --home-between     # drive to the start mark after every run (slower)
+python3 tools/run_abc.py --no-localize      # no position checks (before or during missions); still drives to the mark
 python3 tools/run_abc.py --confirm-each     # wait for Enter before every run, not only the first
 ```
 
 What it does, in order:
 
 1. **Nav2 once.** Starts `lab_nav` (map server, AMCL, Nav2) and waits until it is active (`--ready-timeout`,
-   default 90 s; one restart if not). Nav2 and AMCL stay up until the end, so the robot keeps its position on the
-   map between runs.
-2. **Localise.** Runs `tools/localize.py --go-home` (5c): the robot finds itself on the map and drives to the start
-   mark. `--no-localize` skips this. If it fails, it asks you to put the robot on the mark and press Enter.
-3. **Per scenario.** Starts `lab_mission ... nav:=false` (twin nodes, gateway, logs; takes a few seconds), starts
-   the mission and waits for `done` (`--timeout`, default 900 s). Then it stops that launch, pauses (`--pause`,
-   default 3 s) and starts the next scenario. The next mission starts from where the robot stands; the planner
-   plans from the robot's current position.
-4. **Home.** After the last run the robot drives to the start mark (`--home-timeout`, default 200 s).
-   `--home-between` does this after every run.
+   default 90 s; one restart if not). Nav2 and AMCL stay up until the end.
+2. **Before every mission (A, B and C): check position, then go to the start mark.** Runs
+   `tools/localize.py --go-home` (5c). If the laser scan fits the map at the robot's believed position, nothing
+   moves; if not, the robot turns on the spot until it has found itself. Then Nav2 drives it to the start mark.
+   Every mission therefore starts from the start mark with a checked position. If this fails, it asks you to put
+   the robot on the mark (or use 2D Pose Estimate) and press Enter.
+3. **During every mission: position watched.** Starts `lab_mission ... nav:=false` (twin nodes, gateway, logs and
+   `localization_monitor`; takes a few seconds), starts the mission and waits for `done` (`--timeout`, default
+   900 s). `localization_monitor` checks the position every 3 s (5c). If the robot is lost, the mission holds,
+   the robot re-localises on the spot, and the mission resumes where it was. If that fails, the mission is
+   aborted, and the next mission's step 2 localises again.
+4. **Between missions.** Stops the mission launch, pauses (`--pause`, default 3 s), then step 2 for the next one.
+5. **At the end.** After the last mission the robot drives to the start mark (`--home-timeout`, default 200 s).
+
+`--no-localize` turns off the checks in steps 2 and 3; the robot still drives to the start mark before
+missions B and C, and must stand on it before mission A.
 
 Every line it prints starts with the clock time and the minutes since the start, for example
 `[10:42:13 + 6.5 min] mission B started`. If a step is slow, those times show which one. Ctrl-C aborts the mission,
@@ -277,10 +282,17 @@ What the dashboard shows during the demo:
   warning request draft with radius on the map (only authorities can issue warnings), and a pre-filled report
   and log (export JSON / CSV). "Export all runs (JSON)" in the runs section saves everything.
 
-## 5c. The robot finds itself on the map and drives to the start mark
+## 5c. The robot finds itself on the map: before and during every mission
 
-The map is fixed, so the robot does not have to start on the start mark. `tools/localize.py` works out where it
-is and `--go-home` sends it to the mark. `run_abc.py` does this by itself before mission A.
+The map is fixed, so the robot does not have to start on the start mark. The same checks run in two places, both
+started by `run_abc.py` (5b):
+
+| When | What | What moves |
+| --- | --- | --- |
+| Before each mission | `tools/localize.py --go-home` | turns on the spot only if lost, then drives to the start mark |
+| During each mission | `localization_monitor` node (in `lab_mission`) | nothing while the position fits; when lost: mission holds, robot re-localises on the spot, mission resumes |
+
+By hand (`lab_nav` or `lab_mission` must be running):
 
 ```bash
 python3 tools/localize.py --go-home          # lab_nav or lab_mission must be running
@@ -297,6 +309,22 @@ python3 tools/localize.py --force-global     # always search, even if the curren
    mirror fits clearly better, AMCL is reset to it (`/initialpose`).
 4. **Clear costmaps.** They filled with obstacles drawn at wrong poses during the search.
 5. **Drive.** With `--go-home`, Nav2 drives the robot to the start mark.
+
+**During a mission** `localization_monitor` repeats the fit and mirror check every 3 s while the mission is
+RUNNING. A check fails when the fit is below 0.5 or not clearly better than the mirror. After three failed checks
+in a row (about 10 s):
+
+1. **LOST.** The mission controller cancels the Nav2 goal and holds. The dashboard shows "on HOLD: robot lost,
+   re-localising".
+2. **Re-localise.** First without moving (AMCL updates on the spot, mirror reset if that fits better), then, if
+   needed, the search while turning on the spot (two attempts). Costmaps are cleared.
+3. **OK.** The mission resumes and drives to the stop it was heading for ("re-localised ✓").
+4. **FAILED.** The mission is aborted. `run_abc.py` reports it and the next mission localises again first.
+
+Its status is on `/localization/status` (`ros2 topic echo /localization/status`, JSON with `state`, `fit`,
+`fit_mirror`; also in the rosbag). The end-of-run line in terminal 4 says how often the robot was lost. Turn it
+off with `loc_monitor:=false` on `lab_mission`, or `--no-localize` on `run_abc.py`. Thresholds are ROS parameters
+of the node: `lost_fit` (0.5), `lost_checks` (3), `period_s` (3.0), `margin` (0.08).
 
 It prints both fits each time, for example `scan fit 0.93, at the mirrored pose 0.71 -> ok`. If the real lab
 differs from the map (boards moved, bags, people), fits drop. Lower the thresholds if needed:
@@ -367,6 +395,7 @@ run summaries you want to keep; never commit `web/config.local.js`.
 | AMCL pose jumps or is mirrored | run `python3 tools/localize.py --force-global` (5c); if it keeps failing, marker objects moved since mapping |
 | `localize.py`: "AMCL has not settled on one pose yet" three times | too little structure in view: move the robot nearer the inner boards, or set the pose with 2D Pose Estimate |
 | `localize.py`: fits below the threshold although RViz shows the scan on the walls | the real lab differs from the map: lower `--min-fit` / `--keep-fit` (5c) |
+| Mission keeps going on HOLD "robot lost" although RViz shows the scan on the walls | people or bags near the robot, or boards moved: clear the area; or raise tolerance with `ros2 param set /localization_monitor lost_fit 0.4`, or turn the monitor off (`--no-localize`) |
 | Robot circles or creeps at a goal and never finishes | add `xy_goal_tolerance:=0.05 yaw_goal_tolerance:=0.15` to the `lab_nav` / `lab_mission` command (or `RUN_ABC_ARGS`) |
 | Robot cannot leave the bank ("failed to create plan") | it is too close to the water: check the tape positions against the tape guide; the keepout leaves 0.06 m of margin |
 | Battery shown in orange or red on the dashboard | below 11.3 V / 11.0 V: charge or swap before the next run |
