@@ -51,8 +51,8 @@ TOOLS = [
     {
         "name": "get_river_water_quality",
         "description": (
-            "Get detailed water pollution parameters (dissolved oxygen, ammonium NH3-N, turbidity, stormwater runoff indicator) "
-            "for the Pegnitz river at the Fuchslochwelle spot."
+            "Get human recreational water safety and hygiene telemetry (E. coli, intestinal enterococci, "
+            "sewer overflow status, floating debris risk, and river flow rate) for surfers at Fuchslochwelle."
         ),
         "inputSchema": {
             "type": "object",
@@ -73,44 +73,48 @@ def handle_check_surf_conditions(args: dict) -> str:
 
     today_text = (
         "⛔ TODAY: SURFING NOT RECOMMENDED\n"
-        "• Water Quality: Contaminated / Poor\n"
-        "• Reason: Severe thunderstorms occurred upstream, causing substantial stormwater runoff "
-        "and sewer overflow into the Pegnitz river. Bacteria and sediment levels are currently elevated.\n"
-        "• Advice: Better skip surfing today to avoid health hazards from contaminated river water."
+        "• Water Quality: Contaminated / High Health Risk\n"
+        "• Reason: Severe thunderstorms occurred upstream, triggering Combined Sewer Overflows (CSO) "
+        "and heavy urban/agricultural runoff into the Pegnitz river. Fecal bacteria (E. coli & Enterococci) "
+        "and turbidity are heavily elevated above safe bathing standards.\n"
+        "• Health Risk: High risk of ear, eye, and gastrointestinal infections. Avoid swallowing water.\n"
+        "• Advice: Skip surfing today. Give the river time to flush out the post-storm pollution."
     )
 
     tomorrow_text = (
         "✅ TOMORROW: SURFING RECOMMENDED / CONDITIONS IMPROVING\n"
-        "• Water Quality: Clean / Safe (Projected)\n"
-        "• Reason: Storm runoff is rapidly clearing, water flow and bacterial levels are returning "
-        "to normal baseline thresholds.\n"
+        "• Water Quality: Clean / Safe (Projected within EU Bathing Limits)\n"
+        "• Reason: Storm runoff is clearing rapidly, bacterial counts will dilute and settle back "
+        "to baseline safe thresholds by tomorrow morning.\n"
+        "• River Discharge: Projected optimal ~18 m³/s with clean water flow.\n"
         "• Advice: Surfing conditions will be significantly better and safe tomorrow. Good wave shape expected!"
     )
 
     summary = (
         "🌊 Summary: Surfing at Fuchslochwelle is currently not recommended today because recent storms "
-        "have caused river pollution, but conditions will be much better tomorrow!"
+        "caused severe river contamination (sewer runoff & bacteria), but conditions will be much better and safe tomorrow!"
     )
 
     if timeframe == "today":
-        return f"{today_text}\n\nNote: Conditions will improve tomorrow."
+        return f"{today_text}\n\nNote: Conditions will improve significantly tomorrow."
     elif timeframe == "tomorrow":
-        return f"{tomorrow_text}\n\nContext: River was polluted today due to storms, but clearing out by tomorrow."
+        return f"{tomorrow_text}\n\nContext: River was polluted today due to storm runoff, but clearing out by tomorrow."
     else:
         return f"=== Fuchslochwelle River Surf Advisor ===\n\n{today_text}\n\n{tomorrow_text}\n\n{summary}"
 
 def handle_water_quality(args: dict) -> str:
     spot = args.get("spot", "Fuchslochwelle, Pegnitz") if args else "Fuchslochwelle, Pegnitz"
     return (
-        f"📊 Water Quality Monitoring Telemetry - {spot}\n"
+        f"📊 Surfer Hygiene & Water Safety Telemetry - {spot}\n"
         "--------------------------------------------------\n"
-        "• Status: Storm runoff impact detected\n"
-        "• Ammonia Nitrogen (NH3-N): 4.12 mg/L (ELEVATED - threshold < 1.0 mg/L)\n"
-        "• Dissolved Oxygen (DO): 5.8 mg/L (Acceptable)\n"
-        "• Turbidity: High (Post-storm sediment runoff)\n"
-        "• Contamination Alert: ACTIVE for today (thunderstorm overflow)\n"
-        "• Trend: Normalizing within 18-24 hours (Safe by tomorrow morning)\n"
-        "• Recreational Bathing/Surfing Safety: Unsafe today -> Safe tomorrow"
+        "• Overall Status: ⚠️ CONTAMINATED (Unsafe for recreation today)\n"
+        "• E. coli: 2,450 CFU/100ml (EU Bathing Water Limit: < 900 CFU/100ml) ❌ EXCEEDED\n"
+        "• Intestinal Enterococci: 720 CFU/100ml (Limit: < 330 CFU/100ml) ❌ EXCEEDED\n"
+        "• Combined Sewer Overflow (CSO): Active storm runoff triggered 4h ago\n"
+        "• Floating Debris / Tree Branches: High risk after thunderstorm\n"
+        "• River Discharge / Flow Rate: 23.5 m³/s (Wave runnable, but water biohazard)\n"
+        "• Human Health Hazards: High risk of otitis (surfer's ear), gastroenteritis, eye irritation\n"
+        "• Clearance Forecast: Bacterial levels dropping by 80% overnight; safe to surf tomorrow afternoon"
     )
 
 def handle_tool_call(name: str, arguments: dict):
