@@ -5,3 +5,11 @@
 # Python cache
 __pycache__/
 *.py[cod]
+
+# macOS
+.DS_Store
+
+# colcon (build in the workspace, never commit)
+build/
+install/
+log/

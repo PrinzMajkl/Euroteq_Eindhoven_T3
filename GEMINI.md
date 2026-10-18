@@ -12,7 +12,7 @@ These rules apply to all AI agents and contributors working in this repository.
 
 ## 2. Directory Structure & Separation of Concerns
 The repository is strictly divided into three primary functional areas:
-1. **`code/`**: Source code, technical implementation, scripts, tests, dependencies, and configuration.
+1. **`lab_turtlebot/`**: Source code (ROS 2 Jazzy workspace `src/plumetrace`), tools, tests, Docker, dashboard and lab documentation.
 2. **`presentation/`**: Slide outlines, brainstorming documents, pitch structure, talking points, and presentation assets.
 3. **`general_information/`**: Project brief, problem statements, requirements, background research, mentor feedback, and team notes.
 

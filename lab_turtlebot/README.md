@@ -7,7 +7,7 @@ on the real river (Pegnitz, Nürnberg) with an incident workflow for the local a
 **How it works (for presenting): [ARCHITECTURE.md](ARCHITECTURE.md)**: layers, nodes, topics, services,
 actions and UML diagrams.
 
-## State (2026-10-15)
+## State (2026-10-18)
 
 | Part | State |
 | --- | --- |
@@ -16,9 +16,10 @@ actions and UML diagrams.
 | One-command demo | `tools/start_demo.sh`: relay, Cloudflare link, robot bringup over ssh, missions A/B/C, RViz |
 | Mission runner | `tools/run_abc.py`: continuous rounds (start mark → mission → start mark → ...), each with a secret leaking outfall (A, B or C at random), mock sensor settings `--sensor-*` shown on the dashboard, `--strategy adaptive` (ends at 95 %) or `sweep` (6 fixed stops along the whole bank); self-localisation and drive to the start mark first, PASS only at ≥ 95 % confidence |
 | Self-localisation | `tools/localize.py` + `localization_monitor` (mirror check, global search, HOLD and resume during a mission); tested against stand-ins, thresholds from simulation |
-| Dashboard | Robot, plume (estimated / true), samples, outfall probabilities, battery, runs table, incident workflow (Pegnitz escalation chain, public warning request); minimal layout |
+| Dashboards | Authority view (`web/authority.html`, served at `/` by the relay, opens live; replay of recorded missions) and the Cesium operator view (`/index.html`): robot, plume, samples, outfall probabilities, battery, runs, incident workflow and report |
+| Navigation recovery | BackUp recovery shortened to 0.15 m (`backup_dist`); a blocked stop is replanned over the whole map twice, then skipped; 3 bad stops in a row: drive home. Checked with ROS stand-ins, not yet on the robot |
 | Open issues | Jerky motion: [jerky_motion_diagnosis.md](src/plumetrace/docs/jerky_motion_diagnosis.md) (parameter fixes proposed, not applied); localisation thresholds not yet tuned on the real lab |
-| Tests | 51 unit tests: `cd src/plumetrace && python3 -m pytest -q tests` |
+| Tests | 58 unit tests: `cd src/plumetrace && python3 -m pytest -q tests` |
 
 ## Quick start (lablaptop)
 
@@ -39,9 +40,10 @@ Robot on the start mark first. Stop everything with `tools/start_demo.sh stop`. 
 | `src/plumetrace/plumetrace_twin` | Plume model, emulated sensor, estimator and planner, mission controller, obstacles, self-localisation |
 | `src/plumetrace/plumetrace_gateway` | WebSocket gateway between ROS and the dashboard |
 | `src/plumetrace/plumetrace_sim` | Lab arena world, maps, Nav2 and SLAM parameters, launch files |
-| `src/plumetrace/web` | Cesium dashboard (static page) and Pegnitz incident-response data |
+| `src/plumetrace/web` | Authority view and Cesium operator dashboard (static pages), recorded missions, Pegnitz incident-response data |
 | `src/plumetrace/config`, `data` | Environment script, reach frame, scenarios A/B/C, Pegnitz geometry |
 | `src/plumetrace/tools` | `start_demo.sh`, `run_abc.py`, `localize.py`, `relay.py`, lab checks, map and tape tools |
+| `src/plumetrace/tools/ai` | Mock MCP server for citizen AI questions ([README](src/plumetrace/tools/ai/README.md)) |
 | `src/plumetrace/tests` | Unit tests |
 | `src/plumetrace/docs` | Run sheet, simulation results, jerky-motion diagnosis, arena drawing |
 | `docker` | Jazzy container for the development laptop (simulation); the lablaptop does not need it |
@@ -55,6 +57,7 @@ Robot on the start mark first. Stop everything with `tools/start_demo.sh stop`. 
 | [SIMULATION.md](src/plumetrace/docs/SIMULATION.md) | What ran in simulation, with numbers |
 | [jerky_motion_diagnosis.md](src/plumetrace/docs/jerky_motion_diagnosis.md) | Why the robot moves stop-go and what to change |
 | [web/README.md](src/plumetrace/web/README.md) | Dashboard features and messages |
+| [robot_topics.md](src/plumetrace/docs/robot_topics.md) | Topics and services of the stock robot bringup |
 | [CLAUDE.md](CLAUDE.md) | Working notes for the coding agent |
 
 The ROBOTIS packages (`turtlebot3`, `turtlebot3_msgs`, `turtlebot3_simulations`, `DynamixelSDK`) are not in

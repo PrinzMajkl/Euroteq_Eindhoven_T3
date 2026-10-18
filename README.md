@@ -1,74 +1,71 @@
-# EuroTeQ Eindhoven - Track 3 (T3)
+# PlumeTrace · EuroTeQ Eindhoven Track 3
 
-Repository for the EuroTeQ project (Eindhoven, T3).
+An autonomous ground robot patrols the riverbank, samples the water, and a digital twin of the river works out
+which outfall is leaking. Authorities see it live in the browser, with an incident workflow and report.
 
-## Repository Structure
+Use case: storm sewer overflows on the **Pegnitz in Nuremberg**. Proof of concept: a **TurtleBot3 Burger** on
+**ROS 2 Jazzy** in the lab arena, with the river taped on the floor and the pollution plume simulated by the twin.
+
+## How it works
+
+| Layer | What it does | Where |
+| --- | --- | --- |
+| Robot | TurtleBot3: 360° LiDAR, wheel odometry, drive commands | stock `turtlebot3_bringup` |
+| Navigation | Nav2: AMCL localisation, river keepout zones, planning, recovery, rerouting | [`plumetrace_sim`](lab_turtlebot/src/plumetrace/plumetrace_sim) |
+| Digital twin | Plume and sensor model, Bayesian source estimate, adaptive or sweep sampling, mission control, lossless data link | [`plumetrace_twin`](lab_turtlebot/src/plumetrace/plumetrace_twin) |
+| Web | WebSocket gateway, relay (one link, view-only without key), authority view, Cesium 3D view | [`plumetrace_gateway`](lab_turtlebot/src/plumetrace/plumetrace_gateway), [`web`](lab_turtlebot/src/plumetrace/web) |
+| AI access | Mock MCP server for citizen questions (Fuchslochwelle surf advisor) | [`tools/ai`](lab_turtlebot/src/plumetrace/tools/ai) |
+
+Full explanation with diagrams: [`lab_turtlebot/ARCHITECTURE.md`](lab_turtlebot/ARCHITECTURE.md).
+
+## Repository structure
 
 ```text
 Euroteq_Eindhoven_T3/
-├── code/                    # Source code, prototypes, scripts, and technical implementation
-│   └── README.md
-├── presentation/            # Presentation materials, slide outlines, and brainstorming
-│   └── slides_brainstorm.md
-└── general_information/     # Project brief, requirements, background notes, and references
-    └── README.md
+├── lab_turtlebot/           # The implementation (ROS 2 Jazzy workspace, tools, tests, Docker, lab docs)
+│   ├── README.md            #   start here for the code
+│   ├── ARCHITECTURE.md      #   layers, nodes, topics, actions, diagrams
+│   ├── docker/              #   Jazzy container for simulation on a development laptop
+│   └── src/plumetrace/      #   packages, web dashboards, tools, tests, docs
+├── presentation/            # Slides, speaker scripts, brand guide, diagrams and generators
+├── general_information/     # Project brief, research, stakeholders, regulations, requirements
+├── AGENTS.md / GEMINI.md    # Rules for contributors and AI agents
+└── README.md
 ```
 
-## Folder Overview
+## Quick start (lablaptop)
 
-- **[`code/`](code/)**: Contains the project implementation, scripts, tests, and environment configurations.
-- **[`presentation/`](presentation/)**: Houses presentation preparation, slide structure, speech notes, and brainstorming.
-- **[`general_information/`](general_information/)**: Centralized knowledge base for project scope, mentor/team inputs, requirements, and background research.
+```bash
+cd ~/Euroteq_Eindhoven_T3 && git pull
+```
 
-## ROS Topics and services
-test@2IRR10-NB26:~/Documents/team3e$ ros2 topic list
-/battery_state
-/cmd_vel
-/imu
-/joint_states
-/magnetic_field
-/odom
-/parameter_events
-/robot_description
-/rosout
-/scan
-/sensor_state
-/tf
-/tf_static
-test@2IRR10-NB26:~/Documents/team3e$ ros2 service list
-/diff_drive_controller/describe_parameters
-/diff_drive_controller/get_parameter_types
-/diff_drive_controller/get_parameters
-/diff_drive_controller/get_type_description
-/diff_drive_controller/list_parameters
-/diff_drive_controller/set_parameters
-/diff_drive_controller/set_parameters_atomically
-/ld08_driver/describe_parameters
-/ld08_driver/get_parameter_types
-/ld08_driver/get_parameters
-/ld08_driver/get_type_description
-/ld08_driver/list_parameters
-/ld08_driver/set_parameters
-/ld08_driver/set_parameters_atomically
-/motor_power
-/reset
-/reset_odometry
-/robot_state_publisher/describe_parameters
-/robot_state_publisher/get_parameter_types
-/robot_state_publisher/get_parameters
-/robot_state_publisher/get_type_description
-/robot_state_publisher/list_parameters
-/robot_state_publisher/set_parameters
-/robot_state_publisher/set_parameters_atomically
-/sound
-/turtlebot3_node/describe_parameters
-/turtlebot3_node/get_parameter_types
-/turtlebot3_node/get_parameters
-/turtlebot3_node/get_type_description
-/turtlebot3_node/list_parameters
-/turtlebot3_node/set_parameters
-/turtlebot3_node/set_parameters_atomically
+```bash
+cd lab_turtlebot/src/plumetrace && tools/lab_setup.sh
+```
 
+```bash
+tools/start_demo.sh
+```
 
-- All documentation, code, and presentation materials must be maintained in **English**.
-- For detailed agent and workflow rules, see [AGENTS.md](AGENTS.md).
+Put the robot on the start mark first. The dashboard opens at `http://localhost:8090/` (authority view, live);
+the Cesium operator view is `/index.html`. Stop with `tools/start_demo.sh stop`. Every step:
+[`LAB_RUNSHEET.md`](lab_turtlebot/src/plumetrace/docs/LAB_RUNSHEET.md).
+
+Unit tests (no ROS needed):
+
+```bash
+cd lab_turtlebot/src/plumetrace && python3 -m pytest -q tests
+```
+
+## Key documents
+
+| Document | For |
+| --- | --- |
+| [`lab_turtlebot/README.md`](lab_turtlebot/README.md) | Code state, folders, quick start |
+| [`lab_turtlebot/ARCHITECTURE.md`](lab_turtlebot/ARCHITECTURE.md) | How the system fits together (for presenting) |
+| [`LAB_RUNSHEET.md`](lab_turtlebot/src/plumetrace/docs/LAB_RUNSHEET.md) | Running a lab session |
+| [`web/README.md`](lab_turtlebot/src/plumetrace/web/README.md) | Dashboards, relay, gateway messages |
+| [`presentation/README.md`](presentation/README.md) | Slides and presentation assets |
+| [`general_information/README.md`](general_information/README.md) | Research and project background |
+
+All repository content is in English. Contributor and agent rules: [`AGENTS.md`](AGENTS.md).

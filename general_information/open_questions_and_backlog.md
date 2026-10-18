@@ -35,7 +35,7 @@ This document tracks identified design tensions, technical calibration items, an
 
 ---
 
-## 2. Technical Implementation Backlog (`code/`)
+## 2. Technical Implementation Backlog (`lab_turtlebot/`)
 
 ### Stage 1: ROS 2 Package Scaffolding
 - [ ] Create ROS 2 package for water quality mock node (`mock_water_quality_node`).

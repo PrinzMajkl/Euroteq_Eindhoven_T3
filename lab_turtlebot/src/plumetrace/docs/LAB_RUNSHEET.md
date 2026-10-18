@@ -114,7 +114,7 @@ Commit the report in `lab/reports/`. Exactly one node may publish `/cmd_vel` at 
 ros2 topic info /cmd_vel -v
 ```
 
-Do not run `code/safe_navigation_pollution_v5.py` (the no-Nav2 script) together with `lab_nav`, `lab_mission`
+Do not run the old no-Nav2 script `safe_navigation_pollution_v5.py` (removed from the repo on 2026-10-18, still in git history) together with `lab_nav`, `lab_mission`
 or the demo: both publish `/cmd_vel` and the robot moves stop-go.
 
 ## 2. Tape the river (15 min)
