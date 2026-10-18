@@ -57,7 +57,7 @@ cd ~/Euroteq_Eindhoven_T3/lab_turtlebot/src/plumetrace && source config/env.sh
 | Patrol loop | `python3 tools/wait_ready.py 90 && python3 tools/patrol_abc.py` (with `lab_nav` running) |
 | Replay a run | `python3 tools/export_czml.py ~/plumetrace_runs/<time>` then load the `.czml` in the dashboard (Samples · export · replay) |
 | Stop everything | `tools/start_demo.sh stop` or `tools/lab_stop.sh` |
-| Tests | `python3 -m pytest -q tests` (34 pass) |
+| Tests | `python3 -m pytest -q tests` (58 pass) |
 
 ## 0. Once per lablaptop (5 min)
 
@@ -72,7 +72,7 @@ echo $ROS_DOMAIN_ID
 The code is on `main` (there is no `lab-turtlebot` branch on GitHub). `lab_setup.sh --pip` installs shapely,
 pymap3d, websockets and jsonschema for this user (no sudo) and builds the workspace in `~/Euroteq_Eindhoven_T3/lab_turtlebot`
 on top of `~/turtlebot3_ws` (the repo root is not the workspace: `lab_turtlebot/` is a folder inside it).
-`ROS_DOMAIN_ID` must print 32 (from `~/.bashrc`). Check the tests: `python3 -m pytest -q tests` (34 pass).
+`ROS_DOMAIN_ID` must print 32 (from `~/.bashrc`). Check the tests: `python3 -m pytest -q tests` (58 pass).
 
 Optional, for the public dashboard link (no sudo):
 
